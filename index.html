@@ -57,6 +57,7 @@ button:focus-visible{outline:3px solid var(--hallabong);outline-offset:2px}
 #keys{left:12px;bottom:12px;font-size:12.5px;color:#fff;background:rgba(11,79,108,.55);padding:7px 11px;border-radius:12px;line-height:1.55;max-width:min(560px,60vw)}
 #keys b{font-family:var(--display);font-weight:400;background:rgba(255,255,255,.2);border-radius:5px;padding:0 5px}
 #actions{right:14px;bottom:max(16px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,64px);gap:10px}
+.rb.eat{box-shadow:inset 0 0 0 5px #ff5f8f,0 4px 0 rgba(36,36,42,.25);font-family:var(--display);font-size:15px;animation:pulse .8s ease-in-out infinite alternate}
 .rb{width:64px;height:64px;border-radius:50%;border:0;background:#fff;box-shadow:inset 0 0 0 5px var(--hallabong),0 4px 0 rgba(36,36,42,.25);font-size:13px;display:grid;place-items:center;line-height:1.05;padding:0;touch-action:none}
 .rb:active,.rb.press{transform:translateY(2px)}
 .rb.on{background:var(--hallabong);color:#fff;box-shadow:inset 0 0 0 5px #fff,0 4px 0 rgba(36,36,42,.25)}
@@ -339,6 +340,7 @@ body.touch #chat{bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 120px
 #act.go{background:var(--hallabong);box-shadow:0 4px 0 #c45f12;animation:pulse .35s ease-in-out infinite alternate}
 @keyframes pulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.06)}}
 body.touch #bView,body.touch #bChat{display:none}
+body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 300px);max-width:calc(100vw - 28px);overflow:hidden;text-overflow:ellipsis;font-size:17px;padding:14px 20px}
 /* 바다 옮기기 */
 #spotcard{cursor:pointer;max-width:250px}
 #spotcard .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -465,6 +467,7 @@ body.touch #bView,body.touch #bChat{display:none}
   <button class="rb" id="bChat2" aria-label="말하기">말하기</button>
   <button class="rb gun" id="bGun" aria-label="물총 쏘기">물총</button>
   <button class="rb" id="bFart" aria-label="뽀글 방귀">뽀글</button>
+  <button class="rb eat hidden" id="bEat" aria-label="먹기">냠냠</button>
 </div>
 <div id="tags"></div>
 <div id="joy" class="hidden"><b></b></div>
@@ -504,7 +507,7 @@ body.touch #bView,body.touch #bChat{display:none}
   <div class="hbody">
     <div><h3>조작</h3>
       <ul>
-        <li>PC: <kbd>W A S D</kbd> 이동, 마우스 드래그로 시점, 휠로 줌, <kbd>Space</kbd> 점프·위로, <kbd>Shift</kbd> 땅에서 달리기·물에서 잠수, <kbd>X</kbd> 물총, <kbd>B</kbd> 뽀글 방귀, <kbd>E</kbd> 앉기·매점·대여소·줍기·모래 파기, <kbd>I</kbd> 망사리, <kbd>F</kbd> 마스크 시점, <kbd>M</kbd> 바다 옮기기, <kbd>L</kbd> 순위</li>
+        <li>PC: <kbd>W A S D</kbd> 이동, 마우스 드래그로 시점, 휠로 줌, <kbd>Space</kbd> 점프·위로, <kbd>Shift</kbd> 땅에서 달리기·물에서 잠수, <kbd>X</kbd> 물총, <kbd>B</kbd> 뽀글 방귀, <kbd>E</kbd> 앉기·매점·대여소·줍기·모래 파기, <kbd>R</kbd> 먹기·마시기, <kbd>I</kbd> 망사리, <kbd>F</kbd> 마스크 시점, <kbd>M</kbd> 바다 옮기기, <kbd>L</kbd> 순위</li>
         <li>휴대폰: 왼쪽 화면을 끌어 이동, 오른쪽 화면을 끌어 시점, 두 손가락으로 줌</li>
         <li>별명: 시작 화면이나 친구 창(사람 모양 버튼)에서 8자까지 지을 수 있어요. 친구들 이름표와 순위표에 보여요.</li>
       </ul></div>
@@ -2769,6 +2772,7 @@ function updatePlayer(dt){
   const mag = Math.min(1, Math.hypot(dx, dz));
   if (P.mode !== 'land'){ FUN.run = false; FUN.pose = -1; }
   if (P.mode === 'land'){
+    snackUpdate(dt);
     if (DIVE.on) endDive(); DIVE.calm = Math.max(0, DIVE.calm - dt / 2);
     const wading = P.feet < -0.08, tripping = time < FUN.tripT;
     FUN.run = want && !tripping && (down || (TOUCH && Math.hypot(JOY.x, JOY.y) > 0.92));
@@ -2798,7 +2802,7 @@ function updatePlayer(dt){
     const minY = floaty ? surfaceY : gh + 0.32;
     /* 바닥에 서기: 잠수 키로 끝까지 내려가면 발이 모래에 닿고, 바닥을 걸어 다닐 수 있다 */
     const bedY = gh + 0.4, canBed = !floaty && gh < -1.0 && bedY < -0.6;
-    if (P.bed && (!canBed || P.forceUp || (up && !board) || (vest && !down))){
+    if (P.bed && (!canBed || P.forceUp || (up && !board) || (vest && !down && !(P.digT > 0)))){
       P.bed = false; if (up && !P.forceUp){ P.vy = Math.max(P.vy, 1.6); sandPuff(P.x, gh, P.z, 7); }
     }
     if (!P.bed && canBed && down && !P.forceUp && P.body <= bedY + 0.3){
@@ -2813,7 +2817,7 @@ function updatePlayer(dt){
     if (P.forceUp){ target = 2.4 + Math.min(1.6, depth * 0.12); if (P.body >= surfaceY - 0.08) P.forceUp = false; }
     else if (down && !floaty) target = -(1.7 + Math.min(1.6, depth * 0.12)) * FINK() * (vest ? 0.7 : 1);
     else if (up && !board) target = (2.0 + Math.min(1.5, depth * 0.1)) * Math.sqrt(FINK());
-    else target = clamp((surfaceY - P.body) * 2.2, -1.2, vest ? 2.2 : 1.4);
+    else target = clamp((surfaceY - P.body) * 2.2, -1.2, vest ? 2.2 : 0.8);
     if (board){ if (up && !P.jumpLatch){ P.jumpLatch = true; const wi = catchable(); if (wi !== null) startSurf(wi); else if (!SURF) hintOnce('nosurf', `이 바다에는 서핑 파도가 없어요. 서핑은 ${surfNames(SPOT.mr)}에서 할 수 있어요`); else hintOnce(laneMask(P.x) < 0.6 ? 'surflane' : 'surfhow', laneMask(P.x) < 0.6 ? '노란 깃발 사이 서핑 존으로 가서 파도를 기다려요' : '파도가 바로 뒤에 왔을 때 일어서야 해요. 화면 가운데 신호를 보세요'); } if (!up) P.jumpLatch = false; }
     if (down && board) hintOnce('boarddive', '서핑보드를 들고는 잠수할 수 없어요. 장비에서 보드를 빼면 잠수돼요');
     if (down && tube) hintOnce('tube', '튜브를 끼면 잠수할 수 없어요. 장비에서 튜브를 빼 보세요');
@@ -2944,6 +2948,9 @@ function sitUpdate(dt){
   charRoot.position.set(s.x, y, s.z); P.x = s.x; P.z = s.z; P.yaw = s.yaw; charRoot.rotation.y = s.yaw;
   mungNow += dt; if (((mungNow / 30) | 0) !== (((mungNow - dt) / 30) | 0)){ addPearl(1); hintOnce('mungpearl', '물멍을 30초 할 때마다 진주가 1개씩 모여요'); }
   if ((mungNow | 0) !== ((mungNow - dt) | 0)) { const m = mungNow | 0; $('#mTime').textContent = String((m / 60) | 0).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+  snackUpdate(dt);
+}
+function snackUpdate(dt){
   if (P.sipT > 0){ P.sipT -= dt; if (P.sipT <= 0 && ME.cupObj){ P.level = Math.max(0, P.level - 0.2); const lq = ME.cupObj.userData.liq; if (lq && lq.geometry.type === 'CylinderGeometry'){ lq.scale.y = Math.max(0.05, P.level); lq.position.y = -0.085 + 0.07 * Math.max(0.05, P.level); } if (P.level <= 0.01){ toast('다 마셨어요!'); setTimeout(() => { if (P.cup && P.level <= 0.01){ P.cup = null; attachCup(null); if (P.sit) renderDrinks(); } }, 1400); } if (P.sit) renderDrinks(); } }
   if (P.biteT > 0){ P.biteT -= dt; if (P.biteT <= 0.45 && P.biteT + dt > 0.45 && P.food) biteDone(); }
 }
@@ -3248,7 +3255,7 @@ function renderDrinks(){ const box = $('#mDrinks'); box.innerHTML = '';
   if (!P.food && !P.cup) box.appendChild(el('span', 'mhint', '매점에서 먹을거리를 사 오면 여기서 먹을 수 있어요.'));
   if (!P.cup || P.level <= 0.01){ const w = DRINK('water'), b = el('button', 'dr'); b.type = 'button'; b.id = 'dr-water'; const i = el('i'); i.style.background = w.liquid; b.append(i, document.createTextNode('생수 받기 (무료)')); b.onclick = () => { P.cup = w; P.level = 1; attachCup(w); renderDrinks(); toast('생수를 받았어요'); AudioSys.blip(880, 1320, 0.1, 'sine', 0.08); }; box.appendChild(b); }
   $('#mSip').disabled = !P.cup || P.level <= 0.01; $('#mBite').disabled = !P.food; $('#mBite').classList.toggle('hidden', !P.food); }
-function sip(){ if (!P.cup || P.sipT > 0) return; if (P.level <= 0.01){ toast('컵이 비었어요. 매점에서 새로 사 오거나 생수를 받아요'); return; } P.sipT = 1.3; AudioSys.sip(); }
+function sip(){ if (!P.cup || P.sipT > 0) return; if (!P.sit && P.mode !== 'land'){ toast('물 밖에서 마셔요'); return; } if (P.level <= 0.01){ toast('컵이 비었어요. 매점에서 새로 사 오거나 생수를 받아요'); return; } P.sipT = 1.3; AudioSys.sip(); }
 function refreshHUD(){
   const panel = gearOpen || dexOpen || helpOpen || chatOpen || spotsOpen || rankOpen || storeOpen || bagOpen;
   $('#spotcard').classList.toggle('hidden', !started); $('#topbar').classList.toggle('hidden', !started);
@@ -3272,6 +3279,8 @@ function updateHUD(dt){
     if (catchable() !== null) curInteract = { type: 'surfgo', label: '지금 일어서기!', key: 'Space' };
     else { const d = waveIncoming(); if (d !== null) curInteract = { type: 'surfwait', label: `파도가 와요 · ${Math.ceil(d)}m` }; }
   }
+  { const eb = $('#bEat'), showE = TOUCH && started && !panel && P.mode === 'land' && !P.sit && (!!P.food || (!!P.cup && P.level > 0.01)); eb.classList.toggle('hidden', !showE); if (showE){ const t = P.food ? '냠냠' : '꿀꺽'; if (eb.textContent !== t) eb.textContent = t; } }
+  if (curInteract?.type === 'kiosk' && started) hintOnce('kioskhint', TOUCH ? '화면 오른쪽 주황 버튼을 누르면 매점이 열려요. 산 먹을거리는 냠냠 버튼으로 먹어요' : 'E를 누르면 매점이 열려요. 산 먹을거리는 R로 먹어요');
   const act = $('#act'); act.classList.toggle('cue', curInteract?.type === 'surfwait'); act.classList.toggle('go', curInteract?.type === 'surfgo');
   if (curInteract && started){ act.classList.remove('hidden'); act.innerHTML = ''; act.appendChild(document.createTextNode(curInteract.label)); if (!TOUCH && curInteract.type !== 'surfwait'){ const k = document.createElement('kbd'); k.textContent = curInteract.key || 'E'; act.appendChild(k); } } else act.classList.add('hidden');
 }
@@ -3514,10 +3523,10 @@ function diveStep(dt, under, moving){
   if (under){
     if (!DIVE.on){ DIVE.on = true; DIVE.t = 0; DIVE.use = DIVE.calm; DIVE.calm = 0; DIVE.fail = false; DIVE.warned = false; DIVE.maxD = 0; DIVE.bedMax = 0; }
     DIVE.t += dt; DIVE.maxD = Math.max(DIVE.maxD, -P.body);
-    const depth = Math.max(0, -P.body), fin = (G.fins === 'long' || G.fins === 'mermaid') ? 1.1 : G.fins === 'short' ? 1.18 : 1.3;
-    P.breath -= dt * 100 / 18 * (moving ? fin : 0.8) * (1 + Math.max(0, depth - 2) * 0.03) * (1 - DIVE.use * 0.35);
-    if (P.breath < 25 && !DIVE.warned){ DIVE.warned = true; hintOnce('lowbreath', '숨이 얼마 안 남았어요! 다 떨어지기 전에 올라와야 기록이 돼요'); }
-    if (P.breath <= 0){ P.breath = 0; if (!P.forceUp){ P.forceUp = true; DIVE.fail = true; toastBreath(); } }
+    const depth = Math.max(0, -P.body), fin = (G.fins === 'long' || G.fins === 'mermaid') ? 0.88 : G.fins === 'short' ? 0.94 : 1.0;
+    P.breath -= dt * 100 / 32 * (moving ? fin : 0.6) * (1 + Math.max(0, depth - 3) * 0.02) * (1 - DIVE.use * 0.3);
+    if (P.breath < 25 && !DIVE.warned){ DIVE.warned = true; hintOnce('lowbreath', TOUCH ? '숨이 얼마 안 남았어요! 위로 버튼을 눌러 올라가요' : '숨이 얼마 안 남았어요! Space를 눌러 올라가요'); }
+    if (P.breath <= 0){ P.breath = 0; if (!P.forceUp){ P.forceUp = true; if (time - lastBreathToast > 5){ lastBreathToast = time; toast('숨이 다 떨어져서 자동으로 올라가요. 기록은 그대로 남아요'); } } }
   } else {
     if (DIVE.on) endDive();
     P.breath = Math.min(100, P.breath + dt * 100 / 2.2);
@@ -4179,7 +4188,7 @@ function attachFoodTo(rig, f, left){
   const g = foodMesh(f, left); g.position.set(0, -0.02, 0.07); g.scale.setScalar(1.2); rig.CH.hands[0].add(g); rig.foodObj = g;
 }
 function bite(){
-  if (!P.food || P.biteT > 0) return; if (!P.sit){ toast('벤치나 물멍자리에 앉아서 먹어요'); return; }
+  if (!P.food || P.biteT > 0) return; if (!P.sit && P.mode !== 'land'){ toast('물 밖에서 먹어요. 물에 들어가면 가방에 넣어 둬요'); return; }
   P.biteT = 1.0; for (let k = 0; k < 2; k++) setTimeout(() => AudioSys.blip(260 + k * 60, 140, 0.08, 'triangle', 0.08), 380 + k * 160);
 }
 function biteDone(){
@@ -4224,14 +4233,14 @@ function renderStore(){
     else { if (it.price){ const p = el('span', 'price'); p.appendChild(el('i')); p.appendChild(document.createTextNode(String(it.price))); b.appendChild(p); b.appendChild(document.createTextNode(' 사기')); } else b.textContent = '무료로 받기';
       b.onclick = () => buyFood(it, storeTab); }
     c.appendChild(b); body.appendChild(c); }
-  body.appendChild(el('p', 'stnote', '산 먹을거리는 매점 앞 벤치나 물멍자리에 앉아서 먹어요. 물에 들어가면 가방에 넣어 둬요.'));
+  body.appendChild(el('p', 'stnote', TOUCH ? '산 먹을거리는 화면 오른쪽 아래 냠냠 버튼으로 바로 먹어요. 벤치에 앉아서 먹어도 돼요. 물에 들어가면 가방에 넣어 둬요.' : '산 먹을거리는 R을 눌러 바로 먹어요. 벤치에 앉아서 먹어도 돼요. 물에 들어가면 가방에 넣어 둬요.'));
 }
 function buyFood(it, kind){
   if (PEARL < it.price){ toast(`진주가 ${it.price - PEARL}개 더 필요해요. 새 친구를 찾거나 잠수하면 진주가 모여요`); return; }
   if (it.price){ PEARL -= it.price; saveLS('pp_pearl', PEARL); updatePearlUI(); }
   if (kind === 'food'){ P.food = { id: it.id, left: BITES }; attachFoodTo(ME, it, BITES); }
   else { P.cup = it; P.level = 1; attachCup(it); }
-  AudioSys.blip(880, 1320, 0.1, 'sine', 0.08); toast(`${josa(it.name, '을', '를')} ${it.price ? '샀어요' : '받았어요'}! 벤치에 앉아서 ${kind === 'food' ? '먹어요' : '마셔요'}`);
+  AudioSys.blip(880, 1320, 0.1, 'sine', 0.08); toast(`${josa(it.name, '을', '를')} ${it.price ? '샀어요' : '받았어요'}! ${TOUCH ? (kind === 'food' ? '냠냠' : '꿀꺽') + ' 버튼을 누르면' : 'R을 누르면'} ${kind === 'food' ? '먹어요' : '마셔요'}`);
   renderStore(); if (P.sit) renderDrinks();
 }
 function applyGear(o){ for (const k in o){ if (k in DEFAULT_GEAR && owns(k, o[k])) G[k] = o[k]; } if (!hasBoard(G) && P.surf) P.surf = null; saveLS('pp_gear', G); buildBaby(); if (gearOpen) renderGear(); AudioSys.blip(660, 880, 0.08, 'sine', 0.06); }
@@ -4311,7 +4320,7 @@ addEventListener('keydown', e => {
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   if (e.repeat) return;
   if (e.code === 'KeyM') openSpots(!spotsOpen); if (e.code === 'KeyE') interact(); if (e.code === 'KeyF') setFP(!CAM.fp); if (e.code === 'KeyG') openGear(!gearOpen);
-  if (e.code === 'KeyR' && P.sit) sip();
+  if (e.code === 'KeyR'){ if (P.food) bite(); else if (P.cup) sip(); }
   if (e.code === 'KeyL') openRank(!rankOpen);
   if (e.code === 'KeyI') openBag(!bagOpen);
   if (e.code === 'KeyB') fart();
@@ -4353,7 +4362,7 @@ $('#gClose').onclick = () => openGear(false); $('#gDone').onclick = () => openGe
 $('#bRank').onclick = () => openRank(!rankOpen); $('#rkClose').onclick = () => openRank(false);
 $('#dxHere').onclick = () => { dexMode = 'here'; renderDex(); }; $('#dxRelic').onclick = () => { dexMode = 'relic'; renderDex(); }; $('#bgClose').onclick = () => openBag(false); $('#bagHud').onclick = e => { e.stopPropagation(); openBag(!bagOpen); }; $('#dxAll').onclick = () => { dexMode = 'all'; renderDex(); };
 $('#dClose').onclick = () => openDex(false); $('#hClose').onclick = () => openHelp(false);
-$('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#stClose').onclick = () => openStore(false); $('#mUp').onclick = () => { standUp(); };
+$('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#bEat').onclick = () => { if (P.food) bite(); else sip(); }; $('#stClose').onclick = () => openStore(false); $('#mUp').onclick = () => { standUp(); };
 $('#nextList').textContent = NEXT_SPOTS.join(' · ');
 $('#sNext').innerHTML = '<b>준비 중인 바다</b> · ' + NEXT_SPOTS.map(s => s.replace(/[<>&]/g, '')).join(' · ');
 function resetJoy(){ const j = $('#joy'); j.style.left = '96px'; j.style.top = (innerHeight - 120) + 'px'; }
@@ -4605,13 +4614,13 @@ function addToBag(id){ if (BAG.length >= BAG_MAX) return false; BAG.push(id); sa
 function treasureInteract(){
   if (P.mode !== 'swim' || P.surf || hasBoard(G) || G.tube !== 'none' || P.digT > 0) return null;
   let best = null, bd = 1e9;
-  const nearBed = g => P.body - g < 1.7;
-  for (const o of TR.items){ if (!o.on) continue; const d = Math.hypot(P.x - o.x, P.z - o.z); if (d < 1.3 && d < bd && nearBed(o.g)){ bd = d; best = { type: 'pick', obj: o, d, label: `줍기 · ${itemName(o.id)}` }; } }
-  for (const o of TR.mounds){ if (o.dug) continue; const d = Math.hypot(P.x - o.x, P.z - o.z); if (d < 1.45 && d < bd && nearBed(o.g + 0.3)){ bd = d; best = P.bed ? { type: 'dig', obj: o, d, label: '반짝이는 모래 파기' } : { type: 'digwait', obj: o, d, label: TOUCH ? '바닥에 내려가서 파요' : '바닥에 내려가서 파요 (Shift)' }; } }
+  const nearBed = (g, h = 3.2) => P.body - g < h;
+  for (const o of TR.items){ if (!o.on) continue; const d = Math.hypot(P.x - o.x, P.z - o.z); if (d < 1.9 && d < bd && nearBed(o.g)){ bd = d; best = { type: 'pick', obj: o, d, label: `줍기 · ${itemName(o.id)}` }; } }
+  for (const o of TR.mounds){ if (o.dug) continue; const d = Math.hypot(P.x - o.x, P.z - o.z); if (d < 1.8 && d < bd && nearBed(o.g, 4.2)){ bd = d; best = { type: 'dig', obj: o, d, label: '반짝이는 모래 파기' }; } }
   return best;
 }
 function startPick(o){ if (!bagRoom()) return; P.digT = 0.6; P.digMax = 0.6; P.digObj = o; P.digKind = 'pick'; AudioSys.blip(420, 300, 0.08, 'triangle', 0.05); }
-function startDig(o){ if (!bagRoom()) return; P.digT = 1.35; P.digMax = 1.35; P.digObj = o; P.digKind = 'dig'; P.digPuff = 0; sandPuff(o.x, o.g, o.z, 6, 0.9); AudioSys.blip(160, 110, 0.18, 'sine', 0.06); hintOnce('digkeep', '파는 동안에는 움직이지 말고 기다려요'); }
+function startDig(o){ if (!bagRoom()) return; if (!P.bed){ P.bed = true; P.vy = 0; } P.digT = 1.35; P.digMax = 1.35; P.digObj = o; P.digKind = 'dig'; P.digPuff = 0; sandPuff(o.x, o.g, o.z, 6, 0.9); AudioSys.blip(160, 110, 0.18, 'sine', 0.06); hintOnce('digkeep', '파는 동안에는 움직이지 말고 기다려요'); }
 function rollRelic(mr){ const pool = RELIC_IDS.filter(id => TITEMS[id].mr === mr), sum = pool.reduce((s, id) => s + TITEMS[id].w, 0); let r = Math.random() * (sum + 12);
   for (const id of pool){ r -= TITEMS[id].w; if (r < 0) return id; } return Math.random() < 0.5 ? 'seaglass' : 'shell'; }
 function finishDig(){
@@ -4642,18 +4651,23 @@ function updateTreasure(dt){
   if (TR.beacon && TR.site){ TR.beacon.visible = !!isUnder; const dd = Math.hypot(camera.position.x - TR.site.x, camera.position.z - TR.site.z); TR.beacon.material.opacity = (0.06 + 0.24 * sstep(5, 16, dd)) * (1 + Math.sin(time * 1.3) * 0.2); }
   if (P.digT > 0){
     const o = P.digObj, gone = !o || (P.digKind === 'pick' ? !o.on : o.dug);
-    if (gone || P.moving || P.mode !== 'swim' || P.forceUp || (P.digKind === 'dig' && !P.bed)){ P.digT = 0; P.digObj = null; }
+    if (gone || P.mode !== 'swim' || P.forceUp || (P.digKind === 'dig' && (P.moving || !P.bed))){ P.digT = 0; P.digObj = null; }
     else { P.digT -= dt; if (P.digKind === 'dig'){ P.digPuff -= dt; if (P.digPuff <= 0){ P.digPuff = 0.28; sandPuff(o.x + (Math.random() - 0.5) * 0.3, o.g, o.z + (Math.random() - 0.5) * 0.3, 3, 0.7); } }
       if (o){ const want = Math.atan2(o.x - P.x, o.z - P.z); if (Math.hypot(o.x - P.x, o.z - P.z) > 0.3) P.yaw = lerpAngle(P.yaw, want, 1 - Math.exp(-dt * 8)); }
       if (P.digT <= 0) finishDig(); } }
   /* 유적 발견 */
   if (TR.site && SPOT && P.mode === 'swim'){ const d = Math.hypot(P.x - TR.site.x, P.z - TR.site.z), near = d < 10 && P.body < -2;
     if (near && !TR.near){ const key = SPOT.id; if (!TR.found.has(key)){ TR.found.add(key); saveLS('pp_ruins', [...TR.found]); const got = addPearl(10); toast(`바닷속 유적 '${TR.site.name}'을 찾았어요! 진주 +${got}`, 'found'); AudioSys.chime();
-        setTimeout(() => hintOnce('ruin1', TOUCH ? '반짝이는 모래 둔덕 위로 바닥까지 내려가서 파기 버튼을 눌러요. 유물이 나와요!' : '반짝이는 모래 둔덕 위로 Shift를 눌러 바닥까지 내려간 다음 E를 눌러 파요. 유물이 나와요!'), 2600); } }
+        setTimeout(() => hintOnce('ruin1', TOUCH ? '반짝이는 모래 둔덕 가까이 내려가서 화면 오른쪽 파기 버튼을 눌러요. 유물이 나와요!' : '반짝이는 모래 둔덕 가까이 내려가서 E를 눌러 파요. 유물이 나와요!'), 2600); } }
     TR.near = near; }
+  /* 반짝이는 걸 만지면 저절로 줍기 (모바일에서 버튼을 몰라도 주워진다) */
+  if (P.mode === 'swim' && !(P.digT > 0) && !P.surf && G.tube === 'none' && !hasBoard(G)){
+    for (const o of TR.items){ if (!o.on) continue; const d = Math.hypot(P.x - o.x, P.z - o.z); if (d > 0.95 || P.body - o.g > 1.5) continue;
+      if (BAG.length < BAG_MAX){ startPick(o); break; } if (time - (TR.fullT || -99) > 8){ TR.fullT = time; toast(`망사리가 가득 찼어요 (${BAG_MAX}/${BAG_MAX}). 매점에 가져가서 바꿔요`); } break; } }
   syncBag(ME, BAG.length);
   for (const Rm of NET.peers.values()) if (Rm.visible) syncBag(Rm.rig, Rm.bg || 0);
-  trHudT -= dt; if (trHudT <= 0){ trHudT = 0.3; renderBagHud(); if (BAG.length && P.mode === 'land' && !P.sit) hintOnce('bagshop', '망사리에 담은 건 매점에 가져가면 진주나 특별 선물로 바꿔 줘요'); }
+  trHudT -= dt; if (trHudT <= 0){ trHudT = 0.3; renderBagHud();
+    if (P.mode === 'swim' && P.body < -0.6 && TR.items.some(o => o.on && Math.hypot(P.x - o.x, P.z - o.z) < 7)) hintOnce('pickhint', TOUCH ? '바닥에 반짝이는 게 있어요! 가까이 헤엄쳐 가면 저절로 주워요. 화면 오른쪽 주황 버튼으로도 주울 수 있어요' : '바닥에 반짝이는 게 있어요! 가까이 가면 저절로 줍고, E로도 주울 수 있어요'); if (BAG.length && P.mode === 'land' && !P.sit) hintOnce('bagshop', '망사리에 담은 건 매점에 가져가면 진주나 특별 선물로 바꿔 줘요'); }
 }
 function disposeMesh(m){ if (!m) return; m.parent?.remove(m); if (m.material && !m.material.userData?.shared) m.material.dispose(); }
 /* 아이 옆구리의 주황 망사리 (담은 만큼 불룩해진다) */
