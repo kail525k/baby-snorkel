@@ -2583,7 +2583,7 @@ function updateFX(dt){
 }
 
 /* ============================== 베이비 캐릭터 ============================== */
-const DEFAULT_GEAR = { skin: '#ffd9bf', hair: '#3b2a20', suit: '#ff7a59', suitPat: 'plain', shorts: '#2f5d8a', mask: 'classic', maskColor: '#ff4f8b', snorkel: 'on', snorkelColor: '#ffd23a', fins: 'short', finColor: '#2fd3b5', vest: 'none', vestColor: '#ff8a1f', tube: 'none', tubeColor: '#ffd23a', cap: 'none', capColor: '#ffffff', board: 'none', boardColor: '#2fd3b5' };
+const DEFAULT_GEAR = { skin: '#ffd9bf', hair: '#3b2a20', suit: '#ffb8cc', suitPat: 'plain', shorts: '#ffffff', mask: 'classic', maskColor: '#ff4f8b', snorkel: 'on', snorkelColor: '#ffd23a', fins: 'short', finColor: '#2fd3b5', vest: 'none', vestColor: '#ff8a1f', tube: 'none', tubeColor: '#ffd23a', cap: 'none', capColor: '#ffffff', board: 'none', boardColor: '#2fd3b5', face: 't1' };
 let G = Object.assign({}, DEFAULT_GEAR, loadLS('pp_gear', {}));
 const PAL = ['#ff4f8b', '#ff8a1f', '#ffd23a', '#2fd3b5', '#3aa0ff', '#7a5cff', '#ffffff', '#24242a'];
 const SKINS = ['#ffe6d4', '#ffd9bf', '#f1c09a', '#d9a074', '#b47a52', '#8a5636'];
@@ -2594,6 +2594,152 @@ function disposeRig(rig){ rig.root.traverse(o => { if (o.isMesh){ if (!o.geometr
 const ME = makeRig(); ME.tOff = 0;
 const charRoot = ME.root, pose = ME.pose, CH = ME.CH;
 const blob = mesh(new THREE.CircleGeometry(0.34, 20), new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.22, depthWrite: false })); blob.rotation.x = -Math.PI / 2;
+/* ============================== 아기 얼굴 · 몸 스타일 ==============================
+   face 장비 값에 따라 눈 · 볼 · 입 · 코 · 머리 모양 · 소품 · 몸 비율을 바꾼다. classic은 예전 모습 그대로. */
+const BABY_STYLES = {
+  classic: { name: '지금 모습', eye: 'dot', cheek: 1, mouth: 'smile', hair: 'tuft' },
+  /* 아기 비율(body 'baby') — 큰 머리, 얼굴 아래쪽 큰 눈, 짧고 통통한 팔다리, 한 벌 수영복. pal은 고를 때 같이 입혀 주는 옷 색 */
+  t1: { name: '말랑 왕눈 아기', body: 'baby', head: 1.3, eye: 'kawaii', brow: true, cheek: 1.15, mouth: 'smile', hair: 'curl', ruffle: true, pal: { suit: '#ffb8cc', shorts: '#ffffff' } },
+  t2: { name: '곰돌이 후드 아기', body: 'baby', head: 1.3, eye: 'kawaii', cheek: 1.1, nose: true, mouth: 'cat', hood: 'bear', bangs: true, one: true, patch: '#fff1de', pal: { suit: '#d9a77c' } },
+  t3: { name: '토끼 후드 아기', body: 'baby', head: 1.3, eye: 'sparkle', cheek: 1.2, mouth: 'o', hood: 'bunny', hoodIn: '#ffc2d4', bangs: true, one: true, pal: { suit: '#f6f1ff' } },
+  t4: { name: '개구리 모자 아기', body: 'baby', head: 1.3, eye: 'smile', cheek: 1.35, mouth: 'open', hood: 'frog', hoodC: '#8fd96f', one: true, patch: '#eaffd2', pal: { suit: '#8fd96f' } },
+  t5: { name: '아기 오리', body: 'baby', head: 1.3, eye: 'bean', cheek: 1.3, mouth: 'smile', hood: 'duck', hoodC: '#ffdf5e', one: true, pal: { suit: '#ffdf5e' } },
+  t6: { name: '쪽쪽이 꿀잠 아기', body: 'baby', head: 1.3, eye: 'sleepy', cheek: 1.4, mouth: 'none', extra: 'pacifier', hair: 'none', bonnet: true, ruffle: true, pal: { suit: '#c4e4ff', shorts: '#ffffff' } },
+  t7: { name: '방울 머리 아기', body: 'baby', head: 1.3, eye: 'kawaii', cheek: 1.25, mouth: 'blep', hair: 'buns', ruffle: true, pal: { suit: '#ff9f8f', shorts: '#ffffff', suitPat: 'dots' } },
+  t8: { name: '솜사탕 머리 아기', body: 'baby', head: 1.32, eye: 'sparkle', cheek: 1.2, mouth: 'teeth', hair: 'fluffy', bow: '#ff7fb0', pal: { suit: '#b9efdf', shorts: '#ffffff' } },
+  t9: { name: '꼬마 해녀 아기', body: 'baby', head: 1.3, eye: 'kawaii', brow: true, cheek: 1.3, mouth: 'smile', extra: 'wrap', hair: 'none', one: true, pal: { suit: '#36435c' } },
+  t10: { name: '아기 고양이 후드', body: 'baby', head: 1.3, eye: 'kawaii', iris: '#4a6a2a', cheek: 1.1, whisker: true, mouth: 'cat', hood: 'cat', hoodIn: '#ffc6d2', bangs: true, one: true, patch: '#fff3e6', pal: { suit: '#ffbf80' } },
+};
+const babyStyle = G => BABY_STYLES[G.face] || BABY_STYLES.classic;
+const faceZ = (x, y) => 0.26 * Math.sqrt(Math.max(0, 1 - (x / 0.27) ** 2 - (y / 0.265) ** 2));
+function faceGroup(head, x, y, back = 0.008){ const g = new THREE.Group(); g.position.set(x, y, faceZ(x, y) - back); g.rotation.set(-y * 1.3, x * 1.5, 0); head.add(g); return g; }
+/* 2차 아기 머리: 아래쪽(볼)이 조금 더 넓고 통통한 머리. fz2는 그 겉면의 z */
+const HB = { w: 0.275, h: 0.262, d: 0.262 };
+const hbW = yn => 1 + 0.1 * Math.max(0, -yn), hbD = yn => 1 + 0.035 * Math.max(0, -yn);
+const fz2 = (x, y) => { const yn = y / HB.h; return HB.d * hbD(yn) * Math.sqrt(Math.max(0, 1 - (x / (HB.w * hbW(yn))) ** 2 - yn * yn)); };
+function faceGroup2(head, x, y, back = 0.008){ const g = new THREE.Group(); g.position.set(x, y, fz2(x, y) - back); g.rotation.set(-y * 1.4, x * 1.6, 0); head.add(g); return g; }
+/* 2차 아기 몸통: 아래로 갈수록 둥글게 퍼지는 배 (한 덩어리라 이음새가 없다) */
+function babyBodyGeo(k = 1, t0 = 0, tl = Math.PI, bly = 1){ const g = new THREE.SphereGeometry(1, 30, 18, 0, Math.PI * 2, t0, tl), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++){ const yn = p.getY(i), lo = Math.max(0, -yn), z = p.getZ(i); p.setXYZ(i, p.getX(i) * 0.232 * (1 + 0.1 * lo) * bly * k, yn * 0.235 * k, z * 0.212 * (1 + 0.1 * lo) * bly * k + (z > 0 ? 0.03 * lo * z : 0)); }
+  g.computeVertexNormals(); return g; }
+function strapGeo(r, t, gap){ const g = new THREE.TorusGeometry(r, t, 6, 36, Math.PI * 2 - gap); g.rotateZ(gap / 2 + Math.PI / 2); g.rotateX(Math.PI / 2); return g; }
+function babyHeadGeo(){ const g = new THREE.SphereGeometry(1, 32, 22), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++){ const yn = p.getY(i); p.setXYZ(i, p.getX(i) * HB.w * hbW(yn), yn * HB.h, p.getZ(i) * HB.d * hbD(yn)); }
+  g.computeVertexNormals(); return g; }
+/* 2차 얼굴: 눈은 얼굴 아래쪽에 크게, 입은 작게, 볼은 넓게 */
+function babyFace2(head, G, S, CH, skin, drk, wht){
+  CH.eyes = [];
+  const ey = -0.035, ex = 0.106, pup = L('#1d1517'), iris = L(S.iris || '#4a2e24');
+  for (const s of [1, -1]){
+    const g = faceGroup2(head, s * ex, ey, 0.012);
+    if (S.eye === 'kawaii' || S.eye === 'sparkle'){
+      sph(S.eye === 'sparkle' ? L('#2e2a5c') : iris, g, 0, 0, 0, 0.057, 0.068, 0.024);
+      sph(pup, g, 0, 0.01, 0.007, 0.036, 0.044, 0.02);
+      if (S.eye === 'sparkle') sph(L('#8b7ae6'), g, 0, -0.036, 0.012, 0.034, 0.018, 0.014);
+      else sph(L(shade(S.iris || '#4a2e24', 0.12)), g, 0, -0.04, 0.01, 0.03, 0.014, 0.012);
+      sph(wht, g, 0.02, 0.026, 0.026, 0.023, 0.025, 0.008);
+      sph(wht, g, -0.021, -0.024, 0.024, 0.011, 0.011, 0.008);
+      if (S.eye === 'sparkle'){ sph(wht, g, 0.026, -0.012, 0.024, 0.006); for (let k = 0; k < 3; k++){ const l = mesh(new THREE.ConeGeometry(0.008, 0.032, 4), drk, g, s * (0.044 + k * 0.01), 0.056 - k * 0.013, 0.004); l.rotation.z = -s * (0.6 + k * 0.35); } }
+      g.userData.sy = 1; CH.eyes.push(g);
+    } else if (S.eye === 'bean'){ sph(pup, g, 0, 0, 0, 0.033, 0.045, 0.02); sph(wht, g, 0.011, 0.017, 0.016, 0.011, 0.012, 0.006); g.userData.sy = 1; CH.eyes.push(g); }
+    else { const a = mesh(new THREE.TorusGeometry(0.036, 0.01, 6, 16, Math.PI), drk, g, 0, S.eye === 'sleepy' ? 0.012 : -0.01, 0.012); if (S.eye === 'sleepy') a.rotation.z = Math.PI;
+      if (S.eye === 'sleepy') for (let k = 0; k < 3; k++){ const l = mesh(new THREE.ConeGeometry(0.006, 0.022, 4), drk, g, s * (0.008 + k * 0.016), -0.03 + k * 0.004, 0.012); l.rotation.z = Math.PI + s * (0.1 + k * 0.35); } }
+    if (S.brow){ const b = mesh(new THREE.CapsuleGeometry(0.008, 0.03, 3, 6), L(shade(G.hair, 0.12)), faceGroup2(head, s * 0.1, 0.07, 0.004)); b.rotation.z = Math.PI / 2 + s * 0.18; }
+  }
+  const ck = L('#ff8fa8', { transparent: true, opacity: 0.6 }), cs = S.cheek || 1;
+  for (const s of [1, -1]){ const cx = s * 0.172, cy = -0.1, g = faceGroup2(head, cx, cy, -0.002); sph(ck, g, 0, 0, 0, 0.052 * cs, 0.034 * cs, 0.014);
+    if (S.whisker) for (const k of [-1, 1]){ const w = mesh(new THREE.CapsuleGeometry(0.004, 0.05, 2, 4), drk, g, s * 0.04, k * 0.012, 0.012); w.rotation.z = Math.PI / 2 + s * k * 0.15; } }
+  if (S.nose) sph(L(shade(G.skin, -0.07)), head, 0, -0.085, fz2(0, -0.085) + 0.002, 0.02, 0.016, 0.014);
+  const my = -0.125, mz = fz2(0, my), red = L('#c9506b');
+  let mouth = null;
+  if (S.mouth === 'smile' || S.mouth === 'blep'){ mouth = new THREE.Group(); mouth.position.set(0, my, mz - 0.003); head.add(mouth); const a = mesh(new THREE.TorusGeometry(0.022, 0.0075, 6, 14, Math.PI), red, mouth); a.rotation.z = Math.PI;
+    if (S.mouth === 'blep') sph(L('#ff7f96'), mouth, 0.006, -0.026, 0.01, 0.016, 0.014, 0.01); }
+  else if (S.mouth === 'o'){ mouth = mesh(new THREE.TorusGeometry(0.012, 0.0065, 6, 14), red, head, 0, my, mz - 0.002); }
+  else if (S.mouth === 'cat'){ mouth = new THREE.Group(); mouth.position.set(0, my + 0.005, mz - 0.003); head.add(mouth); for (const s of [1, -1]){ const a = mesh(new THREE.TorusGeometry(0.013, 0.0055, 6, 12, Math.PI), red, mouth, s * 0.013, 0, 0); a.rotation.z = Math.PI; } }
+  else if (S.mouth === 'open' || S.mouth === 'teeth'){ mouth = new THREE.Group(); mouth.position.set(0, my, mz - 0.01); head.add(mouth);
+    const m = mesh(new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), L('#8a2f40'), mouth, 0, 0.01, 0); m.scale.set(0.036, 0.034, 0.02);
+    sph(L('#ff7f96'), mouth, 0, -0.014, 0.006, 0.019, 0.01, 0.01);
+    if (S.mouth === 'teeth') for (const s of [1, -1]) mesh(new THREE.BoxGeometry(0.011, 0.011, 0.006), wht, mouth, s * 0.008, 0.004, 0.016); }
+  return mouth;
+}
+/* 얼굴: 눈 · 볼 · 입 · 코. 입 메시를 돌려준다(스노클을 물면 숨긴다) */
+function babyFace(head, G, S, CH, skin, drk, wht){
+  CH.eyes = [];
+  const ex = S.eye === 'dot' ? 0.092 : 0.1, ey = S.eye === 'dot' ? 0.03 : 0.01;
+  for (const s of [1, -1]){
+    if (S.eye === 'dot'){ const e = sph(drk, head, s * 0.092, 0.03, 0.235, 0.04, 0.046, 0.024); e.userData.sy = 0.046; CH.eyes.push(e); sph(wht, head, s * 0.092 + 0.013, 0.047, 0.257, 0.012); continue; }
+    const g = faceGroup(head, s * ex, ey, 0.012);
+    if (S.eye === 'big' || S.eye === 'sparkle'){
+      const iris = S.eye === 'sparkle' ? L('#2b2d55') : drk; sph(iris, g, 0, 0, 0, S.eye === 'sparkle' ? 0.064 : 0.058, S.eye === 'sparkle' ? 0.078 : 0.07, 0.026);
+      if (S.eye === 'sparkle') sph(L('#5a62b8'), g, 0, -0.028, 0.012, 0.04, 0.026, 0.016);
+      sph(wht, g, 0.018 * s, 0.026, 0.022, 0.022, 0.024, 0.01); sph(wht, g, -0.016 * s, -0.024, 0.02, 0.011);
+      if (S.eye === 'sparkle'){ sph(wht, g, 0.022 * s, -0.012, 0.022, 0.006); for (let k = 0; k < 3; k++){ const l = mesh(new THREE.ConeGeometry(0.008, 0.035, 4), drk, g, s * (0.046 + k * 0.01), 0.058 - k * 0.012, 0.004); l.rotation.z = -s * (0.6 + k * 0.35); } }
+      g.userData.sy = 1; CH.eyes.push(g);
+    } else { /* smile ^^ · sleepy ‿ */
+      const a = mesh(new THREE.TorusGeometry(0.034, 0.009, 6, 16, Math.PI), drk, g, 0, S.eye === 'sleepy' ? 0.012 : -0.008, 0.012); if (S.eye === 'sleepy') a.rotation.z = Math.PI;
+      if (S.eye === 'sleepy') for (let k = 0; k < 2; k++){ const l = mesh(new THREE.ConeGeometry(0.006, 0.02, 4), drk, g, s * (0.02 + k * 0.016), -0.03, 0.012); l.rotation.z = Math.PI + s * (0.3 + k * 0.4); }
+    }
+  }
+  const ck = L('#ff8fa6', { transparent: true, opacity: 0.68 }), cs = S.cheek || 1;
+  for (const s of [1, -1]){ const cx = s * 0.158, cy = -0.06; if (S.puff) sph(skin, head, s * 0.15, -0.075, faceZ(0.15, -0.075) - 0.035, 0.085, 0.07, 0.06); sph(ck, head, cx, cy, faceZ(cx, cy) - 0.006 + (S.puff ? 0.018 : 0), 0.045 * cs, 0.032 * cs, 0.02); }
+  if (S.nose) sph(L(shade(G.skin, -0.06)), head, 0, -0.035, faceZ(0, -0.035) + 0.004, 0.022, 0.018, 0.016);
+  const my = S.mouth === 'open' || S.mouth === 'teeth' ? -0.09 : -0.08, mz = faceZ(0, my);
+  let mouth = null;
+  if (S.mouth === 'smile'){ mouth = mesh(new THREE.TorusGeometry(0.026, 0.008, 6, 14, Math.PI), L('#c4536a'), head, 0, -0.075, 0.249); mouth.rotation.z = Math.PI; if (S.eye !== 'dot') mouth.position.set(0, my, mz - 0.002); }
+  else if (S.mouth === 'o'){ mouth = mesh(new THREE.TorusGeometry(0.014, 0.007, 6, 14), L('#c4536a'), head, 0, my, mz - 0.002); }
+  else if (S.mouth === 'cat'){ mouth = new THREE.Group(); mouth.position.set(0, my, mz - 0.003); head.add(mouth); for (const s of [1, -1]){ const a = mesh(new THREE.TorusGeometry(0.014, 0.006, 6, 12, Math.PI), L('#c4536a'), mouth, s * 0.014, 0, 0); a.rotation.z = Math.PI; } }
+  else if (S.mouth === 'open' || S.mouth === 'teeth'){ mouth = new THREE.Group(); mouth.position.set(0, my, mz - 0.01); head.add(mouth);
+    const m = mesh(new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), L('#8a2f40'), mouth, 0, 0.01, 0); m.scale.set(0.042, 0.04, 0.02);
+    sph(L('#ff7f96'), mouth, 0, -0.016, 0.006, 0.022, 0.011, 0.01);
+    if (S.mouth === 'teeth') for (const s of [1, -1]) mesh(new THREE.BoxGeometry(0.012, 0.012, 0.006), wht, mouth, s * 0.009, 0.004, 0.016); }
+  return mouth;
+}
+/* 머리카락: classic은 예전 그대로 */
+function babyHair(head, G, S){
+  if (G.cap === 'swim' || G.cap === 'shark' || S.hair === 'none') return; const hm = L(G.hair);
+  const backCap = () => { const b = mesh(new THREE.SphereGeometry(1, 30, 14, 0, Math.PI * 2, 0, Math.PI * 0.42), hm, head, 0, 0.005, -0.014); b.scale.set(0.283, 0.278, 0.273); b.rotation.x = -0.5; };
+  if (S.hair === 'tuft'){ const tuft = mesh(new THREE.TorusGeometry(0.045, 0.016, 6, 14, Math.PI * 1.4), hm, head, 0, 0.275, 0.02); tuft.rotation.y = Math.PI / 2; backCap(); }
+  else if (S.hair === 'curl' || S.hair === 'bald'){ if (S.hair === 'curl') backCap();
+    const pts = []; for (let k = 0; k <= 24; k++){ const t = k / 24, a = t * Math.PI * 3.2, r = 0.05 * (1 - t * 0.7); pts.push(new V3(Math.cos(a) * r * 0.6, 0.262 + t * 0.06 + Math.sin(a) * r * 0.5, 0.06 + Math.sin(a) * r * 0.3)); }
+    mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.012, 6, false), hm, head); }
+  else if (S.hair === 'buns'){ backCap(); for (const s of [1, -1]){ sph(hm, head, s * 0.14, 0.255, -0.03, 0.072, 0.068, 0.068); const t = mesh(new THREE.TorusGeometry(0.04, 0.013, 6, 16), L('#ffe14d'), head, s * 0.12, 0.21, -0.02); t.rotation.set(Math.PI / 2 - 0.5, 0, s * 0.5); }
+    for (let k = -2; k <= 2; k++) sph(hm, head, k * 0.045, 0.2 - Math.abs(k) * 0.012, 0.165 - Math.abs(k) * 0.02, 0.04, 0.03, 0.03); }
+  else if (S.hair === 'pigtail'){ backCap(); for (const s of [1, -1]){ sph(hm, head, s * 0.22, 0.17, -0.06, 0.075, 0.07, 0.07); const t = mesh(new THREE.TorusGeometry(0.03, 0.012, 6, 14), L('#ff6fae'), head, s * 0.18, 0.2, -0.05); t.rotation.y = Math.PI / 2; } }
+  else if (S.hair === 'fluffy'){ const cr = mulberry32(7); for (let k = 0; k < 18; k++){ const a = cr() * Math.PI * 2, el = 0.35 + cr() * 0.9, r = 0.262; const x = Math.cos(a) * Math.cos(el) * r, y = Math.sin(el) * r, z = Math.sin(a) * Math.cos(el) * r - 0.02; if (z > 0.17 && y < 0.2) continue; sph(hm, head, x, y + 0.01, z, 0.055 + cr() * 0.025); } }
+}
+/* 소품: 모자 장비를 쓰면 머리 소품은 뺀다 */
+function babyHood(head, G, S, drk, wht){
+  const k = S.hood, hc = L(S.hoodC || G.suit), hi = L(S.hoodIn || '#ffd0dc'), rim = L(shade(S.hoodC || G.suit, 0.08));
+  const b = mesh(new THREE.SphereGeometry(1, 30, 16, 0, Math.PI * 2, 0, Math.PI * 0.62), hc, head, 0, 0, -0.03); b.scale.set(0.305, 0.3, 0.3); b.rotation.x = -0.95;
+  const r = mesh(new THREE.TorusGeometry(0.274, 0.032, 8, 40), rim, head, 0, -0.062, 0.058); r.rotation.x = -2.52;
+  if (S.bangs){ const hm = L(G.hair); for (let i = -2; i <= 2; i++) sph(hm, head, i * 0.04, 0.165 - Math.abs(i) * 0.012, 0.19 - Math.abs(i) * 0.016, 0.036, 0.026, 0.024); }
+  if (k === 'bear') for (const s of [1, -1]){ sph(hc, head, s * 0.2, 0.25, -0.05, 0.085, 0.085, 0.055); sph(hi, head, s * 0.2, 0.25, -0.005, 0.05, 0.05, 0.02); }
+  if (k === 'cat') for (const s of [1, -1]){ const e = mesh(new THREE.ConeGeometry(0.08, 0.15, 4), hc, head, s * 0.17, 0.29, -0.04); e.rotation.set(0, Math.PI / 4, s * -0.38); const ei = mesh(new THREE.ConeGeometry(0.045, 0.09, 4), hi, head, s * 0.166, 0.28, 0.0); ei.rotation.set(0, Math.PI / 4, s * -0.38); }
+  if (k === 'bunny') for (const s of [1, -1]){ const g = new THREE.Group(); g.position.set(s * 0.1, 0.28, -0.05); g.rotation.set(-0.15, 0, s * -0.22); head.add(g); sph(hc, g, 0, 0.13, 0, 0.06, 0.16, 0.042); sph(hi, g, 0, 0.13, 0.03, 0.034, 0.12, 0.016); }
+  if (k === 'frog') for (const s of [1, -1]){ sph(hc, head, s * 0.13, 0.27, 0.03, 0.085); sph(wht, head, s * 0.13, 0.285, 0.085, 0.06, 0.06, 0.04); sph(drk, head, s * 0.13, 0.285, 0.122, 0.03, 0.032, 0.012); sph(wht, head, s * 0.13 + 0.01, 0.296, 0.132, 0.008); }
+  if (k === 'duck'){ const bill = sph(L('#ff9a2e'), head, 0, 0.2, 0.25, 0.13, 0.028, 0.08); bill.rotation.x = 0.35;
+    for (const s of [1, -1]){ sph(drk, head, s * 0.085, 0.27, 0.2, 0.02, 0.024, 0.012); sph(wht, head, s * 0.085 + 0.006, 0.278, 0.21, 0.006); }
+    for (let i = -1; i <= 1; i++){ const t = sph(hc, head, i * 0.03, 0.33, 0.02, 0.025, 0.055, 0.025); t.rotation.z = -i * 0.5; } }
+}
+function babyExtra(pose, head, G, S, drk, wht){
+  const BB = S.body === 'baby';
+  if (S.bow){ const bm = L(S.bow); for (const s of [1, -1]){ const w = sph(bm, pose, s * 0.045, 0.13, 0.175, 0.045, 0.032, 0.02); w.rotation.z = s * 0.35; } sph(bm, pose, 0, 0.13, 0.19, 0.018, 0.018, 0.014); }
+  if (G.cap === 'none' && S.hood) babyHood(head, G, S, drk, wht);
+  if (G.cap === 'none' && S.bonnet) babyExtra(pose, head, G, { extra: 'bonnet' }, drk, wht);
+  const e = S.extra; if (!e) return;
+  if (e === 'pacifier'){ const g = BB ? faceGroup2(head, 0, -0.13, -0.008) : faceGroup(head, 0, -0.085, -0.01); sph(L('#8fd8ff', { transparent: true, opacity: 0.92 }), g, 0, 0, 0, 0.055, 0.038, 0.014); sph(L('#ffd9a0'), g, 0, 0, -0.01, 0.016, 0.014, 0.02); const r = mesh(new THREE.TorusGeometry(0.03, 0.009, 6, 18), L('#ff8fb8'), g, 0, -0.012, 0.024); r.rotation.x = 0.3; }
+  if (e === 'bib'){ sph(L('#ff9fbf'), pose, 0, 0.085, 0.208, 0.142, 0.112, 0.03); sph(wht, pose, 0, 0.088, 0.214, 0.128, 0.1, 0.03);
+    const hg = mesh(new THREE.ShapeGeometry(heartShape(0.032), 8), L('#ff6f9a'), pose, 0, 0.07, 0.246); hg.rotation.x = -0.1; }
+  if (G.cap !== 'none') return;
+  if (e === 'bearcap'){ const cm = L('#b98256'), inn = L('#ffc6b0'); const c = mesh(new THREE.SphereGeometry(1, 22, 10, 0, Math.PI * 2, 0, Math.PI * 0.52), cm, head, 0, 0.012, -0.005); c.scale.set(0.29, 0.285, 0.28);
+    for (const s of [1, -1]){ sph(cm, head, s * 0.18, 0.22, -0.02, 0.075, 0.075, 0.05); sph(inn, head, s * 0.18, 0.22, 0.02, 0.045, 0.045, 0.02); } }
+  if (e === 'wrap'){ const wm = L('#f7f5ef'); const b = mesh(new THREE.SphereGeometry(1, 22, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), wm, head, 0, 0.02, -0.01); b.scale.set(0.285, 0.28, 0.275);
+    const band = mesh(new THREE.TorusGeometry(0.262, 0.02, 6, 30), wm, head, 0, 0.1, 0); band.rotation.x = Math.PI / 2 - 0.15; sph(wm, head, 0, 0.255, 0.12, 0.05, 0.035, 0.04); for (const s of [1, -1]){ const t = sph(wm, head, s * 0.04, 0.27, 0.13, 0.035, 0.018, 0.02); t.rotation.z = s * 0.6; } }
+  if (e === 'bonnet'){ const bm = L('#ffd6e8'), fm = L('#fff0f6'); const b = mesh(new THREE.SphereGeometry(1, 26, 12, 0, Math.PI * 2, 0, Math.PI * 0.56), bm, head, 0, 0.0, -0.035); b.scale.set(0.3, 0.3, 0.29); b.rotation.x = -0.8;
+    for (let k = 0; k < 15; k++){ const a = Math.PI * (0.06 + k / 14 * 0.88); sph(fm, head, Math.cos(a) * 0.262, Math.sin(a) * 0.262 - 0.02, 0.05, 0.034, 0.034, 0.026); }
+    for (const s of [1, -1]){ const rb = mesh(new THREE.CylinderGeometry(0.011, 0.011, 0.17, 6), L('#ff8fb8'), head, s * 0.16, -0.17, 0.06); rb.rotation.z = s * 0.55; } sph(L('#ff8fb8'), head, 0, -0.245, 0.1, 0.03, 0.022, 0.02); }
+}
+
 function buildBaby(){ buildBabyInto(ME, G); }
 function buildBabyInto(rig, G){
   const pose = rig.pose, CH = rig.CH; rig.gear = G; rig.cupObj = null;
@@ -2605,51 +2751,68 @@ function buildBabyInto(rig, G){
     mesh(new THREE.BoxGeometry(0.06, 0.012, long ? 1.25 : 0.85), L(G.boardColor === '#ffffff' ? '#2fd3b5' : '#ffffff'), bg, 0, 0.026, 0);
     const fin = mesh(new THREE.BoxGeometry(0.012, 0.12, 0.14), L('#2b2a30'), bg, 0, -0.08, -(long ? 0.68 : 0.47));
     rig.root.add(bg); rig.board = bg; }
-  const skin = L(G.skin), suit = suitMat(G), shorts = L(G.shorts), drk = L('#2a2226'), wht = L('#ffffff');
-  sph(suit, pose, 0, 0, 0, 0.24, 0.26, 0.22);
-  const sh = mesh(new THREE.SphereGeometry(1, 20, 10, 0, Math.PI * 2, Math.PI * 0.56, Math.PI * 0.44), shorts, pose); sh.scale.set(0.246, 0.268, 0.226);
-  if (G.vest === 'vest'){ const vm = L(G.vestColor); const v = mesh(new THREE.SphereGeometry(1, 20, 12, 0, Math.PI * 2, Math.PI * 0.14, Math.PI * 0.5), vm, pose, 0, 0.01, 0); v.scale.set(0.272, 0.29, 0.255);
-    const col = mesh(new THREE.TorusGeometry(0.15, 0.048, 8, 20), vm, pose, 0, 0.215, 0); col.rotation.x = Math.PI / 2;
-    const st = mesh(new THREE.TorusGeometry(0.27, 0.014, 6, 30), drk, pose, 0, -0.03, 0); st.rotation.x = Math.PI / 2; st.scale.set(1.0, 0.94, 1);
-    mesh(new THREE.BoxGeometry(0.07, 0.05, 0.02), drk, pose, 0, -0.03, 0.255);
-    const tp = mesh(new THREE.TorusGeometry(0.274, 0.009, 4, 30), wht, pose, 0, 0.08, 0); tp.rotation.x = Math.PI / 2; tp.scale.set(1.0, 0.94, 1); }
-  const head = new THREE.Group(); head.position.set(0, 0.43, 0.02); pose.add(head); CH.head = head;
-  sph(skin, head, 0, 0, 0, 0.27, 0.265, 0.26);
-  sph(skin, head, 0.258, -0.01, 0, 0.05, 0.055, 0.04); sph(skin, head, -0.258, -0.01, 0, 0.05, 0.055, 0.04);
-  CH.eyes = []; for (const s of [1, -1]){ CH.eyes.push(sph(drk, head, s * 0.092, 0.03, 0.235, 0.04, 0.046, 0.024)); sph(wht, head, s * 0.092 + 0.013, 0.047, 0.257, 0.012); }
-  const ck = L('#ff9fb0', { transparent: true, opacity: 0.72 }); for (const s of [1, -1]) sph(ck, head, s * 0.152, -0.05, 0.215, 0.045, 0.032, 0.02);
-  const mouth = mesh(new THREE.TorusGeometry(0.026, 0.008, 6, 14, Math.PI), L('#c4536a'), head, 0, -0.075, 0.249); mouth.rotation.z = Math.PI;
-  if (G.cap !== 'swim' && G.cap !== 'shark'){ const hm = L(G.hair); const tuft = mesh(new THREE.TorusGeometry(0.045, 0.016, 6, 14, Math.PI * 1.4), hm, head, 0, 0.275, 0.02); tuft.rotation.y = Math.PI / 2;
-    const b = mesh(new THREE.SphereGeometry(1, 18, 8, 0, Math.PI * 2, 0, Math.PI * 0.42), hm, head, 0, 0.005, -0.014); b.scale.set(0.277, 0.272, 0.267); b.rotation.x = -0.5; }
-  const maskM = L(G.maskColor), glassM = new THREE.MeshLambertMaterial({ color: '#c9f4ff', transparent: true, opacity: 0.33, emissive: '#4aa9c0', emissiveIntensity: 0.25, depthWrite: false });
+  let skin = L(G.skin); const suit = suitMat(G), shorts = L(G.shorts), drk = L('#2a2226'), wht = L('#ffffff');
+  const S = babyStyle(G), hs = S.head || 1, lb = S.limb || 1, bly = S.belly || 1;
+  /* 2차 아기 비율: 몸통 · 머리 · 팔은 bodyG에 붙여 다리 길이만큼 내린다(발바닥 높이는 그대로) */
+  const BB = S.body === 'baby', oy = BB ? -0.07 : 0, bodyG = BB ? new THREE.Group() : pose;
+  rig.armOut = BB ? 0.32 : 0;
+  if (BB){ bodyG.position.y = oy; pose.add(bodyG);
+    const skinB = L(G.skin, { emissive: G.skin, emissiveIntensity: 0.14 }); skin.dispose(); skin = skinB;
+    mesh(babyBodyGeo(1, 0, Math.PI, bly), suit, bodyG);
+    if (!S.one) mesh(babyBodyGeo(1.03, Math.PI * 0.6, Math.PI * 0.4, bly), shorts, bodyG);
+    if (S.ruffle){ const rm = L(shade(S.one ? G.suit : G.shorts, S.one ? 0.16 : -0.04)); for (let k = 0; k < 20; k++){ const a = k / 20 * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a); sph(rm, bodyG, c * 0.205 * bly, -0.15, sn * 0.2 * bly + (sn > 0 ? 0.012 : 0), 0.046, 0.03, 0.046); } }
+    if (S.patch) sph(L(S.patch), bodyG, 0, -0.07, 0.2, 0.13, 0.125, 0.045);
+  } else {
+    sph(suit, pose, 0, 0, 0, 0.24 * bly, 0.26, 0.22 * bly);
+    const sh = mesh(new THREE.SphereGeometry(1, 20, 10, 0, Math.PI * 2, Math.PI * 0.56, Math.PI * 0.44), shorts, pose); sh.scale.set(0.246 * bly, 0.268, 0.226 * bly); }
+  if (G.vest === 'vest'){ const vm = L(G.vestColor); const v = mesh(new THREE.SphereGeometry(1, 20, 12, 0, Math.PI * 2, Math.PI * 0.14, Math.PI * 0.5), vm, bodyG, 0, 0.01, 0); v.scale.set(0.272, 0.29, 0.255);
+    const col = mesh(new THREE.TorusGeometry(0.15, 0.048, 8, 20), vm, bodyG, 0, 0.215, 0); col.rotation.x = Math.PI / 2;
+    const st = mesh(new THREE.TorusGeometry(0.27, 0.014, 6, 30), drk, bodyG, 0, -0.03, 0); st.rotation.x = Math.PI / 2; st.scale.set(1.0, 0.94, 1);
+    mesh(new THREE.BoxGeometry(0.07, 0.05, 0.02), drk, bodyG, 0, -0.03, 0.255);
+    const tp = mesh(new THREE.TorusGeometry(0.274, 0.009, 4, 30), wht, bodyG, 0, 0.08, 0); tp.rotation.x = Math.PI / 2; tp.scale.set(1.0, 0.94, 1); }
+  const head = new THREE.Group(); head.position.set(0, BB ? 0.235 + 0.27 * hs - 0.075 : 0.43 + (hs - 1) * 0.22, 0.02); head.scale.setScalar(hs); bodyG.add(head); CH.head = head;
+  if (BB){ mesh(babyHeadGeo(), skin, head); for (const s of [1, -1]) sph(skin, head, s * 0.272, -0.02, 0, 0.045, 0.05, 0.036); }
+  else { sph(skin, head, 0, 0, 0, 0.27, 0.265, 0.26);
+    sph(skin, head, 0.258, -0.01, 0, 0.05, 0.055, 0.04); sph(skin, head, -0.258, -0.01, 0, 0.05, 0.055, 0.04); }
+  const mouth = (BB ? babyFace2 : babyFace)(head, G, S, CH, skin, drk, wht) || new THREE.Object3D();
+  babyHair(head, G, S);
+  /* 2차 비율은 눈이 낮아서 물안경 · 스노클도 같이 내린다 */
+  const mp = new THREE.Group(); head.add(mp); const mg = new THREE.Group(); mg.position.y = BB ? -0.055 : 0; mp.add(mg);
+  const sg = new THREE.Group(); sg.position.set(0, BB ? -0.055 : 0, BB ? -0.012 : 0); head.add(sg); const su = new THREE.Group(); su.visible = false; head.add(su);
+  CH.mask = { mp, sg, su, mouth, upK: S.hood || S.bonnet || S.extra === 'wrap' ? 0.15 : 0.07, on: G.mask !== 'none' && G.mask !== 'full', snork: G.mask !== 'full' && G.snorkel === 'on' };
+  const maskM = L(G.maskColor), glassM = new THREE.MeshLambertMaterial({ color: '#c9f4ff', transparent: true, opacity: BB ? 0.24 : 0.33, emissive: '#4aa9c0', emissiveIntensity: BB ? 0.14 : 0.25, depthWrite: false });
   if (G.mask === 'cat'){ const pink = L('#ffb3c7'); for (const s of [1, -1]){ const e = mesh(new THREE.ConeGeometry(0.07, 0.13, 4), maskM, head, s * 0.15, 0.25, 0.0); e.rotation.set(0, Math.PI / 4, s * -0.4); const ei = mesh(new THREE.ConeGeometry(0.04, 0.08, 4), pink, head, s * 0.147, 0.245, 0.035); ei.rotation.set(0, Math.PI / 4, s * -0.4); }
-    for (const s of [1, -1]) for (const k of [0, 1]){ const w = mesh(new THREE.CylinderGeometry(0.0035, 0.0035, 0.12, 3), drk, head, s * 0.2, -0.035 + k * 0.03, 0.23); w.rotation.z = Math.PI / 2 + s * (k ? 0.14 : -0.14); } }
+    for (const s of [1, -1]) for (const k of [0, 1]){ const w = mesh(new THREE.CylinderGeometry(0.0035, 0.0035, 0.12, 3), drk, mg, s * 0.2, -0.035 + k * 0.03, 0.23); w.rotation.z = Math.PI / 2 + s * (k ? 0.14 : -0.14); } }
   if (G.mask === 'heart'){ const hs = heartShape(0.075); hs.holes.push(heartShape(0.054)); const hg = new THREE.ExtrudeGeometry(hs, { depth: 0.02, bevelEnabled: false, curveSegments: 10 }), gg = new THREE.ShapeGeometry(heartShape(0.06), 10);
-    for (const s of [1, -1]){ mesh(hg, maskM, head, s * 0.082, 0.03, 0.243); mesh(gg, glassM, head, s * 0.082, 0.03, 0.262); }
-    mesh(new THREE.BoxGeometry(0.035, 0.02, 0.02), maskM, head, 0, 0.045, 0.258); sph(maskM, head, 0, -0.045, 0.258, 0.04, 0.035, 0.03);
-    const hst = mesh(new THREE.TorusGeometry(0.274, 0.017, 6, 36), L(shade(G.maskColor, -0.22)), head, 0, 0.04, -0.002); hst.rotation.x = Math.PI / 2; hst.scale.set(1, 0.96, 1); }
+    for (const s of [1, -1]){ mesh(hg, maskM, mg, s * 0.082, 0.03, 0.243); mesh(gg, glassM, mg, s * 0.082, 0.03, 0.262); }
+    mesh(new THREE.BoxGeometry(0.035, 0.02, 0.02), maskM, mg, 0, 0.045, 0.258); sph(maskM, mg, 0, -0.045, 0.258, 0.04, 0.035, 0.03);
+    const hst = mesh(strapGeo(0.274, 0.017, 1.4), L(shade(G.maskColor, -0.22)), mg, 0, 0.04, -0.002); hst.scale.set(1, 1, 0.96); }
   if (G.mask === 'classic' || G.mask === 'cat'){
-    const fr = mesh(new THREE.TorusGeometry(0.1, 0.022, 8, 30), maskM, head, 0, 0.035, 0.248); fr.scale.set(1.6, 1, 1);
-    const gl = mesh(new THREE.CircleGeometry(0.1, 30), glassM, head, 0, 0.035, 0.263); gl.scale.set(1.6, 1, 1);
-    sph(maskM, head, 0, -0.045, 0.258, 0.04, 0.035, 0.03);
-    const st = mesh(new THREE.TorusGeometry(0.274, 0.017, 6, 36), L(shade(G.maskColor, -0.22)), head, 0, 0.04, -0.002); st.rotation.x = Math.PI / 2; st.scale.set(1, 0.96, 1);
+    const fr = mesh(new THREE.TorusGeometry(0.1, 0.022, 8, 30), maskM, mg, 0, 0.035, 0.248); fr.scale.set(1.6, 1, 1);
+    const gl = mesh(new THREE.CircleGeometry(0.1, 30), glassM, mg, 0, 0.035, 0.263); gl.scale.set(1.6, 1, 1);
+    sph(maskM, mg, 0, -0.045, 0.258, 0.04, 0.035, 0.03);
+    const st = mesh(strapGeo(0.274, 0.017, 1.5), L(shade(G.maskColor, -0.22)), mg, 0, 0.04, -0.002); st.scale.set(1, 1, 0.96);
   } else if (G.mask === 'wangnun'){
     const brass = L('#c08a2e'), rub = L('#2a2a30');
-    mesh(new THREE.TorusGeometry(0.135, 0.028, 8, 30), brass, head, 0, 0.03, 0.25); mesh(new THREE.CircleGeometry(0.136, 30), glassM, head, 0, 0.03, 0.262);
-    for (const s of [1, -1]) sph(brass, head, s * 0.15, 0.03, 0.24, 0.022);
-    const st = mesh(new THREE.TorusGeometry(0.274, 0.02, 6, 36, Math.PI * 2 - 1.3), rub, head, 0, 0.04, -0.002); st.rotation.set(Math.PI / 2, 0, Math.PI / 2 + 0.65);
+    mesh(new THREE.TorusGeometry(0.135, 0.028, 8, 30), brass, mg, 0, 0.03, 0.25); mesh(new THREE.CircleGeometry(0.136, 30), glassM, mg, 0, 0.03, 0.262);
+    for (const s of [1, -1]) sph(brass, mg, s * 0.15, 0.03, 0.24, 0.022);
+    const st = mesh(new THREE.TorusGeometry(0.274, 0.02, 6, 36, Math.PI * 2 - 1.3), rub, mg, 0, 0.04, -0.002); st.rotation.set(Math.PI / 2, 0, Math.PI / 2 + 0.65);
   } else if (G.mask === 'full'){
-    const d = mesh(new THREE.SphereGeometry(1, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.5), glassM, head, 0, -0.02, 0.17); d.rotation.x = Math.PI / 2; d.scale.set(0.2, 0.12, 0.23);
-    const rim = mesh(new THREE.TorusGeometry(0.2, 0.026, 8, 32), maskM, head, 0, -0.02, 0.17); rim.scale.set(1, 1.15, 1);
-    mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.32, 10), maskM, head, 0, 0.36, 0.0);
-    sph(L('#ff8a2a'), head, 0, 0.53, 0, 0.05, 0.04, 0.05);
-    const st = mesh(new THREE.TorusGeometry(0.274, 0.017, 6, 36), L(shade(G.maskColor, -0.22)), head, 0, 0.0, -0.002); st.rotation.x = Math.PI / 2;
+    const d = mesh(new THREE.SphereGeometry(1, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.5), glassM, mg, 0, -0.02, 0.17); d.rotation.x = Math.PI / 2; d.scale.set(0.2, 0.12, 0.23);
+    const rim = mesh(new THREE.TorusGeometry(0.2, 0.026, 8, 32), maskM, mg, 0, -0.02, 0.17); rim.scale.set(1, 1.15, 1);
+    mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.32, 10), maskM, mg, 0, 0.36, 0.0);
+    sph(L('#ff8a2a'), mg, 0, 0.53, 0, 0.05, 0.04, 0.05);
+    const st = mesh(strapGeo(0.274, 0.017, 1.6), L(shade(G.maskColor, -0.22)), mg, 0, 0.0, -0.002);
   }
   if (G.mask !== 'full' && G.snorkel === 'on'){
     const pts = [new V3(0, -0.088, 0.262), new V3(0.12, -0.09, 0.24), new V3(0.24, -0.02, 0.13), new V3(0.29, 0.14, -0.02), new V3(0.27, 0.3, -0.17), new V3(0.24, 0.42, -0.26)];
-    mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 28, 0.024, 8, false), L(G.snorkelColor), head);
-    sph(L('#2a2a30'), head, 0, -0.088, 0.262, 0.036, 0.03, 0.02);
-    sph(L('#ff8a2a'), head, 0.24, 0.43, -0.265, 0.04, 0.035, 0.04);
+    mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 28, 0.024, 8, false), L(G.snorkelColor), sg);
+    sph(L('#2a2a30'), sg, 0, -0.088, 0.262, 0.036, 0.03, 0.02);
+    sph(L('#ff8a2a'), sg, 0.24, 0.43, -0.265, 0.04, 0.035, 0.04);
+    /* 물 밖: 물안경을 이마로 올리면 스노클은 머리 옆에 걸어 둔다 */
+    const ox = S.hood ? 1.1 : 1, up = [new V3(0.2 * ox, -0.14, 0.13), new V3(0.27 * ox, -0.05, 0.06), new V3(0.3 * ox, 0.1, -0.03), new V3(0.29 * ox, 0.26, -0.13), new V3(0.25 * ox, 0.4, -0.22)];
+    mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(up), 24, 0.024, 8, false), L(G.snorkelColor), su);
+    sph(L('#2a2a30'), su, 0.2 * ox, -0.15, 0.135, 0.03, 0.026, 0.026); sph(L('#ff8a2a'), su, 0.25 * ox, 0.41, -0.225, 0.04, 0.035, 0.04);
     mouth.visible = false;
   }
   if (G.cap === 'swim'){ const c = mesh(new THREE.SphereGeometry(1, 22, 10, 0, Math.PI * 2, 0, Math.PI * 0.52), L(G.capColor), head, 0, 0.01, -0.005); c.scale.set(0.283, 0.279, 0.273); }
@@ -2671,26 +2834,27 @@ function buildBabyInto(rig, G){
     const br = mesh(new THREE.CylinderGeometry(0.43, 0.43, 0.018, 28), km, head, 0, 0.15, -0.01); br.rotation.x = -0.06;
     mesh(new THREE.CylinderGeometry(0.303, 0.303, 0.055, 24, 1, true), L('#7a5a3a'), head, 0, 0.18, -0.01); sph(km, head, 0, 0.405, -0.01, 0.03); }
   else if (G.cap === 'straw'){ const sm = L('#ecd08a'); mesh(new THREE.CylinderGeometry(0.17, 0.22, 0.15, 20), sm, head, 0, 0.27, -0.01); const br = mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.016, 28), sm, head, 0, 0.2, -0.01); br.rotation.x = -0.1; mesh(new THREE.CylinderGeometry(0.222, 0.222, 0.045, 20, 1, true), L(G.capColor), head, 0, 0.215, -0.01); }
+  babyExtra(bodyG, head, G, S, drk, wht);
   CH.arms = []; CH.hands = [];
-  const armG = new THREE.CapsuleGeometry(0.062, 0.12, 4, 10), slvG = new THREE.CapsuleGeometry(0.07, 0.06, 4, 12);
-  for (const s of [1, -1]){ const sh2 = new THREE.Group(); sh2.position.set(s * 0.2, 0.1, 0); pose.add(sh2); mesh(armG, skin, sh2, 0, -0.13, 0); sph(suit, sh2, 0, -0.03, 0, 0.076, 0.072, 0.076); mesh(slvG, suit, sh2, 0, -0.075, 0);
-    const hand = new THREE.Group(); hand.position.set(0, -0.25, 0); sh2.add(hand); sph(skin, hand, 0, 0, 0, 0.07); CH.arms.push(sh2); CH.hands.push(hand); }
+  const armG = BB ? new THREE.CapsuleGeometry(0.06, 0.05, 4, 10) : new THREE.CapsuleGeometry(0.062 * lb, 0.12 * (lb > 1 ? 0.88 : 1), 4, 10), slvG = new THREE.CapsuleGeometry(0.07, BB ? 0.02 : 0.06, 4, 12);
+  for (const s of [1, -1]){ const sh2 = new THREE.Group(); sh2.position.set(s * (BB ? 0.19 : 0.2), BB ? 0.08 : 0.1, 0); bodyG.add(sh2); mesh(armG, skin, sh2, 0, BB ? -0.085 : -0.13, 0); if (BB) sph(suit, sh2, 0, -0.03, 0, 0.084, 0.078, 0.084); else { sph(suit, sh2, 0, -0.03, 0, 0.076, 0.072, 0.076); mesh(slvG, suit, sh2, 0, -0.075, 0); }
+    const hand = new THREE.Group(); hand.position.set(0, BB ? -0.16 : -0.25, 0); sh2.add(hand); sph(skin, hand, 0, 0, 0, BB ? 0.064 : 0.07 * lb); CH.arms.push(sh2); CH.hands.push(hand); }
   { const gun = new THREE.Group(); gun.visible = false; CH.hands[1].add(gun); const gp = L('#ff4f8b'), gy = L('#ffd23a', { transparent: true, opacity: 0.85 }), gb = L('#3aa0ff');
     mesh(new THREE.BoxGeometry(0.07, 0.2, 0.08), gp, gun, 0, -0.08, 0.01); const nz = mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.07, 8), gb, gun, 0, -0.21, 0.01); sph(gy, gun, 0, -0.04, 0.075, 0.055); mesh(new THREE.BoxGeometry(0.05, 0.05, 0.1), gp, gun, 0, 0.0, -0.06);
     const mz = new THREE.Object3D(); mz.position.set(0, -0.26, 0.01); gun.add(mz); rig.gun = gun; rig.muzzle = mz; }
   CH.legs = [];
-  const legG = new THREE.CapsuleGeometry(0.075, 0.09, 4, 10);
-  for (const s of [1, -1]){ const hp = new THREE.Group(); hp.position.set(s * 0.1, -0.18, 0); pose.add(hp); mesh(legG, skin, hp, 0, -0.11, 0);
-    const fy = -0.235;
+  const legG = BB ? new THREE.CapsuleGeometry(0.088, 0.03, 4, 12) : new THREE.CapsuleGeometry(0.075 * lb, 0.09, 4, 10), hipY = BB ? oy - 0.16 : -0.18;
+  for (const s of [1, -1]){ const hp = new THREE.Group(); hp.position.set(s * (BB ? 0.098 : 0.1), hipY, 0); pose.add(hp); mesh(legG, skin, hp, 0, BB ? -0.07 : -0.11, 0);
+    const fy = -0.415 - hipY;
     if (G.fins === 'none') sph(L(G.finColor), hp, 0, fy, 0.035, 0.082, 0.052, 0.118);
-    else if (G.fins === 'mermaid'){ const fm = L(G.finColor); mesh(new THREE.CapsuleGeometry(0.086, 0.12, 4, 10), fm, hp, 0, -0.12, 0); sph(L(shade(G.finColor, -0.18)), hp, 0, fy, 0.035, 0.088, 0.058, 0.112);
+    else if (G.fins === 'mermaid'){ const fm = L(G.finColor); mesh(new THREE.CapsuleGeometry(BB ? 0.092 : 0.086, BB ? 0.05 : 0.12, 4, 10), fm, hp, 0, BB ? -0.09 : -0.12, 0); sph(L(shade(G.finColor, -0.18)), hp, 0, fy, 0.035, 0.088, 0.058, 0.112);
       if (s === 1){ const fs = new THREE.Shape(); fs.moveTo(0, 0); fs.quadraticCurveTo(0.16, 0.02, 0.3, 0.27); fs.quadraticCurveTo(0.14, 0.16, 0, 0.2); fs.quadraticCurveTo(-0.14, 0.16, -0.3, 0.27); fs.quadraticCurveTo(-0.16, 0.02, 0, 0); const fg = new THREE.ExtrudeGeometry(fs, { depth: 0.02, bevelEnabled: false, curveSegments: 10 }); fg.rotateX(Math.PI / 2); mesh(fg, L(shade(G.finColor, 0.1)), hp, -0.1, fy + 0.01, 0.06); } }
     else { sph(L(shade(G.finColor, -0.2)), hp, 0, fy, 0.035, 0.084, 0.056, 0.112); const Lf = G.fins === 'long' ? 0.46 : 0.28; const bg = new THREE.BoxGeometry(0.17, 0.022, Lf, 1, 1, 4); const bp = bg.attributes.position; for (let i = 0; i < bp.count; i++){ const zz = bp.getZ(i) / Lf + 0.5; bp.setX(i, bp.getX(i) * (1 + zz * 0.9)); } bg.computeVertexNormals(); mesh(bg, L(G.finColor), hp, 0, fy - 0.012, 0.09 + Lf / 2); }
     CH.legs.push(hp); }
   CH.tube = null;
   if (G.tube !== 'none'){ const tm = G.tube === 'donut' ? new THREE.MeshLambertMaterial({ map: stripeTex(G.tubeColor, '#ffffff', 10) }) : G.tube === 'unicorn' ? new THREE.MeshLambertMaterial({ map: stripeTex(G.tubeColor, '#f3d9ff', 6) }) : L(G.tubeColor);
-    const t = mesh(new THREE.TorusGeometry(0.34, 0.125, 14, 36), tm, pose, 0, -0.04, 0); t.rotation.x = Math.PI / 2; CH.tube = t;
-    if (G.tube === 'flamingo' || G.tube === 'unicorn'){ const fg = new THREE.Group(); fg.position.y = -0.04; fg.rotation.y = 0.8; pose.add(fg); const um = L(G.tubeColor);
+    const t = mesh(new THREE.TorusGeometry(0.34, 0.125, 14, 36), tm, bodyG, 0, -0.04, 0); t.rotation.x = Math.PI / 2; CH.tube = t;
+    if (G.tube === 'flamingo' || G.tube === 'unicorn'){ const fg = new THREE.Group(); fg.position.y = -0.04; fg.rotation.y = 0.8; bodyG.add(fg); const um = L(G.tubeColor);
       if (G.tube === 'flamingo'){ const nk = new THREE.CatmullRomCurve3([new V3(0, 0.04, 0.34), new V3(0, 0.2, 0.42), new V3(0, 0.33, 0.37), new V3(0, 0.42, 0.42), new V3(0, 0.44, 0.5)]); mesh(new THREE.TubeGeometry(nk, 20, 0.04, 8, false), um, fg);
         sph(um, fg, 0, 0.44, 0.5, 0.065, 0.06, 0.07); const bk = mesh(new THREE.ConeGeometry(0.03, 0.09, 8), L('#f6efe6'), fg, 0, 0.41, 0.58); bk.rotation.x = Math.PI / 2 + 0.6; sph(drk, fg, 0, 0.38, 0.615, 0.017); for (const s of [1, -1]) sph(drk, fg, s * 0.05, 0.46, 0.525, 0.013); }
       else { const nk = new THREE.CatmullRomCurve3([new V3(0, 0.04, 0.34), new V3(0, 0.18, 0.4), new V3(0, 0.3, 0.42)]); mesh(new THREE.TubeGeometry(nk, 16, 0.055, 8, false), um, fg);
@@ -3003,12 +3167,15 @@ function animRig(rig, dt, st, o){
   const k = 1 - Math.exp(-dt * 10);
   for (const key in T) PS[key] = lerp(PS[key], T[key], key === 'pitch' ? 1 - Math.exp(-dt * 5) : k);
   rig.pose.rotation.set(PS.pitch, PS.yaw, PS.roll); rig.pose.position.y = PS.bob;
-  if (CH.arms){ CH.arms[0].rotation.set(PS.aLx, 0, PS.aLz); CH.arms[1].rotation.set(PS.aRx, 0, PS.aRz); CH.legs[0].rotation.set(PS.lLx, 0, PS.lLz); CH.legs[1].rotation.set(PS.lRx, 0, PS.lRz); if (rig.gear?.fins === 'mermaid'){ CH.legs[1].rotation.x = CH.legs[0].rotation.x; CH.legs[0].rotation.z = CH.legs[1].rotation.z = 0; } }
+  if (CH.arms){ const ao = (rig.armOut || 0) * clamp(1 - Math.abs(PS.aLz) * 0.8, 0, 1); CH.arms[0].rotation.set(PS.aLx, 0, PS.aLz + ao); CH.arms[1].rotation.set(PS.aRx, 0, PS.aRz - ao); CH.legs[0].rotation.set(PS.lLx, 0, PS.lLz); CH.legs[1].rotation.set(PS.lRx, 0, PS.lRz); if (rig.gear?.fins === 'mermaid'){ CH.legs[1].rotation.x = CH.legs[0].rotation.x; CH.legs[0].rotation.z = CH.legs[1].rotation.z = 0; } }
   if (rig.board){ const b = rig.board; b.visible = st !== 'sit' && st !== 'tube';
     if (st === 'surf'){ b.position.set(0, -0.47, 0); b.rotation.set(o.slope || 0, 0, (o.lean || 0) * 0.7); }
     else if (st === 'paddle'){ b.position.set(0, -0.17 + PS.bob, 0.12); b.rotation.set(0, 0, 0); }
     else { b.position.set(0.3, -0.06, 0); b.rotation.set(0, 0, Math.PI / 2); } }
-  rig.blinkT -= dt; const bl = rig.blinkT < 0.12 ? 0.15 : 1; if (rig.blinkT < 0) rig.blinkT = 2 + Math.random() * 3; CH.eyes?.forEach(e => e.scale.y = 0.046 * bl);
+  { const MK = CH.mask; if (MK){ const land = st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet' || st === 'trip', upT = MK.on && land ? 1 : 0;
+    PS.mUp = lerp(PS.mUp || 0, upT, 1 - Math.exp(-dt * 6)); const u = PS.mUp, isUp = u > 0.5; MK.mp.rotation.x = -0.74 * u; MK.mp.scale.setScalar(1 + MK.upK * u);
+    MK.sg.visible = MK.snork && !(MK.on && isUp); MK.su.visible = MK.snork && MK.on && isUp; if (MK.mouth) MK.mouth.visible = !MK.sg.visible; } }
+  rig.blinkT -= dt; const bl = rig.blinkT < 0.12 ? 0.15 : 1; if (rig.blinkT < 0) rig.blinkT = 2 + Math.random() * 3; CH.eyes?.forEach(e => e.scale.y = (e.userData.sy ?? 0.046) * bl);
 }
 function animateBaby(dt){
   P.st = localState();
@@ -3215,9 +3382,11 @@ function renderDex(){
 }
 
 /* ============================== 장비 UI ============================== */
+const FACE_IDS = Object.keys(BABY_STYLES).filter(k => k !== 'classic');
+const SUIT_PASTEL = [...new Set(FACE_IDS.map(id => BABY_STYLES[id].pal?.suit).filter(Boolean))].filter(c => !PAL.includes(c));
 const GEAR_UI = [
-  { tab: '얼굴·머리', items: [{ key: 'skin', label: '피부색', colors: SKINS }, { key: 'hair', label: '머리카락', colors: HAIRS }] },
-  { tab: '래시가드', items: [{ key: 'suit', label: '래시가드 색', colors: PAL.concat(['#ff7a59', '#9ad0ff']) }, { key: 'suitPat', label: '무늬', options: [['plain', '민무늬'], ['stripe', '마린 줄무늬'], ['dots', '물방울'], ['wave', '파도'], ['fish', '물고기 친구'], ['star', '별빛'], ['sunset', '노을'], ['mermaid', '인어 비늘'], ['rainbow', '무지개 챔피언'], ['treasure', '보물 지도']] }, { key: 'shorts', label: '수영 바지', colors: PAL.concat(['#2f5d8a']) }], note: '자물쇠가 달린 무늬는 진주로 살 수 있어요. 잠수 기록과 순위가 오르면 더 멋진 무늬가 열려요. 노을 · 인어 비늘 · 무지개 · 보물 지도 무늬는 색이 정해져 있어요. 보물 지도 무늬는 바닷속 유물을 모두 모으면 받아요.' },
+  { tab: '아기 모습', items: [{ key: 'face', label: '아기 모습', options: FACE_IDS.map(id => [id, BABY_STYLES[id].name]) }, { key: 'skin', label: '피부색', colors: SKINS }, { key: 'hair', label: '머리카락', colors: HAIRS }], note: '아기 모습을 고르면 어울리는 옷 색도 같이 입혀 줘요. 색은 래시가드 탭에서 다시 바꿀 수 있어요. 곰돌이 · 토끼 · 고양이 후드는 래시가드 색을 따라가요.' },
+  { tab: '래시가드', items: [{ key: 'suit', label: '래시가드 색', colors: PAL.concat(['#ff7a59', '#9ad0ff'], SUIT_PASTEL) }, { key: 'suitPat', label: '무늬', options: [['plain', '민무늬'], ['stripe', '마린 줄무늬'], ['dots', '물방울'], ['wave', '파도'], ['fish', '물고기 친구'], ['star', '별빛'], ['sunset', '노을'], ['mermaid', '인어 비늘'], ['rainbow', '무지개 챔피언'], ['treasure', '보물 지도']] }, { key: 'shorts', label: '수영 바지', colors: PAL.concat(['#2f5d8a']) }], note: '자물쇠가 달린 무늬는 진주로 살 수 있어요. 잠수 기록과 순위가 오르면 더 멋진 무늬가 열려요. 노을 · 인어 비늘 · 무지개 · 보물 지도 무늬는 색이 정해져 있어요. 보물 지도 무늬는 바닷속 유물을 모두 모으면 받아요.' },
   { tab: '마스크', items: [{ key: 'mask', label: '종류', options: [['classic', '일반 마스크'], ['full', '풀페이스'], ['heart', '하트 마스크'], ['cat', '고양이 마스크'], ['wangnun', '해녀 왕눈'], ['none', '안 쓰기']] }, { key: 'maskColor', label: '테 색', colors: PAL }], note: '풀페이스 마스크에는 스노클이 달려 있어서 따로 끼지 않아도 돼요.' },
   { tab: '스노클', items: [{ key: 'snorkel', label: '스노클', options: [['on', '끼기'], ['off', '빼기']] }, { key: 'snorkelColor', label: '대롱 색', colors: PAL }] },
   { tab: '오리발', items: [{ key: 'fins', label: '종류', options: [['short', '짧은 오리발'], ['long', '긴 오리발'], ['mermaid', '인어 꼬리'], ['none', '아쿠아슈즈']] }, { key: 'finColor', label: '색', colors: PAL }], note: '긴 오리발과 인어 꼬리는 물에서 가장 빠르고 숨도 아껴 줘요. 대신 땅에서는 뒤뚱뒤뚱 느려져요.' },
@@ -3242,8 +3411,8 @@ function renderGear(){
     grp.appendChild(opts); body.appendChild(grp); }
   if (g.note){ const n = document.createElement('p'); n.className = 'note'; n.textContent = g.note; body.appendChild(n); }
 }
-function setGear(k, v){ if (!owns(k, v)) return; G[k] = v; if (k === 'board' && v !== 'none') G.tube = 'none'; if (k === 'tube' && v !== 'none') G.board = 'none'; if (!hasBoard(G) && P.surf) P.surf = null; saveLS('pp_gear', G); buildBaby(); renderGear(); AudioSys.blip(660, 880, 0.08, 'sine', 0.06); }
-function randomGear(){ const pick = a => a[(Math.random() * a.length) | 0]; G = Object.assign({}, G, { skin: pick(SKINS), hair: pick(HAIRS), suit: pick(PAL), shorts: pick(PAL), mask: pick(['classic', 'classic', 'full']), maskColor: pick(PAL), snorkelColor: pick(PAL), fins: pick(['short', 'long', 'none']), finColor: pick(PAL), vestColor: pick(PAL), tube: pick(['none', 'none', 'donut', 'duck']), tubeColor: pick(PAL), cap: pick(['none', 'swim', 'bucket', 'straw']), capColor: pick(PAL), boardColor: pick(PAL) }); if (G.tube !== 'none') G.board = 'none'; saveLS('pp_gear', G); buildBaby(); renderGear(); }
+function setGear(k, v){ if (!owns(k, v)) return; G[k] = v; if (k === 'face'){ const pal = BABY_STYLES[v]?.pal || {}; if (pal.suit) G.suit = pal.suit; if (pal.shorts) G.shorts = pal.shorts; if (pal.suitPat && owns('suitPat', pal.suitPat)) G.suitPat = pal.suitPat; } if (k === 'board' && v !== 'none') G.tube = 'none'; if (k === 'tube' && v !== 'none') G.board = 'none'; if (!hasBoard(G) && P.surf) P.surf = null; saveLS('pp_gear', G); buildBaby(); renderGear(); AudioSys.blip(660, 880, 0.08, 'sine', 0.06); }
+function randomGear(){ const pick = a => a[(Math.random() * a.length) | 0]; G = Object.assign({}, G, { face: pick(FACE_IDS), skin: pick(SKINS), hair: pick(HAIRS), suit: pick(PAL), shorts: pick(PAL), mask: pick(['classic', 'classic', 'full']), maskColor: pick(PAL), snorkelColor: pick(PAL), fins: pick(['short', 'long', 'none']), finColor: pick(PAL), vestColor: pick(PAL), tube: pick(['none', 'none', 'donut', 'duck']), tubeColor: pick(PAL), cap: pick(['none', 'swim', 'bucket', 'straw']), capColor: pick(PAL), boardColor: pick(PAL) }); if (G.tube !== 'none') G.board = 'none'; saveLS('pp_gear', G); buildBaby(); renderGear(); }
 function openGear(v){ gearOpen = v; gearBuy = null; $('#gear').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); CAM.gearYaw = P.yaw; CAM.prevYaw = CAM.yaw; renderGear(); if (CAM.fp) setFP(false); hintOnce('gearspin', TOUCH ? '아이를 옆으로 밀면 빙글 돌려 볼 수 있어요' : '아이를 드래그하면 빙글 돌려 볼 수 있어요'); } else if (CAM.gearYaw !== undefined){ P.yaw = CAM.gearYaw; CAM.yaw = CAM.prevYaw ?? P.yaw; } refreshHUD(); }
 function openDex(v){ dexOpen = v; $('#dex').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); renderDex(); } refreshHUD(); }
 function openHelp(v){ helpOpen = v; $('#help').classList.toggle('hidden', !v); refreshHUD(); }
@@ -3304,7 +3473,7 @@ function interact(){ const it = curInteract || nearestInteract(); if (!it) retur
 const NET = { room: null, user: null, status: 'connecting', peers: new Map(), names: {}, colors: {}, num: 0, settled: false, sendT: 0, lastJSON: '', mid: 0, msg: '', eid: 0, emo: '', rid: 0, rd: 0, fd: '', myName: '', myColor: '#ff8a2a', lobby: null, gen: 0 };
 const EMOTES = ['👋', '😆', '❤️', '🐠', '🏄', '🥤'];
 const QUICK = ['안녕!', '여기 물고기 많아!', '파도 타러 가자', '같이 물멍하자', '거북이 봤어?', '따라와!', '노을 예쁘다'];
-const ENUMS = { mask: ['classic', 'full', 'heart', 'cat', 'wangnun', 'none'], snorkel: ['on', 'off'], fins: ['short', 'long', 'mermaid', 'none'], vest: ['none', 'vest'], tube: ['none', 'donut', 'duck', 'flamingo', 'unicorn'], cap: ['none', 'swim', 'bucket', 'straw', 'flower', 'shark', 'crown', 'captain', 'explorer'], board: ['none', 'long', 'short'], suitPat: ['plain', 'stripe', 'dots', 'wave', 'fish', 'star', 'sunset', 'mermaid', 'rainbow', 'treasure'] };
+const ENUMS = { face: Object.keys(BABY_STYLES), mask: ['classic', 'full', 'heart', 'cat', 'wangnun', 'none'], snorkel: ['on', 'off'], fins: ['short', 'long', 'mermaid', 'none'], vest: ['none', 'vest'], tube: ['none', 'donut', 'duck', 'flamingo', 'unicorn'], cap: ['none', 'swim', 'bucket', 'straw', 'flower', 'shark', 'crown', 'captain', 'explorer'], board: ['none', 'long', 'short'], suitPat: ['plain', 'stripe', 'dots', 'wave', 'fish', 'star', 'sunset', 'mermaid', 'rainbow', 'treasure'] };
 const COLORK = ['skin', 'hair', 'suit', 'shorts', 'maskColor', 'snorkelColor', 'finColor', 'vestColor', 'tubeColor', 'capColor', 'boardColor'];
 function sanitizeGear(g){ const o = Object.assign({}, DEFAULT_GEAR); if (g && typeof g === 'object'){ for (const k in ENUMS) if (ENUMS[k].includes(g[k])) o[k] = g[k]; for (const k of COLORK) if (typeof g[k] === 'string' && /^#[0-9a-fA-F]{6}$/.test(g[k])) o[k] = g[k]; } return o; }
 const num = (v, d = 0) => (typeof v === 'number' && isFinite(v)) ? v : d;
@@ -3412,7 +3581,7 @@ function emote(e){ if (!EMOTES.includes(e)) return; NET.eid++; NET.emo = e; show
 const tagV = new V3();
 function placeTag(tag, obj, show, label){
   if (!show){ tag.el.classList.add('hidden'); return; }
-  obj.updateWorldMatrix(true, false); tagV.setFromMatrixPosition(obj.matrixWorld); tagV.y += 0.42;
+  obj.updateWorldMatrix(true, false); tagV.setFromMatrixPosition(obj.matrixWorld); tagV.y += 0.42 + Math.max(0, obj.scale.x - 1) * 0.4;
   const dist = tagV.distanceTo(camera.position); tagV.project(camera);
   if (tagV.z > 1 || tagV.z < -1 || dist > 45){ tag.el.classList.add('hidden'); return; }
   tag.el.classList.remove('hidden'); const s = clamp(6 / dist, 0.6, 1.1);
@@ -4918,7 +5087,7 @@ function boot(data){
 try { window.claude?.hot?.snapshot?.(snapshot); } catch (e){}
 const hot = window.claude?.hot;
 if (hot?.ready) hot.ready(boot); else boot(hot?.data ?? {});
-window.__pp = { P, CAM, get G(){ return G; }, get NICK(){ return NICK; }, setNick, nickCheck, nameOf, rankName, TR, TITEMS, get BAG(){ return BAG; }, set BAG(v){ BAG = v; saveBag(); }, openBag, tradeItem, tradeAll, treasureInteract, interact, nearestInteract, get bagOpen(){ return bagOpen; }, get storeTab(){ return storeTab; }, renderDex, get dexMode(){ return dexMode; }, set dexMode(v){ dexMode = v; }, get FOUND(){ return FOUND; }, get SPOT(){ return SPOT; }, SPOTS, switchSpot, openSpots, renderSpots, spotMap, get FISH(){ return FISH; }, get turtle(){ return turtle; }, STATICS: () => STATICS, get CRITS(){ return CRITS; }, get REC(){ return REC; }, get SREC(){ return SREC; }, ME, openStore, buyFood, bite, FOODS, RENTALS, applyGear, SEATS: () => SEATS, POIS: () => POIS, FUN, fart, trip, DROPS, BTN, NET, get time(){ return time; }, DBG, recordSurf, SFX, get rankKind(){ return rankKind; }, get PEARL(){ return PEARL; }, addPearl, RANK, DIVE, recordDive, openRank, renderRank, SHOP, OWNED, buyItem, SPEC, SPECIES, foundAll, startGame, setFP, setTOD, openGear, openDex, sitDown, SEATS, groundH, keys, BTN, NET, onPeersChange, WAVES, catchable, startSurf, setGear, say, emote, openFriends };
+window.__pp = { P, CAM, BABY_STYLES, get G(){ return G; }, get NICK(){ return NICK; }, setNick, nickCheck, nameOf, rankName, TR, TITEMS, get BAG(){ return BAG; }, set BAG(v){ BAG = v; saveBag(); }, openBag, tradeItem, tradeAll, treasureInteract, interact, nearestInteract, get bagOpen(){ return bagOpen; }, get storeTab(){ return storeTab; }, renderDex, get dexMode(){ return dexMode; }, set dexMode(v){ dexMode = v; }, get FOUND(){ return FOUND; }, get SPOT(){ return SPOT; }, SPOTS, switchSpot, openSpots, renderSpots, spotMap, get FISH(){ return FISH; }, get turtle(){ return turtle; }, STATICS: () => STATICS, get CRITS(){ return CRITS; }, get REC(){ return REC; }, get SREC(){ return SREC; }, ME, openStore, buyFood, bite, FOODS, RENTALS, applyGear, SEATS: () => SEATS, POIS: () => POIS, FUN, fart, trip, DROPS, BTN, NET, get time(){ return time; }, DBG, recordSurf, SFX, get rankKind(){ return rankKind; }, get PEARL(){ return PEARL; }, addPearl, RANK, DIVE, recordDive, openRank, renderRank, SHOP, OWNED, buyItem, SPEC, SPECIES, foundAll, startGame, setFP, setTOD, openGear, openDex, sitDown, SEATS, groundH, keys, BTN, NET, onPeersChange, WAVES, catchable, startSurf, setGear, say, emote, openFriends };
 </script>
 </body>
 </html>
