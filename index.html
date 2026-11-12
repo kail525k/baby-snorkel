@@ -570,7 +570,7 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
 <section id="mung" class="sheet hidden" aria-label="물멍 중">
   <div class="mtop"><b id="mTitle">물멍 중</b><span class="mtime" id="mTime">00:00</span></div>
   <div class="drinks" id="mDrinks"></div>
-  <div class="mrow"><button class="btn primary" id="mBite">한 입 냠냠</button><button class="btn primary" id="mSip">한 모금</button><button class="btn" id="mTod">노을로 바꾸기</button><button class="btn" id="mView">내 모습 보기</button><button class="btn" id="mUp">일어나기</button></div>
+  <div class="mrow"><button class="btn primary" id="mBite">한 입 냠냠</button><button class="btn primary" id="mSip">한 모금</button><button class="btn" id="mTod">노을로 바꾸기</button><button class="btn" id="mView">1인칭으로 보기</button><button class="btn" id="mUp">일어나기</button></div>
 </section>
 
 <div id="start">
@@ -3112,6 +3112,7 @@ function standUp(){
   const gh = groundH(P.x, P.z); if (gh < -0.6){ P.mode = 'swim'; P.bed = false; P.body = -0.28; } else { P.mode = 'land'; P.feet = gh; P.grounded = true; }
   mungTotal += mungNow; saveLS('pp_mung', Math.round(mungTotal));
   if (s.kind === 'float'){ CAM.pitch = 0.36; CAM.dist = 4.6; CAM.sky = false; }
+  updateViewBtn();
 }
 function floatDrift(s, dt){
   /* 파도 따라 하염없이: 천천히 방향을 바꾸며 흘러가고, 너울이 오면 올라갔다 밀려갔다 한다. 얕은 곳 · 부표 밖으로는 안 간다 */
@@ -3132,10 +3133,12 @@ function startFloat(){
   if (CAM.fp) setFP(false);
   const R = Math.random, seat = { kind: 'float', x: P.x, z: P.z, y: -0.07, yaw: P.yaw, ph: R() * 6, title: G.tube !== 'none' ? '튜브에 누워 둥실 물멍 중' : '누워서 물멍 중', exit: { x: P.x, z: P.z }, drift: { dir: R() * Math.PI * 2, turn: 0, t: 0, sp: 0.2, spin: R() < 0.5 ? 1 : -1 } };
   sitDown(seat); splashAt(P.x, P.z, 0.6);
-  setSky(true);
-  hintOnce('floatsky', TOUCH ? '하늘을 올려다보며 둥실 떠다녀요. 화면을 끌면 둘러보고, 조이스틱을 움직이면 다시 헤엄쳐요' : '하늘을 올려다보며 둥실 떠다녀요. 마우스로 끌면 둘러보고, 방향키를 누르면 다시 헤엄쳐요');
+  setSky(false);
+  hintOnce('floatsky', TOUCH ? '둥실둥실 떠다녀요. "1인칭으로 하늘 보기"를 누르면 아기 눈으로 하늘을 봐요. 조이스틱을 움직이면 다시 헤엄쳐요' : '둥실둥실 떠다녀요. "1인칭으로 하늘 보기"(F)를 누르면 아기 눈으로 하늘을 봐요. 방향키를 누르면 다시 헤엄쳐요');
 }
-function setSky(v){ CAM.sky = v; CAM.skyPitch = 1.0; CAM.dragT = -99; if (P.sit?.kind === 'float'){ CAM.yaw = P.yaw + (v ? 0 : Math.PI); CAM.pitch = 1.05; CAM.dist = 3.2; } const b = $('#mView'); if (b) b.textContent = v ? '내 모습 보기' : '하늘 보기'; }
+function setSky(v){ CAM.sky = v; CAM.skyPitch = 1.0; CAM.dragT = -99; if (P.sit?.kind === 'float'){ CAM.yaw = P.yaw + (v ? 0 : Math.PI); CAM.pitch = 0.42; CAM.dist = 3.4; } updateViewBtn(); }
+function firstPerson(){ return P.sit?.kind === 'float' ? !!CAM.sky : !!CAM.fp; }
+function updateViewBtn(){ const f = firstPerson(), b = $('#mView'); if (b) b.textContent = f ? '3인칭으로 보기' : (P.sit?.kind === 'float' ? '1인칭으로 하늘 보기' : '1인칭으로 보기'); $('#bView').classList.toggle('on', f); $('#bFp').classList.toggle('on', f); }
 function sitUpdate(dt){
   const s = P.sit; let y = s.y; if (s.kind === 'float') y = floatDrift(s, dt); else if (s.kind === 'tube') y = -0.16 + Math.sin(time * 1.4 + s.ph) * 0.05; else if (s.kind === 'canoe' && s.mesh) y = s.y + s.mesh.position.y;
   charRoot.position.set(s.x, y, s.z); P.x = s.x; P.z = s.z; P.yaw = s.yaw; charRoot.rotation.y = s.yaw;
@@ -3243,12 +3246,12 @@ function updateCamera(dt){
     if (time - CAM.dragT > 4){ CAM.yaw = lerpAngle(CAM.yaw, P.yaw, 1 - Math.exp(-dt * 0.5)); CAM.skyPitch = lerp(CAM.skyPitch, 1.0, 1 - Math.exp(-dt * 0.4)); }
     const e = headW; camera.position.set(e.x, Math.max(e.y + 0.22, 0.16), e.z);
     const cp = Math.cos(CAM.skyPitch); lookT.set(e.x + Math.sin(CAM.yaw) * cp, camera.position.y + Math.sin(CAM.skyPitch), e.z + Math.cos(CAM.yaw) * cp); camera.lookAt(lookT); return; }
-  if (CAM.fp && !P.sit){
+  if (CAM.fp && P.sit?.kind !== 'float'){
     const e = headW; camera.position.set(e.x + Math.sin(CAM.yaw) * 0.12, e.y + 0.02, e.z + Math.cos(CAM.yaw) * 0.12);
     if (P.mode === 'swim' && camera.position.y > -0.1) camera.position.y = -0.12;
     if (Math.abs(camera.position.y) < 0.1) camera.position.y = camera.position.y < 0 ? -0.1 : 0.1;
     const cp = Math.cos(CAM.fpPitch); lookT.set(camera.position.x + Math.sin(CAM.yaw) * cp, camera.position.y + Math.sin(CAM.fpPitch), camera.position.z + Math.cos(CAM.yaw) * cp); camera.lookAt(lookT); return; }
-  if (P.sit?.kind === 'float' && time - CAM.dragT > 4) CAM.yaw = lerpAngle(CAM.yaw, P.yaw + Math.PI, 1 - Math.exp(-dt * 0.5));
+  if (P.sit?.kind === 'float'){ camT.y = charRoot.position.y + 0.1; if (time - CAM.dragT > 4){ CAM.yaw = lerpAngle(CAM.yaw, P.yaw + Math.PI + Math.sin(time * 0.06) * 0.5, 1 - Math.exp(-dt * 0.5)); CAM.pitch = lerp(CAM.pitch, 0.42, 1 - Math.exp(-dt * 0.3)); } }
   if (P.surf && time - CAM.dragT > 2.5){ CAM.yaw = lerpAngle(CAM.yaw, P.yaw + 0.6, 1 - Math.exp(-dt * 1.8)); CAM.pitch = lerp(CAM.pitch, 0.3, 1 - Math.exp(-dt * 1.5)); }
   const cp = Math.cos(CAM.pitch), sp = Math.sin(CAM.pitch);
   camD.set(camT.x - Math.sin(CAM.yaw) * cp * CAM.dist, camT.y + sp * CAM.dist, camT.z - Math.cos(CAM.yaw) * cp * CAM.dist);
@@ -3453,8 +3456,8 @@ function randomGear(){ const pick = a => a[(Math.random() * a.length) | 0]; G = 
 function openGear(v){ gearOpen = v; gearBuy = null; $('#gear').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); CAM.gearYaw = P.yaw; CAM.prevYaw = CAM.yaw; renderGear(); if (CAM.fp) setFP(false); hintOnce('gearspin', TOUCH ? '아이를 옆으로 밀면 빙글 돌려 볼 수 있어요' : '아이를 드래그하면 빙글 돌려 볼 수 있어요'); } else if (CAM.gearYaw !== undefined){ P.yaw = CAM.gearYaw; CAM.yaw = CAM.prevYaw ?? P.yaw; } refreshHUD(); }
 function openDex(v){ dexOpen = v; $('#dex').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); renderDex(); } refreshHUD(); }
 function openHelp(v){ helpOpen = v; $('#help').classList.toggle('hidden', !v); refreshHUD(); }
-function setFP(v){ if (P.sit?.kind === 'float'){ setSky(!CAM.sky); return; } CAM.fp = v; $('#mask').classList.add('hidden'); $('#bView').classList.toggle('on', v); $('#bFp').classList.toggle('on', v); charRoot.visible = !v; blob.visible = !v; if (v){ CAM.yaw = P.yaw; CAM.fpPitch = P.mode === 'swim' ? -0.6 : -0.1; hintOnce('fp', P.mode === 'swim' ? '아기 눈으로 물속을 봐요. 드래그하면 둘러볼 수 있어요' : '아기 눈으로 봐요. 드래그하면 하늘까지 올려다볼 수 있어요'); } }
-function showMung(v){ $('#mung').classList.toggle('hidden', !v); if (!v) CAM.sky = false; if (v){ const fl = P.sit.kind === 'float'; $('#mView').classList.toggle('hidden', !fl); $('#mUp').textContent = fl ? '다시 헤엄치기' : '일어나기'; $('#mTitle').textContent = P.sit.title || '물멍 중'; $('#mTime').textContent = '00:00'; renderDrinks(); if (CAM.fp) setFP(false); } refreshHUD(); }
+function setFP(v){ if (P.sit?.kind === 'float'){ setSky(!CAM.sky); return; } CAM.fp = v; $('#mask').classList.add('hidden'); updateViewBtn(); charRoot.visible = !v; blob.visible = !v; if (v){ CAM.yaw = P.yaw; CAM.fpPitch = P.mode === 'swim' ? -0.6 : -0.1; hintOnce('fp', P.mode === 'swim' ? '아기 눈으로 물속을 봐요. 드래그하면 둘러볼 수 있어요' : '아기 눈으로 봐요. 드래그하면 하늘까지 올려다볼 수 있어요'); } }
+function showMung(v){ $('#mung').classList.toggle('hidden', !v); if (!v) CAM.sky = false; if (v){ const fl = P.sit.kind === 'float'; $('#mUp').textContent = fl ? '다시 헤엄치기' : '일어나기'; $('#mTitle').textContent = P.sit.title || '물멍 중'; $('#mTime').textContent = '00:00'; renderDrinks(); if (CAM.fp) setFP(false); updateViewBtn(); } refreshHUD(); }
 function renderDrinks(){ const box = $('#mDrinks'); box.innerHTML = '';
   if (P.food){ const f = FOOD[P.food.id], c = el('div', 'held'); c.appendChild(iconCanvas(x => drawFoodIcon(x, f))); c.appendChild(document.createTextNode(f.name)); c.appendChild(el('small', '', `${P.food.left}입 남음`)); box.appendChild(c); }
   if (P.cup){ const c = el('div', 'held'); c.appendChild(iconCanvas(x => drawDrinkIcon(x, P.cup))); c.appendChild(document.createTextNode(P.cup.name)); c.appendChild(el('small', '', P.level > 0.01 ? `${Math.round(P.level * 100)}%` : '다 마셨어요')); box.appendChild(c); }
@@ -4573,7 +4576,7 @@ $('#gClose').onclick = () => openGear(false); $('#gDone').onclick = () => openGe
 $('#bRank').onclick = () => openRank(!rankOpen); $('#rkClose').onclick = () => openRank(false);
 $('#dxHere').onclick = () => { dexMode = 'here'; renderDex(); }; $('#dxRelic').onclick = () => { dexMode = 'relic'; renderDex(); }; $('#bgClose').onclick = () => openBag(false); $('#bagHud').onclick = e => { e.stopPropagation(); openBag(!bagOpen); }; $('#dxAll').onclick = () => { dexMode = 'all'; renderDex(); };
 $('#dClose').onclick = () => openDex(false); $('#hClose').onclick = () => openHelp(false);
-$('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#bEat').onclick = () => { if (P.food) bite(); else sip(); }; $('#stClose').onclick = () => openStore(false); $('#mUp').onclick = () => { standUp(); }; $('#mView').onclick = () => setSky(!CAM.sky);
+$('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#bEat').onclick = () => { if (P.food) bite(); else sip(); }; $('#stClose').onclick = () => openStore(false); $('#mUp').onclick = () => { standUp(); }; $('#mView').onclick = () => setFP(!firstPerson());
 $('#nextList').textContent = NEXT_SPOTS.join(' · ');
 $('#sNext').innerHTML = '<b>준비 중인 바다</b> · ' + NEXT_SPOTS.map(s => s.replace(/[<>&]/g, '')).join(' · ');
 function resetJoy(){ const j = $('#joy'); j.style.left = '96px'; j.style.top = (innerHeight - 120) + 'px'; }
