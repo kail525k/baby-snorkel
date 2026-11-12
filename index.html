@@ -485,6 +485,32 @@ body.skyw #tags,body.skyw #bChat,body.skyw #bChat2{display:none!important}
 .hbody .src{font-size:13px;color:#6b6152;margin-top:6px}
 #fatal{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:var(--sea);color:#fff;text-align:center;padding:24px;font-size:16px;line-height:1.6}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* 폰 화면: 바다 고르기는 목록 위주로(설명은 숨김), 게임 화면의 카드 · 안내 · 큰 글씨는 작게 */
+@media (max-width:600px){
+  .eyebrow{display:none}
+  #start h1{font-size:21px}
+  .sc{gap:8px}
+  #sSel,.nkmsg{display:none}
+  .skind button{padding:7px 10px}.skind button b{font-size:16px}
+  .srow{padding:10px 12px;gap:10px}.srow small{display:none}.srow b{font-size:16.5px}
+  .nkrow label{font-size:14px}.nkrow input{padding:7px 10px}
+  .cta .btn{font-size:16px;padding:12px 14px}
+}
+@media (max-width:600px),(max-height:500px){
+  #spotcard{padding:6px 10px 7px 9px;gap:3px;min-width:0;max-width:205px;border-radius:14px;border-width:1.5px}
+  #spotcard .nm{font-size:14.5px;gap:7px}
+  #spotcard .nm i{width:7px;height:7px;box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--hallabong)}
+  #spotcard .meta{font-size:11px;gap:6px}
+  #spotcard .pill{font-size:10.5px;padding:1px 7px}
+  #breath{height:6px}
+  #dive{gap:6px}#dive b{font-size:15px}#dive span{font-size:10.5px}
+  #calm{font-size:10.5px;gap:6px}#calm i{height:5px}
+  #surfHud b{font-size:15px}#surfHud span{font-size:10.5px}
+  #bagHud{font-size:10.5px;padding:3px 6px;gap:5px;border-radius:10px}#bagHud .bs i{width:15px;height:15px}
+  body.touch .t{font-size:12.5px;padding:6px 11px;border-radius:10px;max-width:min(270px,calc(100vw - 120px));line-height:1.35}
+  #surfPop{font-size:22px;top:30%}
+  .tag .nm{font-size:11px;padding:1px 7px}
+}
 </style>
 </head>
 <body>
