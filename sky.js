@@ -802,6 +802,7 @@ export function createSky(H){
       else if (v.pause > 0) v.pause -= dt;
       else { v.a += v.dir * v.sp / v.ring * dt; v.walkT -= dt; if (v.walkT <= 0){ v.pause = 1.5 + Math.random() * 3; v.walkT = 5 + Math.random() * 9; } moving = true; v.h = Math.atan2(Math.cos(v.a) * v.dir, -Math.sin(v.a) * v.dir); }
       v.x = C.x + Math.sin(v.a) * v.ring; v.z = C.z + Math.cos(v.a) * v.ring;
+      if (v.ox || v.oz){ v.x += v.ox; v.z += v.oz; const kk = Math.exp(-dt * 1.2); v.ox *= kk; v.oz *= kk; if (Math.abs(v.ox) + Math.abs(v.oz) < 0.02) v.ox = v.oz = 0; }
       if (!v.vis) continue;
       v.grp.position.set(v.x, groundAt(v.x, v.z), v.z); v.grp.rotation.y = v.h; setSt(v.b, moving ? 'walk' : 'idle', { moving, wave: near < 6 && P.mode === 'ground' }); H.animRig(v.b.rig, dt, v.b.st, v.b.o); }
   }
@@ -809,6 +810,22 @@ export function createSky(H){
     const dx = P.x - x, dz = P.z - z, d = Math.hypot(dx, dz); const ahead = d < 7 && (dx * Math.sin(h) + dz * Math.cos(h)) / Math.max(d, 0.01) > 0.4 && P.mode === 'ground'; c.honk -= dt;
     if (ahead){ if (c.honk <= 0 && d < 5.5){ c.honk = 4; honk(); } } else { c.a += c.sp / r * dt; for (const w of c.W) w.m.rotation.x += c.sp * dt / w.r; }
     placeVehicle(c.g, x, z, h, 1.4); } }
+  /* ============================== 부딪히면 통! ==============================
+     걷거나 탈것을 탈 때 친구 · 마을 사람 · 안전요원(AI) · 튼튼이와 부딪히면 서로 튕겨 나간다. 친구 화면에서는 친구 쪽이 스스로 튕긴다 */
+  const KB = { x: 0, z: 0, t: 0 };
+  function bumpFx(ux, uz, sp){ KB.x = ux * sp; KB.z = uz * sp; KB.t = NOW + 0.55; if (!P.ride && P.y <= groundAt(P.x, P.z) + 0.05) P.jv = 5.5; beep(330, 0.08, 0.07); setTimeout(() => beep(620, 0.08, 0.05), 80); }
+  function bumpOthers(dt){
+    if (KB.x || KB.z){ if (P.mode === 'ground'){ const o = { x: P.x + KB.x * dt, z: P.z + KB.z * dt }; if (!(P.ride && heightAt(o.x, o.z) < WATER - 0.1 && !onBridge(o.x, o.z))){ pushOut(o, P.ride ? vobj(P.ride).rad : 0.55); P.x = o.x; P.z = o.z; } }
+      const k = Math.exp(-dt * 4.5); KB.x *= k; KB.z *= k; if (Math.hypot(KB.x, KB.z) < 0.1) KB.x = KB.z = 0; }
+    if (!started || P.mode !== 'ground' || P.cy || NOW < KB.t) return;
+    const me = P.ride ? 1.7 : 0.85, sp = P.ride ? 8 : 6.5;
+    const hit = (x, z, r) => { const dx = P.x - x, dz = P.z - z, d = Math.hypot(dx, dz); if (d >= me + r) return null; return d > 0.01 ? [dx / d, dz / d] : [Math.sin(P.heading + Math.PI), Math.cos(P.heading + Math.PI)]; };
+    for (const R of REMOTES.values()){ if (R.md !== 'g' || !R.gl || R.cy) continue; const q = R.gl.rig.position; if (Math.abs(q.y - P.y) > 1.6) continue; const u = hit(q.x, q.z, R.rd ? 1.7 : 0.85); if (u){ bumpFx(u[0], u[1], sp); toast(pick(['통! 친구랑 부딪혔어요', '쿵! 미안해요~'])); return; } }
+    for (const v of VILLAGERS){ if (!v.vis) continue; const u = hit(v.x, v.z, 0.85); if (!u) continue; bumpFx(u[0], u[1], sp); v.ox = (v.ox || 0) - u[0] * 1.6; v.oz = (v.oz || 0) - u[1] * 1.6;
+      v.bubbleT = 2.6; v.cool = Math.max(v.cool, 6); if (v.bubble) v.grp.remove(v.bubble); v.bubble = makeTag(pick(['어이쿠!', '아야~', '통! 히히', '조심조심!']), '#ffffff', '#3b3a4a', 2.2); v.bubble.position.y = 2.4 * v.b.scale + 0.9; v.grp.add(v.bubble); return; }
+    for (const s of STAFF){ if (!s.grp.visible) continue; const u = hit(s.x, s.z, 0.85); if (u){ bumpFx(u[0], u[1], sp); staySay(s, pick(['어이쿠! 천천히 다녀요', '통! 괜찮아요?', '뛰지 말고 걸어요~']), 2.6); return; } }
+    if (FRIEND && FRIEND.state === 'idle'){ const q = FRIEND.grp.position, u = hit(q.x, q.z, 0.85); if (u){ bumpFx(u[0], u[1], sp); toast('통! 튼튼이랑 부딪혔어요'); return; } }
+  }
   function updateRemotes(dt){
     const k = 1 - Math.exp(-dt * 8);
     for (const R of REMOTES.values()){ const G0 = R.gl; if (!G0) continue; const root = G0.rig;
@@ -841,7 +858,7 @@ export function createSky(H){
     const inp = readInput(); lastInp = inp; NOW = performance.now() / 1000;
     if (resultOpen() && (Math.abs(inp.x) + Math.abs(inp.y) > 0.3)) hideResult();
     if (started){
-      if (P.mode === 'ground') updateGround(dt, inp); else if (P.mode === 'takeoff') updateTakeoff(dt); else if (P.mode === 'flying') updateFlight(dt, inp); else if (P.mode === 'landing') updateLanding(dt);
+      if (P.mode === 'ground'){ updateGround(dt, inp); bumpOthers(dt); } else if (P.mode === 'takeoff') updateTakeoff(dt); else if (P.mode === 'flying') updateFlight(dt, inp); else if (P.mode === 'landing') updateLanding(dt);
       else if (P.mode === 'sit'){ P.sitT += dt; P.y = groundAt(P.x, P.z); if (Math.abs(inp.x) + Math.abs(inp.y) > 0.3) standUp(); }
     }
     updateBus(dt); updatePiggy(dt); piggyNet(dt);
@@ -1083,6 +1100,6 @@ export function createSky(H){
     presence, onPeers, clearRemotes, peerCount: () => REMOTES.size, peerNames: () => [...REMOTES.values()].map(R => R.name),
     renderStore, rebuildMe(){ if (built) buildPlayer(); }, hideUi(v){ if (ui) ui.classList.toggle('hidden', v || !started); },
     get best(){ return best; }, get mode(){ return P.mode; }, P, get BUS(){ return BUS; }, get FRIEND(){ return FRIEND; }, get renderInfo(){ return null; }, PAD, LAND, TRAIL, STOP_POS, SHOP_POS, SNACK_POS, FRIEND_HOME, BENCHES: () => BENCHES, RINGS: () => RINGS, STARS: () => STARS, THERMALS, REMOTES, heightAt, groundAt,
-    _test: { get staff(){ return STAFF.map(s => ({ x: s.x, z: s.z, talking: !!s.bubble, wave: s.waveT > 0, vis: s.grp.visible })); }, startTakeoff, mount, boardBus, cancelBus, startPiggy, toggleAuto, useAction, mainAction, requestPiggy, acceptPiggy: () => acceptPiggy(reqFrom), get reqFrom(){ return reqFrom; }, nearInter, resultOpen, hideResult, cam, vk, touchdown },
+    _test: { get staff(){ return STAFF.map(s => ({ x: s.x, z: s.z, talking: !!s.bubble, wave: s.waveT > 0, vis: s.grp.visible })); }, get villagers(){ return VILLAGERS.map(v => ({ x: v.x, z: v.z, vis: v.vis, ox: v.ox || 0, oz: v.oz || 0, say: !!v.bubble })); }, get kb(){ return Math.hypot(KB.x, KB.z); }, startTakeoff, mount, boardBus, cancelBus, startPiggy, toggleAuto, useAction, mainAction, requestPiggy, acceptPiggy: () => acceptPiggy(reqFrom), get reqFrom(){ return reqFrom; }, nearInter, resultOpen, hideResult, cam, vk, touchdown },
   };
 }
