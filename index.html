@@ -67,6 +67,8 @@ button:focus-visible{outline:3px solid var(--hallabong);outline-offset:2px}
 #toast{top:calc(max(12px,env(safe-area-inset-top)) + 96px);left:50%;transform:translateX(-50%);display:grid;gap:6px;justify-items:center;pointer-events:none;width:max-content;max-width:92vw}
 .t{background:var(--basalt);color:#fff;font-family:var(--display);padding:10px 16px;border-radius:14px;font-size:16px;animation:tin .3s ease-out;text-align:center}
 .t.found{background:var(--sand);color:var(--basalt);box-shadow:inset 0 0 0 3px var(--emerald),0 4px 0 rgba(0,0,0,.15)}
+body.touch #toast{top:calc(max(10px,env(safe-area-inset-top)) + 104px);left:10px;transform:none;justify-items:start}
+body.touch .t{font-size:14.5px;padding:8px 14px;border-radius:12px;max-width:min(330px,calc(100vw - 110px));line-height:1.35}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 #joy{position:fixed;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.16);border:3px solid rgba(255,255,255,.55);pointer-events:none;z-index:6;transform:translate(-50%,-50%);left:96px;bottom:auto}
 #joy b{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 5px var(--hallabong)}
@@ -252,6 +254,19 @@ button:focus-visible{outline:3px solid var(--hallabong);outline-offset:2px}
 .mrow{display:flex;gap:8px;flex-wrap:wrap}
 .mrow .btn{padding:10px 14px;font-size:15px}
 .mrow .btn.primary{flex:1;min-width:110px}
+#mSnack{display:none}
+body.touch #mung{width:auto;max-width:calc(100vw - 16px);padding:9px 10px 10px;gap:7px;border-radius:18px}
+body.touch .mtop b{font-size:16px}
+body.touch .mtime{font-size:15px}
+body.touch #mung .drinks{display:none}
+body.touch #mung.open .drinks{display:flex}
+body.touch #mSnack{display:inline-flex}
+body.touch #mung .mrow{flex-wrap:nowrap;gap:6px}
+body.touch #mung .mrow .btn{padding:9px 11px;font-size:14px;white-space:nowrap}
+body.touch #mung .mrow .btn.primary{flex:none;min-width:0}
+body.touch #mung .mrow .btn:disabled{display:none}
+#mung,#topbar,#spotcard,#friend{transition:opacity .5s}
+body.zen #mung,body.zen #topbar,body.zen #spotcard,body.zen #friend{opacity:0;pointer-events:none}
 
 #start{position:fixed;inset:0;z-index:10;display:flex;align-items:stretch;justify-content:flex-start;padding:clamp(12px,3vw,30px);background:linear-gradient(90deg,rgba(7,48,66,.5) 0%,rgba(7,48,66,.12) 52%,rgba(7,48,66,0) 100%)}
 .sc{width:min(470px,100%);max-height:100%;color:#fff;display:flex;flex-direction:column;gap:11px;background:rgba(7,48,66,.74);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:24px;padding:18px 18px 15px;box-shadow:0 14px 40px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.16);overflow:hidden}
@@ -570,7 +585,7 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
 <section id="mung" class="sheet hidden" aria-label="물멍 중">
   <div class="mtop"><b id="mTitle">물멍 중</b><span class="mtime" id="mTime">00:00</span></div>
   <div class="drinks" id="mDrinks"></div>
-  <div class="mrow"><button class="btn primary" id="mBite">한 입 냠냠</button><button class="btn primary" id="mSip">한 모금</button><button class="btn" id="mTod">노을로 바꾸기</button><button class="btn" id="mView">1인칭으로 보기</button><button class="btn" id="mUp">일어나기</button></div>
+  <div class="mrow"><button class="btn" id="mSnack" aria-expanded="false">간식</button><button class="btn primary" id="mBite">한 입 냠냠</button><button class="btn primary" id="mSip">한 모금</button><button class="btn" id="mTod">노을로 바꾸기</button><button class="btn" id="mView">1인칭으로 보기</button><button class="btn" id="mUp">일어나기</button></div>
 </section>
 
 <div id="start">
@@ -696,7 +711,7 @@ function todFor(name){ const T = Object.assign({}, TOD[name]); if (!SPOT) return
   T.fogU = (W.fogUnder || 0.055) * (name === 'day' ? 1 : 1.1); return T; }
 function snapTOD(){ for (const k in todTarget){ const t = todTarget[k], c = cur[k]; if (c && (c.isColor || c.isVector3)) c.copy(t); else cur[k] = t; } }
 function setTOD(name){ todName = name; const T = todFor(name); for (const k in T){ const v = T[k]; todTarget[k] = typeof v === 'string' ? new THREE.Color(v) : Array.isArray(v) ? new V3(...v).normalize() : v; }
-  $('#todLbl').textContent = name === 'day' ? '노을 보기' : '낮으로'; $('#mTod').textContent = name === 'day' ? '노을로 바꾸기' : '낮으로 바꾸기'; }
+  $('#todLbl').textContent = name === 'day' ? '노을 보기' : '낮으로'; $('#mTod').textContent = TOUCH ? (name === 'day' ? '노을' : '낮') : (name === 'day' ? '노을로 바꾸기' : '낮으로 바꾸기'); }
 setTOD('day');
 
 /* ============================== 하늘 ============================== */
@@ -2917,8 +2932,17 @@ const keys = {}, BTN = { up: false, down: false, shoot: false }, JOY = { x: 0, y
 const CAM = { yaw: 0, pitch: 0.36, dist: 5.2, fp: false, fpPitch: -0.55, dragT: -99 };
 let started = false, gearOpen = false, dexOpen = false, helpOpen = false, chatOpen = false, friendsOpen = false, bagOpen = false;
 const hinted = new Set();
-function hintOnce(key, msg){ if (hinted.has(key)) return; hinted.add(key); toast(msg); }
-function toast(msg, cls){ const t = document.createElement('div'); t.className = 't' + (cls ? ' ' + cls : ''); t.textContent = msg; const box = $('#toast'); box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), 2800); }
+function hintOnce(key, msg){ if (hinted.has(key)) return; hinted.add(key); toast(msg, '', { hint: true }); }
+/* 모바일 알림: 한 번에 한 줄만. 새 친구 발견처럼 같은 종류는 한 줄로 합치고, 안내 문구는 차례를 기다린다 */
+const TQ = { cur: null, q: [], tm: 0 };
+function toastText(x){ if (x.group !== 'found' || x.n < 2) return x.msg; const nm = x.names.slice(0, 2).join(', ') + (x.n > 2 ? ` 외 ${x.n - 2}` : ''); return `새 친구 ${x.n}마리! ${nm} · 진주 +${x.pearls}`; }
+function nextToast(){ clearTimeout(TQ.tm); const box = $('#toast'); box.innerHTML = ''; TQ.cur = TQ.q.shift() || null; if (!TQ.cur) return;
+  const t = document.createElement('div'); t.className = 't' + (TQ.cur.cls ? ' ' + TQ.cur.cls : ''); t.textContent = toastText(TQ.cur); box.appendChild(t); TQ.cur.el = t;
+  const sc = $('#spotcard'); if (sc && !sc.classList.contains('hidden')){ const r = sc.getBoundingClientRect(); if (r.height) box.style.top = Math.round(r.bottom + 8) + 'px'; }
+  TQ.tm = setTimeout(nextToast, TQ.cur.hint ? 3600 : 2400); }
+function mergeToast(x, o){ x.n++; x.pearls += o.pearls || 0; if (o.name) x.names.push(o.name); if (x.el){ x.el.textContent = toastText(x); clearTimeout(TQ.tm); TQ.tm = setTimeout(nextToast, 2400); } }
+function toast(msg, cls, o){ if (TOUCH) return toastM(msg, cls, o || {});
+  const t = document.createElement('div'); t.className = 't' + (cls ? ' ' + cls : ''); t.textContent = msg; const box = $('#toast'); box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), 2800); }
 
 function moveLand(nx, nz){ const lim = P.feet + 0.46; if (groundH(nx, nz) <= lim){ P.x = nx; P.z = nz; return; } if (groundH(nx, P.z) <= lim){ P.x = nx; return; } if (groundH(P.x, nz) <= lim) P.z = nz; }
 function swimOK(x, z){ const gh = groundH(x, z); if (gh >= -0.6) return gh <= P.body + 0.15; return gh < P.body - 0.22; }
@@ -3099,6 +3123,15 @@ function updateSurfHUD(){
   $('#sfScore').textContent = sc + '점'; $('#sfInfo').textContent = `별 ${s.stars + s.shells} · 턴 ${s.turns} · ${Math.floor(s.dist)}m` + (b ? ` · 최고 ${b}점` : ''); e.classList.toggle('pb', b > 0 && sc > b);
 }
 let lastBuoyToast = -99, lastBreathToast = -99;
+function toastM(msg, cls, o){
+  const g = o.group;
+  if (g){ const hit = (TQ.cur && TQ.cur.group === g) ? TQ.cur : TQ.q.find(x => x.group === g); if (hit){ mergeToast(hit, o); return; } }
+  if (TQ.cur?.msg === msg || TQ.q.some(x => x.msg === msg)) return;
+  const it = { msg, cls, group: g, hint: !!o.hint, n: 1, pearls: o.pearls || 0, names: o.name ? [o.name] : [] };
+  if (it.hint) TQ.q.push(it); else { const i = TQ.q.findIndex(x => x.hint); if (i < 0) TQ.q.push(it); else TQ.q.splice(i, 0, it); }
+  while (TQ.q.length > 4){ const i = TQ.q.findIndex(x => x.hint); TQ.q.splice(i < 0 ? 0 : i, 1); }
+  if (!TQ.cur) nextToast(); else if (TQ.cur.hint && !it.hint){ clearTimeout(TQ.tm); TQ.tm = setTimeout(nextToast, 700); }
+}
 function toastBuoy(){ if (time - lastBuoyToast > 6){ lastBuoyToast = time; toast(SPOT.edgeMsg || '부표 안쪽이 안전 구역이에요'); } }
 function toastBreath(){ if (time - lastBreathToast > 5){ lastBreathToast = time; toast('숨이 차요! 물 위로 올라가요'); } }
 function placeChar(){
@@ -3134,11 +3167,11 @@ function startFloat(){
   const R = Math.random, seat = { kind: 'float', x: P.x, z: P.z, y: -0.07, yaw: P.yaw, ph: R() * 6, title: G.tube !== 'none' ? '튜브에 누워 둥실 물멍 중' : '누워서 물멍 중', exit: { x: P.x, z: P.z }, drift: { dir: R() * Math.PI * 2, turn: 0, t: 0, sp: 0.2, spin: R() < 0.5 ? 1 : -1 } };
   sitDown(seat); splashAt(P.x, P.z, 0.6);
   setSky(false);
-  hintOnce('floatsky', TOUCH ? '둥실둥실 떠다녀요. "1인칭으로 하늘 보기"를 누르면 아기 눈으로 하늘을 봐요. 조이스틱을 움직이면 다시 헤엄쳐요' : '둥실둥실 떠다녀요. "1인칭으로 하늘 보기"(F)를 누르면 아기 눈으로 하늘을 봐요. 방향키를 누르면 다시 헤엄쳐요');
+  hintOnce('floatsky', TOUCH ? '둥실둥실 떠다녀요. 1인칭을 누르면 하늘을 올려다봐요' : '둥실둥실 떠다녀요. "1인칭으로 하늘 보기"(F)를 누르면 아기 눈으로 하늘을 봐요. 방향키를 누르면 다시 헤엄쳐요');
 }
 function setSky(v){ CAM.sky = v; CAM.skyPitch = 1.0; CAM.dragT = -99; if (P.sit?.kind === 'float'){ CAM.yaw = P.yaw + (v ? 0 : Math.PI); CAM.pitch = 0.42; CAM.dist = 3.4; } updateViewBtn(); }
 function firstPerson(){ return P.sit?.kind === 'float' ? !!CAM.sky : !!CAM.fp; }
-function updateViewBtn(){ const f = firstPerson(), b = $('#mView'); if (b) b.textContent = f ? '3인칭으로 보기' : (P.sit?.kind === 'float' ? '1인칭으로 하늘 보기' : '1인칭으로 보기'); $('#bView').classList.toggle('on', f); $('#bFp').classList.toggle('on', f); }
+function updateViewBtn(){ const f = firstPerson(), b = $('#mView'); if (b) b.textContent = TOUCH ? (f ? '3인칭' : '1인칭') : f ? '3인칭으로 보기' : (P.sit?.kind === 'float' ? '1인칭으로 하늘 보기' : '1인칭으로 보기'); $('#bView').classList.toggle('on', f); $('#bFp').classList.toggle('on', f); }
 function sitUpdate(dt){
   const s = P.sit; let y = s.y; if (s.kind === 'float') y = floatDrift(s, dt); else if (s.kind === 'tube') y = -0.16 + Math.sin(time * 1.4 + s.ph) * 0.05; else if (s.kind === 'canoe' && s.mesh) y = s.y + s.mesh.position.y;
   charRoot.position.set(s.x, y, s.z); P.x = s.x; P.z = s.z; P.yaw = s.yaw; charRoot.rotation.y = s.yaw;
@@ -3319,7 +3352,7 @@ function checkDiscover(){
 }
 function discover(id){
   if (FOUND.has(id) || !SPOT.dex.includes(id)) return; const first = !foundAll().has(id); FOUND.add(id); saveLS('pp_found_' + SPOT.id, [...FOUND]); FOUND_ALL = null; NET.fd = id;
-  const sp = SPEC[id], pr = addPearl(first ? 15 : 5); toast((id === 'turtle' ? `행운이에요! ${josa(sp.name, '을', '를')} 만났어요` : first ? `새 친구 발견! ${sp.name}` : `${SPOT.short}에서도 만났어요! ${sp.name}`) + ` · 진주 +${pr}`, 'found'); AudioSys.chime(); updateDexCount(); if (dexOpen) renderDex();
+  const sp = SPEC[id], pr = addPearl(first ? 15 : 5); toast((id === 'turtle' ? `행운이에요! ${josa(sp.name, '을', '를')} 만났어요` : first ? `새 친구 발견! ${sp.name}` : `${SPOT.short}에서도 만났어요! ${sp.name}`) + ` · 진주 +${pr}`, 'found', first && id !== 'turtle' ? { group: 'found', name: sp.name, pearls: pr } : {}); AudioSys.chime(); updateDexCount(); if (dexOpen) renderDex();
   if (FOUND.size === SPOT.dex.length){ const b = addPearl(50); setTimeout(() => toast(`${SPOT.short} 도감 완성! 진주 +${b} · 다른 바다로 옮겨 가 볼까요?`, 'found'), 2600); }
 }
 function updateDexCount(){ $('#dexN').textContent = `${FOUND.size}/${SPOT.dex.length}`; }
@@ -3457,7 +3490,7 @@ function openGear(v){ gearOpen = v; gearBuy = null; $('#gear').classList.toggle(
 function openDex(v){ dexOpen = v; $('#dex').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); renderDex(); } refreshHUD(); }
 function openHelp(v){ helpOpen = v; $('#help').classList.toggle('hidden', !v); refreshHUD(); }
 function setFP(v){ if (P.sit?.kind === 'float'){ setSky(!CAM.sky); return; } CAM.fp = v; $('#mask').classList.add('hidden'); updateViewBtn(); charRoot.visible = !v; blob.visible = !v; if (v){ CAM.yaw = P.yaw; CAM.fpPitch = P.mode === 'swim' ? -0.6 : -0.1; hintOnce('fp', P.mode === 'swim' ? '아기 눈으로 물속을 봐요. 드래그하면 둘러볼 수 있어요' : '아기 눈으로 봐요. 드래그하면 하늘까지 올려다볼 수 있어요'); } }
-function showMung(v){ $('#mung').classList.toggle('hidden', !v); if (!v) CAM.sky = false; if (v){ const fl = P.sit.kind === 'float'; $('#mUp').textContent = fl ? '다시 헤엄치기' : '일어나기'; $('#mTitle').textContent = P.sit.title || '물멍 중'; $('#mTime').textContent = '00:00'; renderDrinks(); if (CAM.fp) setFP(false); updateViewBtn(); } refreshHUD(); }
+function showMung(v){ $('#mung').classList.toggle('hidden', !v); if (!v) CAM.sky = false; if (v){ const fl = P.sit.kind === 'float'; $('#mUp').textContent = fl ? (TOUCH ? '헤엄치기' : '다시 헤엄치기') : '일어나기'; $('#mung').classList.remove('open'); $('#mSnack').setAttribute('aria-expanded', 'false'); if (TOUCH){ $('#mTod').textContent = todName === 'day' ? '노을' : '낮'; $('#mSip').textContent = '꿀꺽'; $('#mBite').textContent = '냠냠'; } $('#mTitle').textContent = P.sit.title || '물멍 중'; $('#mTime').textContent = '00:00'; renderDrinks(); if (CAM.fp) setFP(false); updateViewBtn(); } refreshHUD(); }
 function renderDrinks(){ const box = $('#mDrinks'); box.innerHTML = '';
   if (P.food){ const f = FOOD[P.food.id], c = el('div', 'held'); c.appendChild(iconCanvas(x => drawFoodIcon(x, f))); c.appendChild(document.createTextNode(f.name)); c.appendChild(el('small', '', `${P.food.left}입 남음`)); box.appendChild(c); }
   if (P.cup){ const c = el('div', 'held'); c.appendChild(iconCanvas(x => drawDrinkIcon(x, P.cup))); c.appendChild(document.createTextNode(P.cup.name)); c.appendChild(el('small', '', P.level > 0.01 ? `${Math.round(P.level * 100)}%` : '다 마셨어요')); box.appendChild(c); }
@@ -3475,7 +3508,12 @@ function refreshHUD(){
 }
 const ST_LABEL = { idle: '쉬는 중', walk: '걷는 중', fall: '점프!', swim: '스노클링 중', tread: '둥실둥실', tube: '튜브 타는 중', sit: '물멍 중', paddle: '패들 중', surf: '서핑 중!', run: '달리는 중', seabed: '바다 바닥 탐험 중', seawalk: '바다 바닥 걷는 중', dig: '바닥에서 보물 찾는 중' };
 let hudT = 0, curInteract = null;
-function updateHUD(dt){
+let zenT = 0;
+document.addEventListener('pointerdown', () => { zenT = 0; document.body.classList.remove('zen'); }, true);
+function updateZen(dt){ const on = TOUCH && started && !!P.sit && !(gearOpen || dexOpen || helpOpen || chatOpen || spotsOpen || rankOpen || storeOpen || bagOpen);
+  if (!on){ zenT = 0; document.body.classList.remove('zen'); return; }
+  zenT += dt; if (zenT > 5 && !document.body.classList.contains('zen')){ document.body.classList.add('zen'); hintOnce('zen', '화면을 톡 누르면 버튼이 다시 나와요'); } }
+function updateHUD(dt){ updateZen(dt);
   hudT -= dt; if (hudT > 0) return; hudT = 0.1;
   const gh = groundH(P.x, P.z), depth = Math.max(0, -gh);
   let st = P.sit ? '물멍 중' : P.surf ? '서핑 중!' : P.mode === 'land' ? (P.feet < -0.08 ? '물에서 걷는 중' : '걷는 중') : (P.body < -0.52 ? '잠수 중' : hasBoard(G) ? (laneMask(P.x) > 0.6 ? '파도 기다리는 중' : '패들 중') : (G.tube !== 'none' ? '둥실둥실' : '스노클링 중'));
@@ -4576,7 +4614,7 @@ $('#gClose').onclick = () => openGear(false); $('#gDone').onclick = () => openGe
 $('#bRank').onclick = () => openRank(!rankOpen); $('#rkClose').onclick = () => openRank(false);
 $('#dxHere').onclick = () => { dexMode = 'here'; renderDex(); }; $('#dxRelic').onclick = () => { dexMode = 'relic'; renderDex(); }; $('#bgClose').onclick = () => openBag(false); $('#bagHud').onclick = e => { e.stopPropagation(); openBag(!bagOpen); }; $('#dxAll').onclick = () => { dexMode = 'all'; renderDex(); };
 $('#dClose').onclick = () => openDex(false); $('#hClose').onclick = () => openHelp(false);
-$('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#bEat').onclick = () => { if (P.food) bite(); else sip(); }; $('#stClose').onclick = () => openStore(false); $('#mUp').onclick = () => { standUp(); }; $('#mView').onclick = () => setFP(!firstPerson());
+$('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#bEat').onclick = () => { if (P.food) bite(); else sip(); }; $('#stClose').onclick = () => openStore(false); $('#mUp').onclick = () => { standUp(); }; $('#mView').onclick = () => setFP(!firstPerson()); $('#mSnack').onclick = () => { const o = $('#mung').classList.toggle('open'); $('#mSnack').setAttribute('aria-expanded', String(o)); };
 $('#nextList').textContent = NEXT_SPOTS.join(' · ');
 $('#sNext').innerHTML = '<b>준비 중인 바다</b> · ' + NEXT_SPOTS.map(s => s.replace(/[<>&]/g, '')).join(' · ');
 function resetJoy(){ const j = $('#joy'); j.style.left = '96px'; j.style.top = (innerHeight - 120) + 'px'; }
