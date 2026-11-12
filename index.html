@@ -570,7 +570,7 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
 <section id="mung" class="sheet hidden" aria-label="물멍 중">
   <div class="mtop"><b id="mTitle">물멍 중</b><span class="mtime" id="mTime">00:00</span></div>
   <div class="drinks" id="mDrinks"></div>
-  <div class="mrow"><button class="btn primary" id="mBite">한 입 냠냠</button><button class="btn primary" id="mSip">한 모금</button><button class="btn" id="mTod">노을로 바꾸기</button><button class="btn" id="mUp">일어나기</button></div>
+  <div class="mrow"><button class="btn primary" id="mBite">한 입 냠냠</button><button class="btn primary" id="mSip">한 모금</button><button class="btn" id="mTod">노을로 바꾸기</button><button class="btn" id="mView">내 모습 보기</button><button class="btn" id="mUp">일어나기</button></div>
 </section>
 
 <div id="start">
@@ -830,7 +830,12 @@ const water = mesh(waterGeo, waterMat, scene); water.renderOrder = 2;
 const CLOUDS = [];
 { const cm = SH(new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#c7d4e6', fog: false })), cr = mulberry32(7);
   for (let k = 0; k < 14; k++){ const a = cr() * Math.PI * 2, r = 600 + cr() * 300, g = new THREE.Group(); g.position.set(Math.cos(a) * r, 90 + cr() * 90, Math.sin(a) * r); scene.add(g); CLOUDS.push(g);
-    for (let q = 0; q < 5; q++) sph(cm, g, (cr() - 0.5) * 70, cr() * 10, (cr() - 0.5) * 30, 20 + cr() * 22, 10 + cr() * 9, 16 + cr() * 14); } }
+    for (let q = 0; q < 5; q++) sph(cm, g, (cr() - 0.5) * 70, cr() * 10, (cr() - 0.5) * 30, 20 + cr() * 22, 10 + cr() * 9, 16 + cr() * 14); }
+  /* 머리 위 구름: 누워서 올려다보면 천천히 흘러간다 */
+  const sk = new THREE.Group(); sk.name = 'skyClouds'; scene.add(sk); CLOUDS.push(sk);
+  for (let k = 0; k < 11; k++){ const a = cr() * Math.PI * 2, r = 40 + cr() * 340, g = new THREE.Group(); g.position.set(Math.cos(a) * r, 150 + cr() * 90, Math.sin(a) * r); g.rotation.y = cr() * 3; sk.add(g);
+    for (let q = 0; q < 6; q++) sph(cm, g, (cr() - 0.5) * 60, cr() * 6, (cr() - 0.5) * 34, 16 + cr() * 18, 7 + cr() * 6, 14 + cr() * 12); } }
+const SKYCLOUDS = CLOUDS[CLOUDS.length - 1];
 const farMat = SH(new THREE.MeshBasicMaterial({ color: '#86a8bd', fog: false }));
 const farMat2 = SH(new THREE.MeshBasicMaterial({ color: '#b8c4cc', fog: false }));
 const farAdd = m => { FAR.push(m); return m; };
@@ -2930,7 +2935,7 @@ function updatePlayer(dt){
   const dx = fx * iz + rx * ix, dz = fz * iz + rz * ix;
   const want = Math.hypot(dx, dz) > 0.05;
   const up = !locked && (keys.Space || BTN.up), down = !locked && (keys.ShiftLeft || keys.ShiftRight || keys.KeyC || keys.KeyQ || BTN.down);
-  if (P.sit){ if (want) standUp(); else { sitUpdate(dt); return; } }
+  if (P.sit){ if (want || (P.sit.kind === 'float' && down)) standUp(); else { sitUpdate(dt); return; } }
   if (P.surf && (P.mode !== 'swim' || !hasBoard(G))) P.surf = null;
   if (P.surf){} else if (CAM.fp) P.yaw = lerpAngle(P.yaw, CAM.yaw, 1 - Math.exp(-dt * 12)); else if (want) P.yaw = lerpAngle(P.yaw, Math.atan2(dx, dz), 1 - Math.exp(-dt * 10));
   const mag = Math.min(1, Math.hypot(dx, dz));
@@ -3106,9 +3111,33 @@ function standUp(){
   if (s.exit){ P.x = s.exit.x; P.z = s.exit.z; } else { P.x = s.x - Math.sin(s.yaw) * 1.15; P.z = s.z - Math.cos(s.yaw) * 1.15; }
   const gh = groundH(P.x, P.z); if (gh < -0.6){ P.mode = 'swim'; P.bed = false; P.body = -0.28; } else { P.mode = 'land'; P.feet = gh; P.grounded = true; }
   mungTotal += mungNow; saveLS('pp_mung', Math.round(mungTotal));
+  if (s.kind === 'float'){ CAM.pitch = 0.36; CAM.dist = 4.6; CAM.sky = false; }
 }
+function floatDrift(s, dt){
+  /* 파도 따라 하염없이: 천천히 방향을 바꾸며 흘러가고, 너울이 오면 올라갔다 밀려갔다 한다. 얕은 곳 · 부표 밖으로는 안 간다 */
+  const A = s.drift, B = SPOT.bounds0 || SPOT.bounds, m = 3, R = Math.random;
+  A.t -= dt; if (A.t <= 0){ A.t = 5 + R() * 8; A.turn = (R() - 0.5) * 0.16; }
+  A.dir += A.turn * dt;
+  const sw = Math.sin(time * 0.85 + s.ph);
+  let vx = Math.sin(A.dir) * A.sp, vz = Math.cos(A.dir) * A.sp - sw * 0.1;
+  if (s.x < B.minX + m) vx += (B.minX + m - s.x) * 0.25; if (s.x > B.maxX - m) vx -= (s.x - B.maxX + m) * 0.25;
+  if (s.z > B.maxZ - m) vz -= (s.z - B.maxZ + m) * 0.25; if (s.z < B.minZ + m) vz += (B.minZ + m - s.z) * 0.25;
+  const nx = s.x + vx * dt, nz = s.z + vz * dt;
+  if (groundH(nx, nz) < -1.0){ s.x = nx; s.z = nz; } else { A.dir += Math.PI * (0.7 + R() * 0.6); A.t = 4; }
+  s.yaw += (0.045 + A.turn * 0.6) * dt * A.spin; s.exit.x = s.x; s.exit.z = s.z;
+  P.breath = Math.min(100, P.breath + dt * 25);
+  return -0.03 + waveH(s.x, s.z) + Math.cos(time * 0.85 + s.ph) * 0.045 + Math.sin(time * 1.9 + s.ph) * 0.012;
+}
+function startFloat(){
+  if (CAM.fp) setFP(false);
+  const R = Math.random, seat = { kind: 'float', x: P.x, z: P.z, y: -0.07, yaw: P.yaw, ph: R() * 6, title: G.tube !== 'none' ? '튜브에 누워 둥실 물멍 중' : '누워서 물멍 중', exit: { x: P.x, z: P.z }, drift: { dir: R() * Math.PI * 2, turn: 0, t: 0, sp: 0.2, spin: R() < 0.5 ? 1 : -1 } };
+  sitDown(seat); splashAt(P.x, P.z, 0.6);
+  setSky(true);
+  hintOnce('floatsky', TOUCH ? '하늘을 올려다보며 둥실 떠다녀요. 화면을 끌면 둘러보고, 조이스틱을 움직이면 다시 헤엄쳐요' : '하늘을 올려다보며 둥실 떠다녀요. 마우스로 끌면 둘러보고, 방향키를 누르면 다시 헤엄쳐요');
+}
+function setSky(v){ CAM.sky = v; CAM.skyPitch = 1.0; CAM.dragT = -99; if (P.sit?.kind === 'float'){ CAM.yaw = P.yaw + (v ? 0 : Math.PI); CAM.pitch = 1.05; CAM.dist = 3.2; } const b = $('#mView'); if (b) b.textContent = v ? '내 모습 보기' : '하늘 보기'; }
 function sitUpdate(dt){
-  const s = P.sit; let y = s.y; if (s.kind === 'tube') y = -0.16 + Math.sin(time * 1.4 + s.ph) * 0.05; else if (s.kind === 'canoe' && s.mesh) y = s.y + s.mesh.position.y;
+  const s = P.sit; let y = s.y; if (s.kind === 'float') y = floatDrift(s, dt); else if (s.kind === 'tube') y = -0.16 + Math.sin(time * 1.4 + s.ph) * 0.05; else if (s.kind === 'canoe' && s.mesh) y = s.y + s.mesh.position.y;
   charRoot.position.set(s.x, y, s.z); P.x = s.x; P.z = s.z; P.yaw = s.yaw; charRoot.rotation.y = s.yaw;
   mungNow += dt; if (((mungNow / 30) | 0) !== (((mungNow - dt) / 30) | 0)){ addPearl(1); hintOnce('mungpearl', '물멍을 30초 할 때마다 진주가 1개씩 모여요'); }
   if ((mungNow | 0) !== ((mungNow - dt) | 0)) { const m = mungNow | 0; $('#mTime').textContent = String((m / 60) | 0).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
@@ -3120,11 +3149,11 @@ function snackUpdate(dt){
 }
 
 /* 포즈 애니메이션 */
-const STATES = new Set(['idle', 'walk', 'fall', 'swim', 'tread', 'tube', 'sit', 'paddle', 'surf']);
+const STATES = new Set(['idle', 'walk', 'fall', 'swim', 'tread', 'tube', 'sit', 'paddle', 'surf', 'float']);
 const hasBoard = g => g.board === 'long' || g.board === 'short';
 const FINK = () => (G.fins === 'long' || G.fins === 'mermaid') ? 1.45 : G.fins === 'short' ? 1.25 : 1;
 function localState(){
-  if (P.sit) return P.sit.kind === 'tube' ? 'tube' : 'sit';
+  if (P.sit) return P.sit.kind === 'tube' ? 'tube' : P.sit.kind === 'float' ? (G.tube !== 'none' ? 'tube' : 'float') : 'sit';
   if (P.surf) return 'surf';
   if (P.mode === 'swim' && hasBoard(G)) return 'paddle';
   if (P.mode === 'swim' && P.digT > 0) return 'dig';
@@ -3155,6 +3184,9 @@ function animRig(rig, dt, st, o){
   else if (st === 'swim'){ T.pitch = 1.32 + clamp(-o.vy * 0.4, -0.5, 0.55); const k = Math.sin(t * 11); T.lLx = k * 0.45; T.lRx = -k * 0.45; T.aLz = 0.4 + Math.sin(t * 3) * 0.15; T.aRz = -T.aLz; T.aLx = T.aRx = 0.5; }
   else if (st === 'tread'){ T.pitch = 0.12; T.bob = Math.sin(t * 2.5) * 0.02; T.lLx = Math.sin(t * 5) * 0.5; T.lRx = -T.lLx; T.aLz = 1.15 + Math.sin(t * 4) * 0.3; T.aRz = -T.aLz; }
   else if (st === 'tube'){ T.pitch = 0.05; T.bob = Math.sin(t * 1.8) * 0.02; T.aLz = 1.05; T.aRz = -1.05; T.aLx = T.aRx = -0.35; T.lLx = Math.sin(t * 4) * 0.35; T.lRx = -T.lLx; if (cup){ T.aRz = -0.35; T.aRx = -1.0; } }
+  else if (st === 'float'){ /* 누워서 물멍: 하늘을 보고 대자로 둥실 */ T.pitch = -1.42 + Math.sin(t * 0.7) * 0.05; T.roll = Math.sin(t * 0.55) * 0.07; T.bob = Math.sin(t * 1.1) * 0.012;
+    T.aLz = 1.35 + Math.sin(t * 0.8) * 0.12; T.aRz = -(1.35 + Math.sin(t * 0.8 + 1.1) * 0.12); T.aLx = T.aRx = 0.15; T.lLz = 0.38 + Math.sin(t * 0.6) * 0.06; T.lRz = -T.lLz; T.lLx = Math.sin(t * 1.3) * 0.08; T.lRx = -T.lLx;
+    if (cup){ T.aRx = -1.1; T.aRz = -0.2; } }
   else if (st === 'sit'){ T.pitch = -0.12; T.lLx = T.lRx = -1.45; T.aLz = 0.25; T.aRz = -0.25; if (cup){ T.aRx = -0.95; T.aRz = 0.15; } }
   if (rig.foodObj && !o.eat && (st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet')){ T.aLx = T.aLx * 0.3 - 0.75; T.aLz = 0.1; }
   if (cup && !o.sip && !o.shoot && (st === 'idle' || st === 'walk' || st === 'run')){ T.aRx = T.aRx * 0.3 - 0.75; T.aRz = -0.1; }
@@ -3172,7 +3204,7 @@ function animRig(rig, dt, st, o){
     if (st === 'surf'){ b.position.set(0, -0.47, 0); b.rotation.set(o.slope || 0, 0, (o.lean || 0) * 0.7); }
     else if (st === 'paddle'){ b.position.set(0, -0.17 + PS.bob, 0.12); b.rotation.set(0, 0, 0); }
     else { b.position.set(0.3, -0.06, 0); b.rotation.set(0, 0, Math.PI / 2); } }
-  { const MK = CH.mask; if (MK){ const land = st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet' || st === 'trip', upT = MK.on && land ? 1 : 0;
+  { const MK = CH.mask; if (MK){ const land = st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet' || st === 'trip' || st === 'float', upT = MK.on && land ? 1 : 0;
     PS.mUp = lerp(PS.mUp || 0, upT, 1 - Math.exp(-dt * 6)); const u = PS.mUp, isUp = u > 0.5; MK.mp.rotation.x = -0.74 * u; MK.mp.scale.setScalar(1 + MK.upK * u);
     MK.sg.visible = MK.snork && !(MK.on && isUp); MK.su.visible = MK.snork && MK.on && isUp; if (MK.mouth) MK.mouth.visible = !MK.sg.visible; } }
   rig.blinkT -= dt; const bl = rig.blinkT < 0.12 ? 0.15 : 1; if (rig.blinkT < 0) rig.blinkT = 2 + Math.random() * 3; CH.eyes?.forEach(e => e.scale.y = (e.userData.sy ?? 0.046) * bl);
@@ -3207,11 +3239,16 @@ function updateCamera(dt){
     if (Math.abs(camD.y) < 0.15) camD.y = lookT.y < 0 ? -0.15 : 0.15;
     camera.position.lerp(camD, 1 - Math.exp(-dt * 6)); camera.lookAt(lookT); return; }
   if (camera.view && camera.view.enabled) camera.clearViewOffset();
+  if (P.sit?.kind === 'float' && CAM.sky){
+    if (time - CAM.dragT > 4){ CAM.yaw = lerpAngle(CAM.yaw, P.yaw, 1 - Math.exp(-dt * 0.5)); CAM.skyPitch = lerp(CAM.skyPitch, 1.0, 1 - Math.exp(-dt * 0.4)); }
+    const e = headW; camera.position.set(e.x, Math.max(e.y + 0.22, 0.16), e.z);
+    const cp = Math.cos(CAM.skyPitch); lookT.set(e.x + Math.sin(CAM.yaw) * cp, camera.position.y + Math.sin(CAM.skyPitch), e.z + Math.cos(CAM.yaw) * cp); camera.lookAt(lookT); return; }
   if (CAM.fp && !P.sit){
     const e = headW; camera.position.set(e.x + Math.sin(CAM.yaw) * 0.12, e.y + 0.02, e.z + Math.cos(CAM.yaw) * 0.12);
     if (P.mode === 'swim' && camera.position.y > -0.1) camera.position.y = -0.12;
     if (Math.abs(camera.position.y) < 0.1) camera.position.y = camera.position.y < 0 ? -0.1 : 0.1;
     const cp = Math.cos(CAM.fpPitch); lookT.set(camera.position.x + Math.sin(CAM.yaw) * cp, camera.position.y + Math.sin(CAM.fpPitch), camera.position.z + Math.cos(CAM.yaw) * cp); camera.lookAt(lookT); return; }
+  if (P.sit?.kind === 'float' && time - CAM.dragT > 4) CAM.yaw = lerpAngle(CAM.yaw, P.yaw + Math.PI, 1 - Math.exp(-dt * 0.5));
   if (P.surf && time - CAM.dragT > 2.5){ CAM.yaw = lerpAngle(CAM.yaw, P.yaw + 0.6, 1 - Math.exp(-dt * 1.8)); CAM.pitch = lerp(CAM.pitch, 0.3, 1 - Math.exp(-dt * 1.5)); }
   const cp = Math.cos(CAM.pitch), sp = Math.sin(CAM.pitch);
   camD.set(camT.x - Math.sin(CAM.yaw) * cp * CAM.dist, camT.y + sp * CAM.dist, camT.z - Math.cos(CAM.yaw) * cp * CAM.dist);
@@ -3416,8 +3453,8 @@ function randomGear(){ const pick = a => a[(Math.random() * a.length) | 0]; G = 
 function openGear(v){ gearOpen = v; gearBuy = null; $('#gear').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); CAM.gearYaw = P.yaw; CAM.prevYaw = CAM.yaw; renderGear(); if (CAM.fp) setFP(false); hintOnce('gearspin', TOUCH ? '아이를 옆으로 밀면 빙글 돌려 볼 수 있어요' : '아이를 드래그하면 빙글 돌려 볼 수 있어요'); } else if (CAM.gearYaw !== undefined){ P.yaw = CAM.gearYaw; CAM.yaw = CAM.prevYaw ?? P.yaw; } refreshHUD(); }
 function openDex(v){ dexOpen = v; $('#dex').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); renderDex(); } refreshHUD(); }
 function openHelp(v){ helpOpen = v; $('#help').classList.toggle('hidden', !v); refreshHUD(); }
-function setFP(v){ CAM.fp = v; $('#mask').classList.toggle('hidden', !v || G.mask === 'none'); $('#bView').classList.toggle('on', v); $('#bFp').classList.toggle('on', v); charRoot.visible = !v; blob.visible = !v; if (v){ CAM.yaw = P.yaw; CAM.fpPitch = P.mode === 'swim' ? -0.6 : -0.1; hintOnce('fp', P.mode === 'swim' ? '마스크 너머로 물속이 보여요. 드래그하면 둘러볼 수 있어요' : '물에 들어가면 마스크 너머로 물속이 보여요'); } }
-function showMung(v){ $('#mung').classList.toggle('hidden', !v); if (v){ $('#mTitle').textContent = P.sit.title || '물멍 중'; $('#mTime').textContent = '00:00'; renderDrinks(); if (CAM.fp) setFP(false); } refreshHUD(); }
+function setFP(v){ if (P.sit?.kind === 'float'){ setSky(!CAM.sky); return; } CAM.fp = v; $('#mask').classList.toggle('hidden', !v || G.mask === 'none'); $('#bView').classList.toggle('on', v); $('#bFp').classList.toggle('on', v); charRoot.visible = !v; blob.visible = !v; if (v){ CAM.yaw = P.yaw; CAM.fpPitch = P.mode === 'swim' ? -0.6 : -0.1; hintOnce('fp', P.mode === 'swim' ? '마스크 너머로 물속이 보여요. 드래그하면 둘러볼 수 있어요' : '물에 들어가면 마스크 너머로 물속이 보여요'); } }
+function showMung(v){ $('#mung').classList.toggle('hidden', !v); if (!v) CAM.sky = false; if (v){ const fl = P.sit.kind === 'float'; $('#mView').classList.toggle('hidden', !fl); $('#mUp').textContent = fl ? '다시 헤엄치기' : '일어나기'; $('#mTitle').textContent = P.sit.title || '물멍 중'; $('#mTime').textContent = '00:00'; renderDrinks(); if (CAM.fp) setFP(false); } refreshHUD(); }
 function renderDrinks(){ const box = $('#mDrinks'); box.innerHTML = '';
   if (P.food){ const f = FOOD[P.food.id], c = el('div', 'held'); c.appendChild(iconCanvas(x => drawFoodIcon(x, f))); c.appendChild(document.createTextNode(f.name)); c.appendChild(el('small', '', `${P.food.left}입 남음`)); box.appendChild(c); }
   if (P.cup){ const c = el('div', 'held'); c.appendChild(iconCanvas(x => drawDrinkIcon(x, P.cup))); c.appendChild(document.createTextNode(P.cup.name)); c.appendChild(el('small', '', P.level > 0.01 ? `${Math.round(P.level * 100)}%` : '다 마셨어요')); box.appendChild(c); }
@@ -3449,6 +3486,7 @@ function updateHUD(dt){
     else { const d = waveIncoming(); if (d !== null) curInteract = { type: 'surfwait', label: `파도가 와요 · ${Math.ceil(d)}m` }; }
   }
   { const eb = $('#bEat'), showE = TOUCH && started && !panel && P.mode === 'land' && !P.sit && (!!P.food || (!!P.cup && P.level > 0.01)); eb.classList.toggle('hidden', !showE); if (showE){ const t = P.food ? '냠냠' : '꿀꺽'; if (eb.textContent !== t) eb.textContent = t; } }
+  if (curInteract?.type === 'float' && started) hintOnce('floathint', TOUCH ? '물 위에서 가만히 있으면 주황 버튼으로 누워서 물멍할 수 있어요' : '물 위에서 가만히 있다가 E를 누르면 누워서 물멍해요');
   if (curInteract?.type === 'kiosk' && started) hintOnce('kioskhint', TOUCH ? '화면 오른쪽 주황 버튼을 누르면 매점이 열려요. 산 먹을거리는 냠냠 버튼으로 먹어요' : 'E를 누르면 매점이 열려요. 산 먹을거리는 R로 먹어요');
   const act = $('#act'); act.classList.toggle('cue', curInteract?.type === 'surfwait'); act.classList.toggle('go', curInteract?.type === 'surfgo');
   if (curInteract && started){ act.classList.remove('hidden'); act.innerHTML = ''; act.appendChild(document.createTextNode(curInteract.label)); if (!TOUCH && curInteract.type !== 'surfwait'){ const k = document.createElement('kbd'); k.textContent = curInteract.key || 'E'; act.appendChild(k); } } else act.classList.add('hidden');
@@ -3460,9 +3498,12 @@ function nearestInteract(){
   for (const it of POIS){ const d = Math.hypot(P.x - it.x, P.z - it.z); if (d < it.r && d < bd){ bd = d; best = it; } }
   const tr = treasureInteract(); if (tr && tr.d < bd){ bd = tr.d; best = tr; }
   if (best && best.type === 'kiosk' && BAG.length) best = Object.assign({}, best, { label: `망사리 바꾸기 · ${BAG.length}개` });
+  if (!best && canFloat()) best = { type: 'float', label: G.tube !== 'none' ? '튜브에 누워 물멍' : '누워서 물멍' };
   return best;
 }
-function interact(){ const it = curInteract || nearestInteract(); if (!it) return;
+function canFloat(){ return P.mode === 'swim' && !P.moving && !P.bed && !P.surf && !(P.digT > 0) && !P.forceUp && !DIVE.on && !hasBoard(G) && P.body > -0.45 && groundH(P.x, P.z) < -1.0; }
+function interact(){ if (P.sit?.kind === 'float'){ standUp(); return; } const it = curInteract || nearestInteract(); if (!it) return;
+  if (it.type === 'float'){ startFloat(); return; }
   if (it.type === 'surfgo'){ const wi = catchable(); if (wi !== null) startSurf(wi); return; }
   if (it.type === 'surfwait') return;
   if (it.type === 'pick' || it.type === 'dig' || it.type === 'digwait'){ interactTreasure(it); return; }
@@ -3603,7 +3644,8 @@ function updateTags(){
   if (!started){ myTag.el.classList.add('hidden'); for (const Rm of NET.peers.values()) Rm.tag.el.classList.add('hidden'); return; }
   const others = visiblePeers().length > 0, mineActive = time < myTag.bT || time < myTag.eT;
   myTag.n.textContent = (myName() ? `나 · ${myName()}` : '나') + (DIVE.on && DIVE.t >= 3 ? ` · 잠수 ${Math.floor(DIVE.t)}초` : '');
-  placeTag(myTag, CH.head, !CAM.fp && (others || mineActive), others);
+  const skyV = P.sit?.kind === 'float' && CAM.sky; if (CH.head) CH.head.visible = !skyV; CH.arms?.forEach(a => a.visible = !skyV);
+  placeTag(myTag, CH.head, !CAM.fp && !skyV && (others || mineActive), others);
   for (const Rm of NET.peers.values()) if (Rm.visible) placeTag(Rm.tag, Rm.rig.CH.head, true, true);
 }
 function goToPeer(Rm){
@@ -4512,7 +4554,7 @@ canvas.addEventListener('pointermove', e => {
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (gearOpen){ P.yaw -= dx * 0.01; return; }
   CAM.yaw -= dx * 0.0055; CAM.dragT = time;
-  if (CAM.fp) CAM.fpPitch = clamp(CAM.fpPitch - dy * 0.004, -1.45, 0.9); else CAM.pitch = clamp(CAM.pitch + dy * 0.004, -0.4, 1.25);
+  if (CAM.sky && P.sit?.kind === 'float') CAM.skyPitch = clamp(CAM.skyPitch - dy * 0.004, -0.5, 1.5); else if (CAM.fp) CAM.fpPitch = clamp(CAM.fpPitch - dy * 0.004, -1.45, 0.9); else CAM.pitch = clamp(CAM.pitch + dy * 0.004, -0.4, 1.25);
 });
 const endPtr = e => { const p = ptr.get(e.pointerId); if (p?.joy){ JOY.id = null; JOY.x = JOY.y = 0; $('#joy b').style.transform = ''; resetJoy(); } ptr.delete(e.pointerId); };
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
@@ -4531,7 +4573,7 @@ $('#gClose').onclick = () => openGear(false); $('#gDone').onclick = () => openGe
 $('#bRank').onclick = () => openRank(!rankOpen); $('#rkClose').onclick = () => openRank(false);
 $('#dxHere').onclick = () => { dexMode = 'here'; renderDex(); }; $('#dxRelic').onclick = () => { dexMode = 'relic'; renderDex(); }; $('#bgClose').onclick = () => openBag(false); $('#bagHud').onclick = e => { e.stopPropagation(); openBag(!bagOpen); }; $('#dxAll').onclick = () => { dexMode = 'all'; renderDex(); };
 $('#dClose').onclick = () => openDex(false); $('#hClose').onclick = () => openHelp(false);
-$('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#bEat').onclick = () => { if (P.food) bite(); else sip(); }; $('#stClose').onclick = () => openStore(false); $('#mUp').onclick = () => { standUp(); };
+$('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#bEat').onclick = () => { if (P.food) bite(); else sip(); }; $('#stClose').onclick = () => openStore(false); $('#mUp').onclick = () => { standUp(); }; $('#mView').onclick = () => setSky(!CAM.sky);
 $('#nextList').textContent = NEXT_SPOTS.join(' · ');
 $('#sNext').innerHTML = '<b>준비 중인 바다</b> · ' + NEXT_SPOTS.map(s => s.replace(/[<>&]/g, '')).join(' · ');
 function resetJoy(){ const j = $('#joy'); j.style.left = '96px'; j.style.top = (innerHeight - 120) + 'px'; }
@@ -5059,7 +5101,7 @@ function updateProps(dt){
 function frame(){
   requestAnimationFrame(frame);
   const dt = Math.min(clock.getDelta(), 0.05); time += dt; U.time.value = time;
-  updateTOD(dt);
+  updateTOD(dt); SKYCLOUDS.rotation.y = time * 0.004;
   updateSurfZone();
   if (started) updatePlayer(dt);
   placeChar(); animateBaby(dt); updateRemotes(dt); updateFun(dt);
