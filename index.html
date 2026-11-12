@@ -511,6 +511,19 @@ body.skyw #tags,body.skyw #bChat,body.skyw #bChat2{display:none!important}
   #surfPop{font-size:22px;top:30%}
   .tag .nm{font-size:11px;padding:1px 7px}
 }
+/* 폰 버튼 알아보기 쉽게: 위쪽 버튼엔 이름을 달고 1인칭은 위쪽에 바로, 아래 큰 버튼은 화살표 그림 + 글씨 */
+body.touch #bView{display:flex}
+body.skyw #bView{display:none!important}
+body.touch #bFp{display:none!important}
+body.touch #topbar{gap:6px;max-width:calc(100vw - 196px);flex-wrap:nowrap}
+body.touch #topbar .chip{flex-direction:column;gap:1px;padding:6px 6px 4px;border-radius:16px;min-width:44px}
+body.touch #topbar .chip .lbl{display:block;font-size:10.5px;line-height:1.1;font-family:var(--display);white-space:nowrap}
+body.touch #topbar .chip svg{width:19px;height:19px}
+.rb .ic{display:grid;place-items:center;gap:1px;pointer-events:none}
+.rb .ic svg{width:21px;height:21px}
+.rb .ic span{font-size:12px;font-family:var(--display);line-height:1}
+body.touch #bUp .ic svg{width:27px;height:27px}body.touch #bUp .ic span{font-size:14px}
+body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font-size:13px}
 </style>
 </head>
 <body>
@@ -629,6 +642,7 @@ body.skyw #tags,body.skyw #bChat,body.skyw #bChat2{display:none!important}
         <li><kbd>X</kbd>(휴대폰은 놀기 → 물총)를 누르고 있으면 물총을 쏴요. 친구를 맞히면 친구가 깜짝 놀라요.</li>
         <li>방파제나 바위 끝에서 물로 뛰어들면 다이빙 점수가 나와요. 공중에서 <kbd>Space</kbd>를 다시 누르면 배치기 · 대포알 · 만세 · 엉덩이 다이빙으로 자세가 바뀌어요.</li>
         <li><kbd>B</kbd>(휴대폰은 놀기 → 뽀글)를 누르면 뽀글뽀글 방귀! 친구들 화면에도 보여요.</li>
+        <li><kbd>F</kbd>(휴대폰은 오른쪽 위 <b>1인칭</b> 버튼)를 누르면 아기 눈으로 봐요. 다시 누르면 3인칭으로 돌아와요.</li>
       </ul>
       <p class="safe">실제 바다에서는 방파제나 바위에서 물로 뛰어들면 안 돼요. 바닥이 얕거나 바위가 숨어 있어 아주 위험해요. 물총 놀이도 친구 얼굴에는 쏘지 않아요.</p></div>
     <div><h3>잠수 기록 · 순위 · 진주</h3>
@@ -3419,7 +3433,10 @@ function startFloat(){
 }
 function setSky(v){ CAM.sky = v; CAM.skyPitch = 1.0; CAM.dragT = -99; if (P.sit?.kind === 'float'){ CAM.yaw = P.yaw + (v ? 0 : Math.PI); CAM.pitch = 0.42; CAM.dist = 3.4; } updateViewBtn(); }
 function firstPerson(){ return P.sit?.kind === 'float' ? !!CAM.sky : !!CAM.fp; }
-function updateViewBtn(){ const f = firstPerson(), b = $('#mView'); if (b) b.textContent = TOUCH ? (f ? '3인칭' : '1인칭') : f ? '3인칭으로 보기' : (P.sit?.kind === 'float' ? '1인칭으로 하늘 보기' : '1인칭으로 보기'); $('#bView').classList.toggle('on', f); $('#bFp').classList.toggle('on', f); }
+const RBI = { up: '<path d="M12 19V6M6 11l6-6 6 6"/>', jump: '<path d="M12 17V5M7 10l5-5 5 5M6 20h12"/>', down: '<path d="M12 5v13M6 13l6 6 6-6"/>', run: '<path d="M5 6l6 6-6 6M13 6l6 6-6 6"/>',
+  play: '<path d="M12 3.5l2.3 5.3 5.7.6-4.3 3.8 1.3 5.6L12 15.9l-5 2.9 1.3-5.6L4 9.4l5.7-.6z"/>', chat: '<path d="M4 5h16v11H9l-5 4z"/>', gun: '<path d="M7.5 4c2 3 3 4.6 3 6.2a3 3 0 0 1-6 0c0-1.6 1-3.2 3-6.2zM16 8.5c2.2 3.3 3.4 5.1 3.4 6.8a3.4 3.4 0 0 1-6.8 0c0-1.7 1.2-3.5 3.4-6.8z"/>', fart: '<circle cx="8" cy="15" r="3.6"/><circle cx="15.5" cy="8.5" r="2.7"/><circle cx="17.5" cy="16.5" r="1.7"/>' };
+function rbSet(b, k, t){ if (!b || (b.dataset.k === k && b.dataset.t === t)) return; b.dataset.k = k; b.dataset.t = t; b.innerHTML = `<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RBI[k]}</svg><span>${t}</span></span>`; b.setAttribute('aria-label', t); }
+function updateViewBtn(){ const f = firstPerson(), b = $('#mView'); if (b) b.textContent = TOUCH ? (f ? '3인칭' : '1인칭') : f ? '3인칭으로 보기' : (P.sit?.kind === 'float' ? '1인칭으로 하늘 보기' : '1인칭으로 보기'); $('#bView').classList.toggle('on', f); $('#bFp').classList.toggle('on', f); if (TOUCH){ const l = $('#bView .lbl'); if (l) l.textContent = f ? '3인칭' : '1인칭'; } }
 function sitUpdate(dt){
   const s = P.sit; let y = s.y; if (s.kind === 'float') y = floatDrift(s, dt); else if (s.kind === 'tube') y = -0.16 + Math.sin(time * 1.4 + s.ph) * 0.05; else if (s.kind === 'canoe' && s.mesh) y = s.y + s.mesh.position.y;
   charRoot.position.set(s.x, y, s.z); P.x = s.x; P.z = s.z; P.yaw = s.yaw; charRoot.rotation.y = s.yaw;
@@ -4060,7 +4077,8 @@ if (TOUCH){
   dexSeen = FOUND.size;
   const tb = $('#topbar'), pop = document.createElement('div'); pop.id = 'menuPop'; pop.className = 'hidden'; pop.setAttribute('aria-label', '메뉴'); document.body.appendChild(pop);
   const mb = document.createElement('button'); mb.className = 'chip'; mb.id = 'bMenu'; mb.title = '메뉴'; mb.setAttribute('aria-label', '메뉴'); mb.setAttribute('aria-expanded', 'false');
-  mb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg><i class="dot hidden"></i>'; tb.appendChild(mb);
+  mb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg><span class="lbl">메뉴</span><i class="dot hidden"></i>'; tb.appendChild(mb);
+  $('#bView .lbl').textContent = '1인칭'; rbSet($('#bPlay'), 'play', '놀기'); rbSet($('#bChat2'), 'chat', '말하기'); rbSet($('#bGun'), 'gun', '물총'); rbSet($('#bFart'), 'fart', '뽀글'); rbSet($('#bUp'), 'jump', '점프'); rbSet($('#bDown'), 'down', '잠수');
   for (const id of ['#bSpot', '#bDex', '#bRank', '#bFriends', '#bTod', '#bSnd', '#bHelp']) pop.appendChild($(id));
   const cl = document.createElement('button'); cl.className = 'chip'; cl.id = 'bClean';
   cl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg><span class="lbl">화면 깨끗이 (사진 찍기)</span>'; pop.appendChild(cl);
@@ -4726,9 +4744,9 @@ function updateFun(dt){
       if (time - FUN.hitSay > 2.6){ FUN.hitSay = time; say(pickOne(['으악 차가워!', '앗, 물총이다!', '복수할 거야!', '꺄아!', '나도 쏜다!'])); hintOnce('wet', TOUCH ? `${nameOf(hitBy[0])} 님 물총에 맞았어요! 놀기 → 물총으로 복수해 봐요` : `${nameOf(hitBy[0])} 님 물총에 맞았어요! X를 눌러 복수해 봐요`); } } }
   else FUN.hitAcc = Math.max(0, FUN.hitAcc - dt * 2);
   updateDrops(dt);
-  const bd = $('#bDown'); const lbl = P.mode === 'land' ? '달리기' : '잠수'; if (bd.textContent !== lbl){ bd.textContent = lbl; bd.setAttribute('aria-label', lbl); }
+  const bd = $('#bDown'); const lbl = P.mode === 'land' ? '달리기' : '잠수'; rbSet(bd, P.mode === 'land' ? 'run' : 'down', lbl);
   if (TOUCH){ bd.classList.toggle('off', P.mode === 'land' || hasBoard(G) || G.tube !== 'none' || !!P.surf);
-    const bu = $('#bUp'), ul = P.mode === 'land' ? '점프' : '위로'; if (bu.textContent !== ul) bu.textContent = ul;
+    const bu = $('#bUp'), ul = P.mode === 'land' ? '점프' : '위로'; rbSet(bu, P.mode === 'land' ? 'jump' : 'up', ul);
     const A = $('#actions'); if (A.classList.contains('open') && !BTN.shoot && performance.now() - playT > 8000) setPlay(false); }
 }
 
@@ -5002,7 +5020,7 @@ canvas.addEventListener('wheel', e => { e.preventDefault(); if (WORLD === 'sky')
 function hold(id, key){ const el = $(id); const on = e => { e.preventDefault(); BTN[key] = true; el.classList.add('press'); AudioSys.ctx?.resume?.(); }, off = () => { BTN[key] = false; el.classList.remove('press'); }; el.addEventListener('pointerdown', on); el.addEventListener('pointerup', off); el.addEventListener('pointercancel', off); el.addEventListener('pointerleave', off); }
 hold('#bUp', 'up'); hold('#bDown', 'down'); hold('#bGun', 'shoot');
 let playT = 0;
-function setPlay(v){ const A = $('#actions'); A.classList.toggle('open', v); $('#bPlay').setAttribute('aria-expanded', String(v)); playT = performance.now(); if (v) hintOnce('playfan', '놀기에서 물총 · 뽀글 · 말하기 · 1인칭을 쓸 수 있어요'); }
+function setPlay(v){ const A = $('#actions'); A.classList.toggle('open', v); $('#bPlay').setAttribute('aria-expanded', String(v)); playT = performance.now(); if (v) hintOnce('playfan', '놀기에서 물총 · 뽀글 · 말하기를 쓸 수 있어요. 1인칭은 오른쪽 위 버튼이에요'); }
 $('#bPlay').onclick = () => setPlay(!$('#actions').classList.contains('open'));
 for (const id of ['#bGun', '#bFart', '#bChat2', '#bFp']) $(id).addEventListener('pointerdown', () => { playT = performance.now(); });
 for (const id of ['#bFart', '#bChat2', '#bFp']) $(id).addEventListener('click', () => setTimeout(() => setPlay(false), 250));
@@ -6228,6 +6246,8 @@ function seaFun(dt){
   if (!SEA.root) return;
   bigWaveUpdate(dt);
   if (!started){ seaBoatIdle(dt); seaSharks(dt); seaWhales(dt); farUpdate(); return; }
+  if (TOUCH){ if (P.mode === 'swim' && !SEA.hUD){ SEA.hUD = true; hintOnce('updown', '물에서는 ▼잠수 버튼으로 내려가고, ▲위로 버튼으로 올라와요'); }
+    SEA.playT = (SEA.playT || 0) + dt; if (SEA.playT > 30 && !SEA.hFP){ SEA.hFP = true; hintOnce('fpbtn', '오른쪽 위 1인칭 버튼을 누르면 아기 눈으로 볼 수 있어요'); } }
   seaBumps(dt); bigWaveEffects(dt); seaCliffs(dt); seaCastles(dt); seaBath(dt); seaSharks(dt); seaWhales(dt); seaBoatIdle(dt); seaRemotes(dt); placeSeaCard(); farUpdate();
   { const tb = $('#tourBtn'), on = !!SEA.boat?.on && SEA.whales.length > 0 && !seaPanel(); tb.classList.toggle('hidden', !on); if (on){ const t = SEA.tour ? '투어 멈추기' : '고래 보러 가기'; if (tb.textContent !== t) tb.textContent = t; } }
   if (SEA.menu && (seaPanel() || !onSand() || P.sit || P.moving)) openSandMenu(false);
