@@ -282,8 +282,11 @@ body.touch #mung .mrow .btn{padding:9px 11px;font-size:14px;white-space:nowrap}
 body.touch #mung .mrow .btn.primary{flex:none;min-width:0}
 body.touch #mung .mrow .btn:disabled{display:none}
 #mung,#topbar,#spotcard,#friend{transition:opacity .5s}
+.tag.npc .nm{background:rgba(255,255,255,.72);color:#0c4a5e}
 .fwhere{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 16px 8px}
 .fwhere b{width:100%;font-family:var(--display);font-weight:400;font-size:15px}
+.npcrow{width:100%;display:flex;gap:8px;align-items:center;font-size:13.5px;color:#5f5546;background:#fff;border-radius:12px;padding:8px 10px}
+.npcrow span{flex:1}
 .fwhere .btn{padding:7px 11px;font-size:14px}
 #bMenu{position:relative}
 #bMenu.on{background:var(--basalt);color:#fff}
@@ -574,6 +577,7 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
     <div><h3>친구들과 놀기</h3>
       <ul>
         <li>땅에서 <kbd>Shift</kbd>를 누르고 있으면 달려요. 휴대폰은 조이스틱을 끝까지 밀어요. 오리발을 신고 뛰면 꽈당 넘어져요!</li>
+        <li>누워서 물멍하거나 1인칭으로 볼 때 보이는 하늘 사진은 Poly Haven의 무료 공개(CC0) 사진이에요.</li>
         <li><kbd>X</kbd>(휴대폰은 놀기 → 물총)를 누르고 있으면 물총을 쏴요. 친구를 맞히면 친구가 깜짝 놀라요.</li>
         <li>방파제나 바위 끝에서 물로 뛰어들면 다이빙 점수가 나와요. 공중에서 <kbd>Space</kbd>를 다시 누르면 배치기 · 대포알 · 만세 · 엉덩이 다이빙으로 자세가 바뀌어요.</li>
         <li><kbd>B</kbd>(휴대폰은 놀기 → 뽀글)를 누르면 뽀글뽀글 방귀! 친구들 화면에도 보여요.</li>
@@ -746,20 +750,35 @@ setTOD('day');
 
 /* ============================== 하늘 ============================== */
 const skyMat = new THREE.ShaderMaterial({
-  uniforms: { uTop: { value: cur.skyTop }, uHor: { value: cur.skyHor }, uSunC: { value: cur.sunC }, uSunDir: { value: cur.sunDir } },
+  uniforms: { uTop: { value: cur.skyTop }, uHor: { value: cur.skyHor }, uSunC: { value: cur.sunC }, uSunDir: { value: cur.sunDir }, uPhoto: { value: null }, uPK: { value: 0 }, uYaw: { value: 0 }, uWarm: { value: 0 } },
   vertexShader: `varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-  fragmentShader: `uniform vec3 uTop,uHor,uSunC,uSunDir; varying vec3 vD;
+  fragmentShader: `uniform vec3 uTop,uHor,uSunC,uSunDir; uniform sampler2D uPhoto; uniform float uPK, uYaw, uWarm; varying vec3 vD;
     void main(){ vec3 d = normalize(vD); float h = d.y;
       vec3 col = mix(uHor, uTop, smoothstep(0.0, 0.55, h));
       col = mix(col, uHor * 0.9, smoothstep(0.0, -0.2, h));
       float s = max(dot(d, normalize(uSunDir)), 0.0);
       col += uSunC * (pow(s, 900.0) * 4.0 + pow(s, 14.0) * 0.32);
+      if (uPK > 0.001 && h > 0.0){ float u = atan(d.z, d.x) * 0.15915494 + 0.5 + uYaw; float v = asin(clamp(h, 0.0, 1.0)) * 0.63661977;
+        vec3 ph = texture2D(uPhoto, vec2(fract(u), clamp(v, 0.004, 0.996))).rgb; ph = mix(ph, ph * vec3(1.15, 0.7, 0.55), uWarm);
+        col = mix(col, ph, smoothstep(0.02, 0.22, h) * uPK); }
       gl_FragColor = vec4(col, 1.0);
       #include <colorspace_fragment>
     }`,
   side: THREE.BackSide, depthWrite: false, fog: false,
 });
 const sky = mesh(new THREE.SphereGeometry(1300, 32, 18), skyMat); sky.renderOrder = -10;
+/* 진짜 하늘 사진: 누워서 물멍하거나 1인칭으로 볼 때 지역별 하늘 사진이 서서히 나타난다 (Poly Haven, CC0). 사진 속 해를 게임의 해 쪽으로 돌려 맞춘다 */
+const SKYPH = { tex: {}, k: 0, hid: false, sunU: { jeju: 0.5999, gangwon: 0.6233, miyako: 0.5999 } };
+function skyPhotoUpdate(dt){
+  const reg = SPOT ? SPOT.mr : null, on = started && !!reg && SKYPH.sunU[reg] != null && (P.sit?.kind === 'float' || CAM.fp) && !isUnder;
+  if (on && !SKYPH.tex[reg]){ SKYPH.tex[reg] = 'loading'; new THREE.TextureLoader().load(`sky/${reg}.jpg`, t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 4; SKYPH.tex[reg] = t; }, undefined, () => { SKYPH.tex[reg] = 'fail'; }); }
+  const t = reg && SKYPH.tex[reg], ready = !!(t && t.isTexture), u = skyMat.uniforms;
+  SKYPH.k = lerp(SKYPH.k, on && ready ? 1 : 0, 1 - Math.exp(-dt * 1.6)); if (SKYPH.k < 0.003) SKYPH.k = 0;
+  u.uWarm.value = lerp(u.uWarm.value, todName === 'sunset' ? 1 : 0, 1 - Math.exp(-dt * 1.4));
+  if (ready){ u.uPhoto.value = t; const sd = cur.sunDir; u.uYaw.value = SKYPH.sunU[reg] - (Math.atan2(sd.z, sd.x) / (Math.PI * 2) + 0.5); }
+  u.uPK.value = ready ? SKYPH.k * (1 - 0.55 * u.uWarm.value) : 0;
+  const hide = SKYPH.k > 0.35; if (hide){ for (const c of CLOUDS) if (c.visible) c.visible = false; } else if (SKYPH.hid){ for (const c of CLOUDS) c.visible = !isUnder; } SKYPH.hid = hide;
+}
 
 /* ============================== 지형 ============================== */
 const SH = m => { m.userData.shared = true; return m; };
@@ -3759,6 +3778,50 @@ function updateRemotes(dt){
     animRig(Rm.rig, dt, Rm.st, { vy: Rm.vy, fins: Rm.gear?.fins !== 'none', sip: Rm.sip, wave: Rm.wave, moving: Rm.mv, lean: Rm.ln, slope: Rm.sl, shoot: Rm.ws, eat: Rm.eat });
   }
 }
+/* ============================== 바다 친구 (NPC) ==============================
+   사람이 적을 때도 바다가 북적이도록 넣은 컴퓨터 아기들. 이름표에 늘 '바다 친구'라고 쓰고, 접속 인원에는 세지 않는다 */
+const NPC_NAMES = ['몽실이', '콩콩이', '보들이', '토실이', '방울이', '꼬물이', '말랑이', '쪼꼬미', '도토리', '뽀송이', '소라', '미역이', '조약돌', '해님이', '별이', '구름이', '통통이', '모래알', '물방울', '파도', '진주', '산호', '몽돌', '윤슬', '하늘이', '바람이', '꽃게', '해마', '돌돌이', '꿈틀이'];
+const NPC_SAY = ['물이 시원해요~', '저기 물고기 많아요!', '둥실둥실~', '오늘 바다 최고!', '하암~ 졸려요', '반짝이는 거 찾았다!', '물멍 중이에요', '같이 놀아요!'];
+const NPC = { list: [], pool: [], spot: null, depth: -1.6, on: loadLS('pp_npc', true) !== false };
+function npcPoint(R, lim = NPC.depth){ const B = SPOT.bounds0 || SPOT.bounds; for (let i = 0; i < 60; i++){ const x = B.minX + 3 + R() * (B.maxX - B.minX - 6), z = B.minZ + 3 + R() * (B.maxZ - B.minZ - 6); if (groundH(x, z) < lim) return { x, z }; } return null; }
+function npcGear(R){ const pick = a => a[(R() * a.length) | 0], face = pick(FACE_IDS), pal = BABY_STYLES[face].pal || {};
+  return sanitizeGear({ face, suit: pal.suit || pick(PAL), shorts: pal.shorts || pick(PAL), skin: pick(SKINS), hair: pick(HAIRS), mask: pick(['classic', 'classic', 'heart', 'cat', 'none']), maskColor: pick(PAL), snorkel: pick(['on', 'on', 'off']), snorkelColor: pick(PAL), fins: pick(['short', 'long', 'none']), finColor: pick(PAL), tube: R() < 0.2 ? pick(['donut', 'duck', 'flamingo']) : 'none', tubeColor: pick(PAL), cap: R() < 0.25 ? pick(['flower', 'straw', 'bucket', 'swim']) : 'none', capColor: pick(PAL), vest: R() < 0.12 ? 'vest' : 'none', vestColor: pick(PAL) }); }
+function freeNPC(n){ if (!n.rig) return; n.rig.root.visible = false; n.tag.el.classList.add('hidden'); NPC.pool.push({ rig: n.rig, tag: n.tag }); n.rig = null; n.tag = null; }
+function buildNPCs(){
+  for (const n of NPC.list) freeNPC(n); NPC.list = []; NPC.spot = SPOT.id; if (!NPC.on) return;
+  let h = 7; for (const c of SPOT.id) h = (h * 31 + c.charCodeAt(0)) | 0; const R = mulberry32(h ^ 0x5eed), cnt = 20 + ((h >>> 0) % 11); NPC.depth = npcPoint(mulberry32(h), -1.6) ? -1.6 : -1.0;
+  for (let i = 0; i < cnt; i++){ const q = npcPoint(R); if (!q) continue; const tube = R();
+    NPC.list.push({ i, name: NPC_NAMES[(i + (h >>> 4)) % NPC_NAMES.length], gear: npcGear(R), x: q.x, z: q.z, y: -0.3, yaw: R() * 6.28, tx: q.x, tz: q.z, mode: 'tread', st: 'tread', t: R() * 6, vy: 0, mv: false, rig: null, tag: null, sayT: 15 + R() * 70 }); }
+}
+function npcStep(n, dt){
+  n.t -= dt; const tube = n.gear.tube !== 'none';
+  if (n.t <= 0){ const r = Math.random();
+    if (n.mode === 'swim') n.mode = r < 0.42 ? 'float' : r < 0.65 && !tube ? 'dive' : 'tread';
+    else { n.mode = 'swim'; const q = npcPoint(Math.random); if (q){ n.tx = q.x; n.tz = q.z; } }
+    n.t = n.mode === 'float' ? 15 + Math.random() * 35 : n.mode === 'dive' ? 9 + Math.random() * 5 : n.mode === 'tread' ? 3 + Math.random() * 5 : 40; }
+  let ty = -0.3 + waveH(n.x, n.z); n.mv = false;
+  if (n.mode === 'swim'){ const dx = n.tx - n.x, dz = n.tz - n.z, d = Math.hypot(dx, dz);
+    if (d < 0.6) n.t = 0; else { const nx = n.x + dx / d * 0.85 * dt, nz = n.z + dz / d * 0.85 * dt; if (groundH(nx, nz) < Math.max(NPC.depth, -1.0) + 0.1){ n.x = nx; n.z = nz; } else n.t = 0; n.yaw = lerpAngle(n.yaw, Math.atan2(dx, dz), 1 - Math.exp(-dt * 4)); n.mv = true; }
+    ty = -0.12 + waveH(n.x, n.z); }
+  else if (n.mode === 'float'){ n.x += Math.sin(time * 0.1 + n.i) * 0.05 * dt; n.z += Math.cos(time * 0.13 + n.i) * 0.05 * dt; n.yaw += 0.04 * dt; ty = -0.03 + waveH(n.x, n.z) + Math.cos(time * 0.85 + n.i) * 0.045; }
+  else if (n.mode === 'dive'){ ty = n.t > 4.5 ? Math.max(groundH(n.x, n.z) + 0.7, -3.2) : -0.3; n.mv = true; }
+  const y0 = n.y; n.y = lerp(n.y, ty, 1 - Math.exp(-dt * (n.mode === 'dive' ? 0.9 : 4))); n.vy = (n.y - y0) / Math.max(dt, 1e-3);
+  n.st = n.mode === 'float' ? (tube ? 'tube' : 'float') : tube ? 'tube' : (n.mv || n.y < -0.45) ? 'swim' : 'tread';
+}
+function updateNPCs(dt){
+  if (!started || !SPOT) return; if (NPC.spot !== SPOT.id) buildNPCs(); if (!NPC.list.length) return;
+  for (const n of NPC.list) npcStep(n, dt);
+  const me = charRoot.position, R0 = TOUCH ? 30 : 40, K = TOUCH ? 7 : 12;
+  for (const n of NPC.list){ n.d = Math.hypot(n.x - me.x, n.z - me.z); if (n.rig && n.d > R0 + 6) freeNPC(n); }
+  let shown = NPC.list.filter(n => n.rig).length, built = 0;
+  if (shown < K) for (const n of NPC.list.filter(n => !n.rig && n.d < R0).sort((a, b) => a.d - b.d)){ if (shown >= K || built >= 2) break;
+    const sl = NPC.pool.pop() || { rig: makeRig(), tag: makeTag() }; sl.tag.el.classList.add('npc'); buildBabyInto(sl.rig, n.gear); sl.rig.tOff = n.i * 1.7;
+    n.rig = sl.rig; n.tag = sl.tag; n.tag.n.textContent = `${n.name} · 바다 친구`; n.rig.root.visible = true; shown++; built++; }
+  for (const n of NPC.list){ if (!n.rig) continue; const r = n.rig.root; r.position.set(n.x, n.y, n.z); r.rotation.y = n.yaw;
+    animRig(n.rig, dt, n.st, { vy: n.vy, fins: n.gear.fins !== 'none', moving: n.mv });
+    n.sayT -= dt; if (n.sayT <= 0){ n.sayT = 40 + Math.random() * 80; if (n.d < 14) showBubble(n.tag, NPC_SAY[(Math.random() * NPC_SAY.length) | 0]); } }
+}
+function setNPC(v){ NPC.on = v; saveLS('pp_npc', v); NPC.spot = null; if (!v){ for (const n of NPC.list) freeNPC(n); NPC.list = []; } }
 function updateTags(){
   if (!started){ myTag.el.classList.add('hidden'); for (const Rm of NET.peers.values()) Rm.tag.el.classList.add('hidden'); return; }
   const others = visiblePeers().length > 0, mineActive = time < myTag.bT || time < myTag.eT;
@@ -3766,6 +3829,7 @@ function updateTags(){
   const skyV = P.sit?.kind === 'float' && CAM.sky; if (CH.head) CH.head.visible = !skyV; CH.arms?.forEach(a => a.visible = !skyV);
   placeTag(myTag, CH.head, !CAM.fp && !skyV && (others || mineActive), others);
   for (const Rm of NET.peers.values()) if (Rm.visible) placeTag(Rm.tag, Rm.rig.CH.head, true, true);
+  for (const n of NPC.list) if (n.rig) placeTag(n.tag, n.rig.CH.head, true, true);
 }
 function goToPeer(Rm){
   if (P.sit) standUp(); if (P.surf) P.surf = null;
@@ -3782,6 +3846,8 @@ function renderFriends(){
   $('#frSub').textContent = NET.status === 'on' ? `이 바다 ${peers.length + 1}명` + (LOBBY.total ? ` · 전체 ${LOBBY.total + 1}명` : '') : '';
   { const w = $('#fWhere') || (() => { const e = document.createElement('div'); e.id = 'fWhere'; e.className = 'fwhere'; list.parentNode.insertBefore(e, list); return e; })(); w.innerHTML = '';
     const elsewhere = Object.entries(LOBBY.counts).filter(([id]) => id !== SPOT.id).sort((a, b) => b[1] - a[1]);
+    { const row = el('div', 'npcrow'); row.appendChild(el('span', '', NPC.on ? `바다 친구(컴퓨터 아기) ${NPC.list.length}명도 같이 놀고 있어요. 접속한 사람 수에는 세지 않아요.` : '바다 친구(컴퓨터 아기)를 숨겼어요.'));
+      const tb = el('button', 'btn'); tb.type = 'button'; tb.textContent = NPC.on ? '숨기기' : '보이기'; tb.onclick = () => { setNPC(!NPC.on); renderFriends(); }; row.appendChild(tb); w.appendChild(row); }
     if (elsewhere.length){ w.appendChild(el('b', '', '다른 바다에서 노는 친구')); for (const [id, n] of elsewhere){ const d = SPOTS.find(x => x.id === id); if (!d) continue; const b = el('button', 'btn'); b.type = 'button'; b.textContent = `${d.short} ${n}명 · 가기`; b.onclick = () => { openFriends(false); switchSpot(id); }; w.appendChild(b); } } }
   $('#fNote').textContent = NET.status === 'solo' && (NET.mode === 'sb' || !window.claude) ? '지금은 혼자 놀기예요. 인터넷 연결을 확인해 주세요. 다시 연결되면 같은 바다에 있는 친구들이 보여요.' : NET.status === 'solo' ? '지금은 혼자 놀기예요. 같이 수영하기는 이 페이지를 공유받은 사람이 Claude에 로그인한 채로 열었을 때 연결돼요. 공개 링크로 들어온 경우에는 혼자 놀기로만 열려요.'
     : NET.status === 'connecting' ? '연결하는 중이에요. 잠시만 기다려 주세요.'
@@ -5259,10 +5325,10 @@ function updateProps(dt){
 function frame(){
   requestAnimationFrame(frame);
   const dt = Math.min(clock.getDelta(), 0.05); time += dt; U.time.value = time;
-  updateTOD(dt); SKYCLOUDS.rotation.y = time * 0.004;
+  updateTOD(dt); SKYCLOUDS.rotation.y = time * 0.004; skyPhotoUpdate(dt);
   updateSurfZone();
   if (started) updatePlayer(dt);
-  placeChar(); animateBaby(dt); updateRemotes(dt); updateFun(dt);
+  placeChar(); animateBaby(dt); updateRemotes(dt); updateNPCs(dt); updateFun(dt);
   updateFish(dt); updateJellies(dt); updateOctos(dt); updateTurtle(dt); updateCrits(dt); updateTreasure(dt);
   updateProps(dt); updateFX(dt); updateCamera(dt); updateUnder(); updateTags(); sendPresence(dt);
   if (started){ updateHUD(dt); discT -= dt; if (discT <= 0){ discT = 0.25; checkDiscover(); } }
