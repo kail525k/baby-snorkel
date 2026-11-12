@@ -680,7 +680,7 @@ const R = (a, b) => a + (b - a) * rnd();
 function hash2(x, z){ const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return s - Math.floor(s); }
 function vnoise(x, z){ const xi = Math.floor(x), zi = Math.floor(z), xf = x - xi, zf = z - zi, u = xf * xf * (3 - 2 * xf), v = zf * zf * (3 - 2 * zf); return lerp(lerp(hash2(xi, zi), hash2(xi + 1, zi), u), lerp(hash2(xi, zi + 1), hash2(xi + 1, zi + 1), u), v); }
 function fbm(x, z){ return vnoise(x, z) * 0.5 + vnoise(x * 2.07 + 5.2, z * 2.07 + 1.3) * 0.3 + vnoise(x * 4.3 + 9.1, z * 4.3 + 3.7) * 0.2; }
-function lerpAngle(a, b, t){ let d = b - a; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return a + d * t; }
+function lerpAngle(a, b, t){ let d = (b - a) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; else if (d < -Math.PI) d += Math.PI * 2; return a + d * t; }
 function shade(hex, l){ const c = new THREE.Color(hex); c.offsetHSL(0, 0, l); return '#' + c.getHexString(); }
 function loadLS(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
 function saveLS(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
@@ -5827,7 +5827,7 @@ function sharkCenters(){
   return out;
 }
 function buildSharks(){ SEA.sharks = sharkCenters().map((c, i) => ({ i, c, dir: i % 2 ? -1 : 1, ph: hashStr(SPOT.id + i) % 628 / 100, w: 2.0 / c.r, x: c.x, z: c.z, y: -0.65, yaw: 0, st: 'patrol', t: 0, cool: 0, hit: 0, g: makeShark(SEA.root), splT: 0 })); }
-function sharkPatrolPos(s){ const T = DBG.bw !== undefined ? DBG.bw + time : Date.now() / 1000, a = s.ph + s.dir * s.w * T; return { x: s.c.x + Math.sin(a) * s.c.r, z: s.c.z + Math.cos(a) * s.c.r, yaw: a + s.dir * Math.PI / 2 }; }
+function sharkPatrolPos(s){ const T = DBG.bw !== undefined ? DBG.bw + time : Date.now() / 1000, per = Math.PI * 2 / s.w, a = s.ph + s.dir * (T % per) * s.w; /* 실제 시계(약 18억 초)를 한 바퀴 안으로 줄여서 각도가 커지지 않게 */ return { x: s.c.x + Math.sin(a) * s.c.r, z: s.c.z + Math.cos(a) * s.c.r, yaw: a + s.dir * Math.PI / 2 }; }
 function sharkMoveTo(s, x, z, sp, dt, turn = 3){ const dx = x - s.x, dz = z - s.z, d = Math.hypot(dx, dz); if (d < 0.01) return d; const want = Math.atan2(dx, dz); s.yaw = lerpAngle(s.yaw, want, 1 - Math.exp(-dt * turn));
   const nx = s.x + Math.sin(s.yaw) * sp * dt, nz = s.z + Math.cos(s.yaw) * sp * dt; if (groundH(nx, nz) < -1.2){ s.x = nx; s.z = nz; } else s.yaw += dt * 2; return d; }
 function sharkThreat(){ return SEA.sharks.find(s => s.st === 'stalk' || s.st === 'charge'); }
