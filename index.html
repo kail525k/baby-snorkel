@@ -577,7 +577,7 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
     <div><h3>친구들과 놀기</h3>
       <ul>
         <li>땅에서 <kbd>Shift</kbd>를 누르고 있으면 달려요. 휴대폰은 조이스틱을 끝까지 밀어요. 오리발을 신고 뛰면 꽈당 넘어져요!</li>
-        <li>누워서 물멍하거나 1인칭으로 볼 때 보이는 하늘 사진은 Poly Haven의 무료 공개(CC0) 사진이에요.</li>
+        <li>하늘 사진은 Poly Haven의 무료 공개(CC0) 사진이에요. 바다 지역마다 하늘이 달라요.</li>
         <li><kbd>X</kbd>(휴대폰은 놀기 → 물총)를 누르고 있으면 물총을 쏴요. 친구를 맞히면 친구가 깜짝 놀라요.</li>
         <li>방파제나 바위 끝에서 물로 뛰어들면 다이빙 점수가 나와요. 공중에서 <kbd>Space</kbd>를 다시 누르면 배치기 · 대포알 · 만세 · 엉덩이 다이빙으로 자세가 바뀌어요.</li>
         <li><kbd>B</kbd>(휴대폰은 놀기 → 뽀글)를 누르면 뽀글뽀글 방귀! 친구들 화면에도 보여요.</li>
@@ -767,10 +767,10 @@ const skyMat = new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false,
 });
 const sky = mesh(new THREE.SphereGeometry(1300, 32, 18), skyMat); sky.renderOrder = -10;
-/* 진짜 하늘 사진: 누워서 물멍하거나 1인칭으로 볼 때 지역별 하늘 사진이 서서히 나타난다 (Poly Haven, CC0). 사진 속 해를 게임의 해 쪽으로 돌려 맞춘다 */
+/* 진짜 하늘 사진: 지역별 하늘 사진을 늘 쓴다 (Poly Haven, CC0). 지평선 근처는 원래 그림 하늘과 섞고, 사진 속 해를 게임의 해 쪽으로 돌려 맞춘다 */
 const SKYPH = { tex: {}, k: 0, hid: false, sunU: { jeju: 0.5999, gangwon: 0.6233, miyako: 0.5999 } };
 function skyPhotoUpdate(dt){
-  const reg = SPOT ? SPOT.mr : null, on = started && !!reg && SKYPH.sunU[reg] != null && (P.sit?.kind === 'float' || CAM.fp) && !isUnder;
+  const reg = SPOT ? SPOT.mr : null, on = !!reg && SKYPH.sunU[reg] != null;
   if (on && !SKYPH.tex[reg]){ SKYPH.tex[reg] = 'loading'; new THREE.TextureLoader().load(`sky/${reg}.jpg`, t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 4; SKYPH.tex[reg] = t; }, undefined, () => { SKYPH.tex[reg] = 'fail'; }); }
   const t = reg && SKYPH.tex[reg], ready = !!(t && t.isTexture), u = skyMat.uniforms;
   SKYPH.k = lerp(SKYPH.k, on && ready ? 1 : 0, 1 - Math.exp(-dt * 1.6)); if (SKYPH.k < 0.003) SKYPH.k = 0;
