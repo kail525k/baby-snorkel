@@ -9,6 +9,7 @@ export const FLIGHT_TIME_PTS_MAX = 200;     // 비행 시간 점수는 10분(200
 export const BUS_PRICE = 5, PIGGY_PRICE = 3, SNACK_PRICE = 2;
 export const BUS_SEATS = 10, BUS_AI_WAIT = 20;
 export const VEH = [
+  { id: 'stroller', name: '자동 유모차', icon: '👶', price: 20, speed: 13, climb: 0.6, desc: '누워서 하늘 보며 스르르~' },
   { id: 'kick', name: '킥보드', icon: '🛴', price: 30, speed: 16, climb: 0.55, desc: '씽씽~ 가볍게 출발' },
   { id: 'roller', name: '인라인 롤러', icon: '🛼', price: 50, speed: 18, climb: 0.55, desc: '발에 바퀴 달고 슝슝' },
   { id: 'bike', name: '자전거', icon: '🚲', price: 90, speed: 21, climb: 0.6, desc: '앞 바구니 달린 아기 자전거' },
@@ -239,45 +240,186 @@ export function createSky(H){
     mC.count = nc; mB.count = nb; mT.count = nt; [mC, mB, mT].forEach(o => { o.instanceMatrix.needsUpdate = true; if (o.instanceColor) o.instanceColor.needsUpdate = true; scene.add(o); });
   }
 
-  /* ---------- 탈것 모양 (상표 없는 동네 탈것) ---------- */
-  let delivTex = null, faceTex = null;
-  function makeSkate(){ const g = new THREE.Group(); box(0.3, 0.1, 0.48, '#9775fa', 0, 0, 0, g); for (const z of [-0.16, 0, 0.16]){ const w = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.08, 10), M('#ffd43b')); w.rotation.z = Math.PI / 2; w.position.set(0, -0.1, z); g.add(w); } return g; }
+  /* ---------- 탈것 모양 (상표 없는 동네 탈것) — 둥근 몸체 · 타이어 · 휠 · 작은 소품까지 ---------- */
+  let delivTex = null, plankTex = null, faceTex = null;
+  const VMAT = {};
+  const vmat = (c, o) => { const k = c + (o ? JSON.stringify(o) : ''); if (VMAT[k]) return VMAT[k]; const shiny = o && o.shiny; const p = Object.assign({ color: c }, o || {}); delete p.shiny;
+    return (VMAT[k] = shiny ? new THREE.MeshPhongMaterial(Object.assign({ shininess: 70, specular: 0x444444 }, p)) : new THREE.MeshLambertMaterial(p)); };
+  const PAINT = c => vmat(c, { shiny: true }), CHROME = () => vmat('#e9eef2', { shiny: true, shininess: 120, specular: 0xffffff }), RUBBER = () => vmat('#2b2b33');
+  function vmesh(geo, mat, par, x = 0, y = 0, z = 0){ const m = new THREE.Mesh(geo, typeof mat === 'string' ? vmat(mat) : mat); m.position.set(x, y, z); if (par) par.add(m); return m; }
+  /* 모서리가 둥근 상자 */
+  function rbox(w, h, d, r, mat, par, x = 0, y = 0, z = 0){
+    r = Math.min(r, w / 2 - 0.001, h / 2 - 0.001, d / 2 - 0.001); const s = new THREE.Shape(), a = w / 2 - r, b = h / 2 - r, c = Math.min(r * 0.6, a, b);
+    s.moveTo(-a + c, -b); s.lineTo(a - c, -b); s.quadraticCurveTo(a, -b, a, -b + c); s.lineTo(a, b - c); s.quadraticCurveTo(a, b, a - c, b); s.lineTo(-a + c, b); s.quadraticCurveTo(-a, b, -a, b - c); s.lineTo(-a, -b + c); s.quadraticCurveTo(-a, -b, -a + c, -b);
+    const g = new THREE.ExtrudeGeometry(s, { depth: Math.max(0.001, d - 2 * r), bevelEnabled: true, bevelThickness: r, bevelSize: r, bevelSegments: 3, curveSegments: 4 }); g.translate(0, 0, -(d - 2 * r) / 2);
+    return vmesh(g, mat, par, x, y, z); }
+  /* 두 점을 잇는 둥근 막대(끝에 공을 달아 이음매를 매끈하게) */
+  function rod(a, b, r, mat, par, joints){ const m = tube(a, b, r, typeof mat === 'string' ? vmat(mat) : mat, par); if (joints) for (const p of [a, b]) vmesh(new THREE.SphereGeometry(r * 1.15, 10, 8), m.material, par, ...p); return m; }
+  /* 바퀴: 도넛 타이어 + 휠 + 허브 (+자전거는 바큇살). 축은 X */
+  function wheel2(r, w, par, x, y, z, o = {}){
+    const g = new THREE.Group(); g.position.set(x, y, z); const tr = Math.min(w / 2, r * 0.32), R = r - tr;
+    const tire = vmesh(new THREE.TorusGeometry(R, tr, o.lug ? 5 : 10, o.lug ? 14 : 28), RUBBER(), g); tire.rotation.y = Math.PI / 2;
+    const rimC = o.rim || '#f1f3f5', rimM = o.chrome ? CHROME() : vmat(rimC, { shiny: true });
+    if (o.spokes){ const rim = vmesh(new THREE.TorusGeometry(R - tr * 0.2, tr * 0.28, 6, 28), rimM, g); rim.rotation.y = Math.PI / 2;
+      for (let i = 0; i < o.spokes; i++){ const a = i / o.spokes * Math.PI; const sp = vmesh(new THREE.CylinderGeometry(0.008, 0.008, (R - tr * 0.2) * 2, 4), vmat('#ced4da'), g); sp.rotation.x = a; }
+      const hub = vmesh(new THREE.CylinderGeometry(r * 0.1, r * 0.1, w * 0.9, 10), vmat('#adb5bd'), g); hub.rotation.z = Math.PI / 2; }
+    else { const disc = vmesh(new THREE.CylinderGeometry(R * 0.98, R * 0.98, w * 0.62, 20), rimM, g); disc.rotation.z = Math.PI / 2;
+      const cap = vmesh(new THREE.CylinderGeometry(R * 0.36, R * 0.42, w * 0.78, 14), o.capC ? vmat(o.capC, { shiny: true }) : CHROME(), g); cap.rotation.z = Math.PI / 2;
+      const ring = vmesh(new THREE.TorusGeometry(R * 0.78, tr * 0.22, 5, 24), o.chrome ? vmat('#adb5bd', { shiny: true }) : vmat('#ffffff', { shiny: true }), g); ring.rotation.y = Math.PI / 2; }
+    par.add(g); return { m: g, r }; }
+  /* 바퀴 덮개(흙받이): 바퀴 위를 감싸는 반원 띠 */
+  function fender(r, w, c, par, x, y, z, from = 0.15, len = 0.7){ const f = vmesh(new THREE.CylinderGeometry(r, r, w, 18, 1, true, Math.PI * from, Math.PI * len), vmat(c, { shiny: true, side: THREE.DoubleSide }), par, x, y, z); f.rotation.z = Math.PI / 2; return f; }
+  function light(par, x, y, z, r, c = '#fff8db', red){ const m = vmesh(new THREE.SphereGeometry(r, 12, 9), vmat(red ? '#ff4d4d' : c, { emissive: red ? '#c92a2a' : '#ffe08a', emissiveIntensity: 0.6 }), par, x, y, z); return m; }
+
+  function makeSkate(){ const g = new THREE.Group(); const P0 = PAINT('#9775fa');
+    rbox(0.3, 0.1, 0.5, 0.045, P0, g, 0, 0.01, 0); rbox(0.31, 0.14, 0.2, 0.06, P0, g, 0, 0.06, 0.15); rbox(0.31, 0.05, 0.5, 0.02, vmat('#ffffff'), g, 0, -0.04, 0);
+    rbox(0.08, 0.07, 0.52, 0.02, CHROME(), g, 0, -0.08, 0);
+    for (const z of [-0.18, -0.06, 0.06, 0.18]){ const w = vmesh(new THREE.CylinderGeometry(0.058, 0.058, 0.055, 14), vmat('#ffd43b', { shiny: true }), g, 0, -0.12, z); w.rotation.z = Math.PI / 2; const h = vmesh(new THREE.CylinderGeometry(0.022, 0.022, 0.065, 8), vmat('#f1f3f5'), g, 0, -0.12, z); h.rotation.z = Math.PI / 2; }
+    rbox(0.07, 0.06, 0.08, 0.02, vmat('#ff8fab'), g, 0, -0.1, -0.28); return g; }
+
   function makeVehicle(id, add = true){
-    if (!delivTex) delivTex = canvasTex(256, 256, (g, W, Hh) => { g.fillStyle = '#ffd43b'; g.fillRect(0, 0, W, Hh); g.fillStyle = '#e8603c'; g.font = 'bold 64px Jua, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('아기', W / 2, Hh * 0.36); g.fillText('배달', W / 2, Hh * 0.66); });
+    if (!delivTex) delivTex = canvasTex(256, 200, (g, W, Hh) => { g.fillStyle = '#ffd43b'; g.fillRect(0, 0, W, Hh); g.fillStyle = '#ffffff'; roundRect(g, 18, 18, W - 36, Hh - 36, 26); g.fill(); g.fillStyle = '#e8603c'; g.font = 'bold 62px Jua, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('아기', W / 2, Hh * 0.37); g.fillText('배달', W / 2, Hh * 0.67); });
+    if (!plankTex) plankTex = canvasTex(128, 128, (g, W, Hh) => { g.fillStyle = '#c8945a'; g.fillRect(0, 0, W, Hh); for (let i = 0; i < 4; i++){ g.fillStyle = i % 2 ? '#bd8a52' : '#d09c62'; g.fillRect(0, i * 32 + 2, W, 28); g.fillStyle = 'rgba(80,45,15,.35)'; g.fillRect(0, i * 32, W, 3); for (const x of [14, 108]){ g.beginPath(); g.arc(x, i * 32 + 16, 2.5, 0, 7); g.fill(); } } });
     const g = new THREE.Group(); const W = []; let seat = new THREE.Vector3(), pose = 'sit', camDist = 10, rad = 0.7;
-    if (id === 'kick'){ box(0.44, 0.08, 1.25, '#ff7a59', 0, 0.17, 0, g); W.push(wheel(0.13, 0.08, g, 0, 0.13, 0.56, '#ffd43b'), wheel(0.13, 0.08, g, 0, 0.13, -0.56, '#ffd43b'));
-      tube([0, 0.15, 0.6], [0, 1.24, 0.5], 0.04, '#adb5bd', g); tube([-0.36, 1.24, 0.5], [0.36, 1.24, 0.5], 0.035, '#adb5bd', g);
-      for (const s of [-1, 1]){ const k = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), M('#ff8fab')); k.scale.set(1.6, 1, 1); k.position.set(s * 0.36, 1.24, 0.5); g.add(k); }
+    if (id === 'kick'){
+      const body = PAINT('#ff7a59');
+      rbox(0.42, 0.075, 1.12, 0.035, body, g, 0, 0.2, -0.04); rbox(0.34, 0.012, 0.9, 0.006, vmat('#3d3d46'), g, 0, 0.243, -0.06);
+      fender(0.17, 0.12, '#ff7a59', g, 0, 0.13, -0.58, 0.38, 0.6);
+      W.push(wheel2(0.13, 0.075, g, 0, 0.13, 0.58, { rim: '#ffd43b' }), wheel2(0.13, 0.075, g, 0, 0.13, -0.58, { rim: '#ffd43b' }));
+      rod([0, 0.22, 0.5], [0, 0.32, 0.6], 0.035, CHROME(), g); for (const s of [-1, 1]) rod([s * 0.05, 0.13, 0.58], [s * 0.05, 0.36, 0.6], 0.018, CHROME(), g);
+      rod([0, 0.34, 0.6], [0, 1.24, 0.5], 0.035, CHROME(), g); vmesh(new THREE.CylinderGeometry(0.055, 0.055, 0.12, 12), body, g, 0, 0.78, 0.55).rotation.x = -0.11;
+      rod([-0.33, 1.24, 0.5], [0.33, 1.24, 0.5], 0.03, CHROME(), g, true);
+      for (const s of [-1, 1]){ const k = vmesh(new THREE.CapsuleGeometry(0.045, 0.14, 4, 10), vmat('#ff8fab'), g, s * 0.41, 1.24, 0.5); k.rotation.z = Math.PI / 2;
+        for (let i = 0; i < 3; i++){ const st = vmesh(new THREE.PlaneGeometry(0.03, 0.22), vmat(['#ffd43b', '#74c0fc', '#ff8fab'][i], { side: THREE.DoubleSide }), g, s * (0.5 + i * 0.008), 1.13, 0.5 - i * 0.01); st.rotation.z = s * (0.25 + i * 0.12); } }
+      light(g, 0, 1.05, 0.57, 0.05); vmesh(new THREE.SphereGeometry(0.035, 10, 8), vmat('#ffd43b', { shiny: true }), g, 0.18, 1.29, 0.5);
+      rod([0.14, 0.17, -0.3], [0.24, 0.02, -0.38], 0.012, vmat('#868e96'), g);
       seat.set(0, 0.21, -0.15); pose = 'kick'; camDist = 9.5; }
     else if (id === 'roller'){ seat.set(0, 0.12, 0); pose = 'skate'; camDist = 9.5; }
-    else if (id === 'bike'){ const fc = '#4dabf7'; W.push(wheel(0.42, 0.07, g, 0, 0.42, 0.64), wheel(0.42, 0.07, g, 0, 0.42, -0.64));
-      const R = [0, 0.42, -0.64], F = [0, 0.42, 0.64], BB = [0, 0.4, -0.02], S = [0, 0.95, -0.22], Hd = [0, 1.05, 0.46];
-      tube(R, BB, 0.04, fc, g); tube(BB, S, 0.045, fc, g); tube(S, Hd, 0.04, fc, g); tube(BB, Hd, 0.045, fc, g); tube(Hd, F, 0.04, fc, g); tube(R, S, 0.035, fc, g);
-      box(0.24, 0.07, 0.36, '#343a40', 0, 0.99, -0.24, g); tube([-0.32, 1.14, 0.5], [0.32, 1.14, 0.5], 0.03, '#adb5bd', g); tube([0, 1.05, 0.46], [0, 1.14, 0.5], 0.03, '#adb5bd', g);
-      box(0.38, 0.24, 0.28, '#f4d58d', 0, 0.98, 0.72, g); seat.set(0, 0.66, -0.24); pose = 'pedal'; camDist = 10; }
-    else if (id === 'moto'){ W.push(wheel(0.36, 0.14, g, 0, 0.36, 0.74), wheel(0.36, 0.14, g, 0, 0.36, -0.74));
-      box(0.36, 0.3, 1.1, '#f8f9fa', 0, 0.55, 0, g); const sh = box(0.52, 0.72, 0.12, '#e8322b', 0, 0.9, 0.52, g); sh.rotation.x = -0.22; box(0.42, 0.13, 0.72, '#343a40', 0, 0.86, -0.25, g);
-      const db = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.52, 0.56), [M('#ffd43b'), M('#ffd43b'), M('#ffd43b'), M('#ffd43b'), new THREE.MeshLambertMaterial({ map: delivTex }), new THREE.MeshLambertMaterial({ map: delivTex })]); db.position.set(0, 1.2, -0.74); g.add(db);
-      tube([-0.38, 1.3, 0.48], [0.38, 1.3, 0.48], 0.03, '#adb5bd', g); tube([0, 0.9, 0.6], [0, 1.3, 0.48], 0.04, '#adb5bd', g);
-      const hl = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 8), new THREE.MeshLambertMaterial({ color: '#fff3bf', emissive: '#ffd43b', emissiveIntensity: .6 })); hl.position.set(0, 1.12, 0.62); g.add(hl);
+    else if (id === 'bike'){
+      const fc = PAINT('#4dabf7'), acc = vmat('#ff8fab', { shiny: true });
+      W.push(wheel2(0.42, 0.075, g, 0, 0.42, 0.64, { spokes: 10, rim: '#ffffff' }), wheel2(0.42, 0.075, g, 0, 0.42, -0.64, { spokes: 10, rim: '#ffffff' }));
+      fender(0.48, 0.12, '#4dabf7', g, 0, 0.42, 0.64, 0.05, 0.55); fender(0.48, 0.12, '#4dabf7', g, 0, 0.42, -0.64, 0.45, 0.55);
+      const R = [0, 0.42, -0.64], F = [0, 0.42, 0.64], BB = [0, 0.36, -0.04], S = [0, 0.9, -0.22], Hd = [0, 0.98, 0.42];
+      rod(BB, S, 0.05, fc, g, true); rod(BB, [0, 0.82, 0.4], 0.055, fc, g, true); rod([0, 0.82, 0.4], Hd, 0.05, fc, g, true); rod(Hd, F, 0.035, CHROME(), g);
+      for (const s of [-1, 1]){ rod([s * 0.06, 0.42, -0.64], [s * 0.04, 0.36, -0.04], 0.025, fc, g); rod([s * 0.06, 0.42, -0.64], [s * 0.03, 0.88, -0.2], 0.022, fc, g); }
+      vmesh(new THREE.TorusGeometry(0.1, 0.022, 6, 18), CHROME(), g, 0.07, 0.36, -0.04).rotation.y = Math.PI / 2;
+      for (const s of [-1, 1]){ rod([s * 0.09, 0.36, -0.04], [s * 0.12, 0.36 + s * 0.14, -0.04 + s * 0.05], 0.018, vmat('#868e96'), g); rbox(0.12, 0.03, 0.07, 0.012, vmat('#343a40'), g, s * 0.17, 0.36 + s * 0.14, -0.04 + s * 0.05); }
+      rod([0, 0.9, -0.22], [0, 1.02, -0.25], 0.03, CHROME(), g); const sd = vmesh(new THREE.SphereGeometry(0.18, 14, 10), vmat('#5c3d2e', { shiny: true }), g, 0, 1.05, -0.26); sd.scale.set(0.95, 0.3, 1.25);
+      rod([0, 0.98, 0.42], [0, 1.12, 0.44], 0.03, CHROME(), g); const hb = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.36, 1.16, 0.32), new THREE.Vector3(-0.2, 1.13, 0.44), new THREE.Vector3(0.2, 1.13, 0.44), new THREE.Vector3(0.36, 1.16, 0.32)]);
+      vmesh(new THREE.TubeGeometry(hb, 16, 0.025, 6), CHROME(), g);
+      for (const s of [-1, 1]){ const k = vmesh(new THREE.CapsuleGeometry(0.035, 0.1, 4, 8), acc, g, s * 0.38, 1.16, 0.3); k.rotation.x = Math.PI / 2; k.rotation.z = s * 0.4;
+        for (let i = 0; i < 3; i++){ const st = vmesh(new THREE.PlaneGeometry(0.025, 0.24), vmat(['#ffd43b', '#74c0fc', '#ff8fab'][i], { side: THREE.DoubleSide }), g, s * (0.4 + i * 0.01), 1.04, 0.24 - i * 0.012); st.rotation.z = s * (0.2 + i * 0.1); } }
+      vmesh(new THREE.SphereGeometry(0.045, 10, 8), vmat('#ffd43b', { shiny: true }), g, -0.16, 1.17, 0.46);
+      const bk = new THREE.Group(); bk.position.set(0, 1.0, 0.72); g.add(bk); const wk = vmat('#e9b96e');
+      rbox(0.42, 0.04, 0.32, 0.015, wk, bk, 0, -0.13, 0); for (const [w, d, x, z] of [[0.42, 0.03, 0, 0.15], [0.42, 0.03, 0, -0.15], [0.03, 0.32, 0.2, 0], [0.03, 0.32, -0.2, 0]]) for (const y of [-0.06, 0.04, 0.13]) rbox(w, 0.04, d, 0.012, wk, bk, x, y, z);
+      for (const [x, z] of [[0.2, 0.15], [-0.2, 0.15], [0.2, -0.15], [-0.2, -0.15]]) rod([x, -0.14, z], [x, 0.15, z], 0.012, wk, bk);
+      for (const [x, c] of [[-0.08, '#ff6b6b'], [0.08, '#ffd43b']]){ vmesh(new THREE.SphereGeometry(0.06, 10, 8), vmat(c), bk, x, 0.17, 0.02); }
+      light(g, 0, 0.98, 0.9, 0.05);
+      for (const s of [-1, 1]){ rod([s * 0.06, 0.42, -0.64], [s * 0.34, 0.2, -0.62], 0.016, CHROME(), g); W.push(wheel2(0.13, 0.05, g, s * 0.36, 0.13, -0.62, { rim: '#ff8fab' })); }
+      seat.set(0, 0.66, -0.24); pose = 'pedal'; camDist = 10; }
+    else if (id === 'moto'){
+      const red = PAINT('#e8322b'), cream = PAINT('#fff8ee');
+      W.push(wheel2(0.32, 0.17, g, 0, 0.32, 0.74, { rim: '#ced4da' }), wheel2(0.32, 0.17, g, 0, 0.32, -0.74, { rim: '#ced4da' }));
+      fender(0.38, 0.2, '#e8322b', g, 0, 0.32, 0.74, 0.1, 0.55);
+      const cowl = vmesh(new THREE.CapsuleGeometry(0.27, 0.6, 6, 14), red, g, 0, 0.6, -0.48); cowl.rotation.x = Math.PI / 2; cowl.scale.set(1.12, 1, 0.78);
+      const strip = vmesh(new THREE.CapsuleGeometry(0.285, 0.5, 6, 14), cream, g, 0, 0.56, -0.5); strip.rotation.x = Math.PI / 2; strip.scale.set(1.13, 1, 0.3);
+      rbox(0.44, 0.08, 0.62, 0.035, vmat('#495057'), g, 0, 0.36, 0.1); rbox(0.4, 0.06, 0.5, 0.02, vmat('#343a40'), g, 0, 0.405, 0.1);
+      const sh = rbox(0.6, 0.82, 0.14, 0.06, red, g, 0, 0.78, 0.5); sh.rotation.x = -0.18; rbox(0.5, 0.06, 0.04, 0.02, CHROME(), g, 0, 0.6, 0.58).rotation.x = -0.18;
+      const st = vmesh(new THREE.CapsuleGeometry(0.11, 0.28, 4, 10), red, g, 0, 1.18, 0.5); st.rotation.x = -0.35;
+      light(g, 0, 1.24, 0.66, 0.1); vmesh(new THREE.TorusGeometry(0.1, 0.018, 6, 18), CHROME(), g, 0, 1.24, 0.655).rotation.x = 0.0;
+      rod([-0.4, 1.32, 0.44], [0.4, 1.32, 0.44], 0.026, CHROME(), g, true);
+      for (const s of [-1, 1]){ const k = vmesh(new THREE.CapsuleGeometry(0.035, 0.12, 4, 8), vmat('#343a40'), g, s * 0.46, 1.32, 0.44); k.rotation.z = Math.PI / 2;
+        rod([s * 0.3, 1.32, 0.44], [s * 0.38, 1.6, 0.4], 0.012, CHROME(), g); const mr = vmesh(new THREE.CylinderGeometry(0.075, 0.075, 0.025, 14), CHROME(), g, s * 0.39, 1.64, 0.4); mr.rotation.x = Math.PI / 2; }
+      rbox(0.4, 0.13, 0.7, 0.06, vmat('#343a40', { shiny: true }), g, 0, 0.92, -0.32);
+      rbox(0.16, 0.08, 0.06, 0.02, vmat('#ff4d4d', { emissive: '#c92a2a', emissiveIntensity: 0.6 }), g, 0, 0.66, -0.98);
+      rod([0.16, 0.28, -0.4], [0.18, 0.36, -0.95], 0.045, CHROME(), g);
+      rbox(0.5, 0.06, 0.45, 0.02, vmat('#495057'), g, 0, 0.96, -0.78);
+      const db = rbox(0.66, 0.56, 0.58, 0.06, PAINT('#ffd43b'), g, 0, 1.28, -0.78);
+      for (const [z, ry] of [[-1.075, Math.PI], [-0.485, 0]]){ const pl = vmesh(new THREE.PlaneGeometry(0.54, 0.42), new THREE.MeshLambertMaterial({ map: delivTex }), g, 0, 1.28, z); pl.rotation.y = ry; }
       seat.set(0, 0.62, -0.2); camDist = 11; rad = 0.9; }
-    else if (id === 'car'){ const red = '#e8322b'; box(1.8, 0.55, 3.3, red, 0, 0.62, 0, g); const nose = new THREE.Mesh(new THREE.SphereGeometry(0.9, 16, 10), M(red)); nose.scale.set(1, 0.38, 0.75); nose.position.set(0, 0.66, 1.55); g.add(nose);
-      const tail = new THREE.Mesh(new THREE.SphereGeometry(0.9, 16, 10), M(red)); tail.scale.set(1, 0.42, 0.6); tail.position.set(0, 0.7, -1.55); g.add(tail);
-      box(0.32, 0.57, 3.32, '#ffffff', 0, 0.625, 0, g);
-      for (const sx of [-0.42, 0.42]){ box(0.62, 0.22, 0.7, '#fff3e0', sx, 0.98, -0.25, g); box(0.62, 0.62, 0.14, '#fff3e0', sx, 1.22, -0.62, g); }
-      const ws = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.48, 0.05), new THREE.MeshPhongMaterial({ color: '#bfe8ff', transparent: true, opacity: .5, shininess: 100 })); ws.position.set(0, 1.18, 0.5); ws.rotation.x = -0.4; g.add(ws);
-      const st = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.035, 6, 16), M('#343a40')); st.position.set(-0.42, 1.12, 0.22); st.rotation.x = -1.0; g.add(st);
-      for (const sx of [-0.62, 0.62]){ const l = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), new THREE.MeshLambertMaterial({ color: '#fff', emissive: '#fff3bf', emissiveIntensity: .6 })); l.position.set(sx, 0.7, 1.98); g.add(l); }
-      W.push(wheel(0.38, 0.26, g, -0.92, 0.38, 1.12, '#dee2e6'), wheel(0.38, 0.26, g, 0.92, 0.38, 1.12, '#dee2e6'), wheel(0.38, 0.26, g, -0.92, 0.38, -1.12, '#dee2e6'), wheel(0.38, 0.26, g, 0.92, 0.38, -1.12, '#dee2e6'));
-      seat.set(-0.42, 0.62, -0.18); camDist = 12; rad = 1.6; }
-    else if (id === 'tiller'){ box(0.82, 0.62, 0.82, '#2f6fdb', 0, 1.0, 1.55, g); box(0.7, 0.4, 0.1, '#343a40', 0, 1.0, 1.98, g); tube([0.25, 1.3, 1.4], [0.25, 1.9, 1.4], 0.05, '#343a40', g);
-      W.push(wheel(0.5, 0.22, g, -0.58, 0.5, 1.55, '#e8322b'), wheel(0.5, 0.22, g, 0.58, 0.5, 1.55, '#e8322b'));
-      for (const s of [-1, 1]) tube([s * 0.25, 1.15, 1.2], [s * 0.48, 1.25, 0.45], 0.04, '#adb5bd', g);
-      box(1.6, 0.3, 1.9, '#c8945a', 0, 0.72, -0.5, g); for (const s of [-1, 1]) box(0.08, 0.4, 1.9, '#a8743a', s * 0.8, 1.05, -0.5, g); box(1.6, 0.4, 0.08, '#a8743a', 0, 1.05, -1.45, g);
-      W.push(wheel(0.3, 0.16, g, -0.9, 0.3, -0.5), wheel(0.3, 0.16, g, 0.9, 0.3, -0.5)); box(0.5, 0.12, 0.4, '#343a40', 0, 1.0, 0.42, g);
+    else if (id === 'car'){
+      const red = PAINT('#e8322b'), red2 = PAINT('#c92a2a');
+      /* 옆에서 본 모양(앞 +z)을 그려서 폭만큼 밀어 몸통을 만든다 */
+      const s = new THREE.Shape(); s.moveTo(-1.6, 0.36); s.lineTo(1.5, 0.36); s.quadraticCurveTo(1.86, 0.38, 1.86, 0.6); s.quadraticCurveTo(1.84, 0.78, 1.55, 0.8); s.lineTo(0.7, 0.88); s.quadraticCurveTo(0.58, 0.9, 0.5, 0.86);
+      s.lineTo(-0.82, 0.84); s.quadraticCurveTo(-0.95, 0.86, -1.05, 0.92); s.lineTo(-1.5, 0.92); s.quadraticCurveTo(-1.84, 0.9, -1.84, 0.62); s.quadraticCurveTo(-1.84, 0.38, -1.6, 0.36);
+      const bg = new THREE.ExtrudeGeometry(s, { depth: 1.22, bevelEnabled: true, bevelThickness: 0.14, bevelSize: 0.12, bevelSegments: 4, curveSegments: 10 }); bg.translate(0, 0, -0.61); bg.rotateY(-Math.PI / 2);
+      vmesh(bg, red, g);
+      rbox(1.32, 0.05, 1.4, 0.02, vmat('#6b4a3a'), g, 0, 0.885, -0.18);
+      for (const sx of [-0.36, 0.36]){ rbox(0.52, 0.16, 0.56, 0.07, vmat('#fff3e0', { shiny: true }), g, sx, 0.98, -0.28); const bk = rbox(0.52, 0.66, 0.16, 0.07, vmat('#fff3e0', { shiny: true }), g, sx, 1.26, -0.6); bk.rotation.x = -0.14;
+        rbox(0.34, 0.2, 0.12, 0.06, vmat('#fff3e0', { shiny: true }), g, sx, 1.66, -0.66); }
+      for (const sx of [-0.62, 0.62]) rod([sx, 0.92, 0.5], [sx * 0.97, 1.36, 0.36], 0.022, CHROME(), g, true); rod([-0.6, 1.36, 0.36], [0.6, 1.36, 0.36], 0.022, CHROME(), g);
+      const ws = vmesh(new THREE.PlaneGeometry(1.2, 0.46), new THREE.MeshPhongMaterial({ color: '#bfe8ff', transparent: true, opacity: 0.45, shininess: 120, side: THREE.DoubleSide }), g, 0, 1.14, 0.43); ws.rotation.x = -0.3;
+      rod([-0.36, 0.95, 0.4], [-0.36, 1.1, 0.18], 0.03, vmat('#343a40'), g); const sw = vmesh(new THREE.TorusGeometry(0.17, 0.03, 8, 20), vmat('#343a40', { shiny: true }), g, -0.36, 1.12, 0.17); sw.rotation.x = -1.05;
+      for (const sx of [-0.52, 0.52]){ light(g, sx, 0.74, 1.72, 0.13); const rg = vmesh(new THREE.TorusGeometry(0.13, 0.025, 6, 18), CHROME(), g, sx, 0.74, 1.76); rg.rotation.y = 0; }
+      const gr = vmesh(new THREE.TorusGeometry(0.34, 0.05, 6, 20, Math.PI), vmat('#343a40'), g, 0, 0.66, 1.9); gr.rotation.z = Math.PI; gr.scale.set(1, 0.45, 1);
+      for (const z of [1.98, -1.98]){ const bp = vmesh(new THREE.CapsuleGeometry(0.06, 1.3, 4, 10), CHROME(), g, 0, 0.44, z); bp.rotation.z = Math.PI / 2; }
+      for (const sx of [-0.5, 0.5]) rbox(0.22, 0.1, 0.05, 0.03, vmat('#ff4d4d', { emissive: '#c92a2a', emissiveIntensity: 0.6 }), g, sx, 0.78, -1.93);
+      for (const sx of [-1, 1]){ rod([sx * 0.66, 0.95, 0.45], [sx * 0.8, 1.02, 0.45], 0.015, CHROME(), g); vmesh(new THREE.SphereGeometry(0.07, 10, 8), CHROME(), g, sx * 0.83, 1.04, 0.45).scale.set(0.5, 0.8, 1); }
+      rbox(0.04, 0.05, 2.6, 0.02, CHROME(), g, -0.735, 0.72, -0.05); rbox(0.04, 0.05, 2.6, 0.02, CHROME(), g, 0.735, 0.72, -0.05);
+      for (const [x, z] of [[-0.86, 1.15], [0.86, 1.15], [-0.86, -1.12], [0.86, -1.12]]){ W.push(wheel2(0.38, 0.26, g, x, 0.38, z, { rim: '#f8f9fa', chrome: true, capC: '#e8322b' })); fender(0.46, 0.32, '#c92a2a', g, x, 0.38, z, 0.08, 0.7); }
+      rod([0.4, 0.3, -1.85], [0.42, 0.3, -2.02], 0.045, CHROME(), g);
+      seat.set(-0.36, 0.62, -0.2); camDist = 12; rad = 1.6; }
+    else if (id === 'tiller'){
+      const blue = PAINT('#2f6fdb'), red = PAINT('#e8322b'), dk = vmat('#343a40', { shiny: true });
+      rbox(0.84, 0.62, 0.86, 0.1, blue, g, 0, 1.0, 1.55); rbox(0.7, 0.46, 0.08, 0.03, dk, g, 0, 1.0, 2.0);
+      for (let i = 0; i < 4; i++) rbox(0.62, 0.035, 0.02, 0.01, CHROME(), g, 0, 0.84 + i * 0.1, 2.05);
+      const tank = vmesh(new THREE.CapsuleGeometry(0.17, 0.4, 4, 12), red, g, 0, 1.42, 1.5); tank.rotation.x = Math.PI / 2; vmesh(new THREE.CylinderGeometry(0.05, 0.05, 0.06, 10), CHROME(), g, 0, 1.6, 1.5);
+      rod([0.3, 1.3, 1.36], [0.3, 1.95, 1.36], 0.05, vmat('#495057'), g); vmesh(new THREE.CylinderGeometry(0.075, 0.05, 0.12, 10), vmat('#212529'), g, 0.3, 2.0, 1.36);
+      const fw = vmesh(new THREE.CylinderGeometry(0.34, 0.34, 0.08, 20), red, g, -0.47, 1.05, 1.5); fw.rotation.z = Math.PI / 2; vmesh(new THREE.TorusGeometry(0.34, 0.03, 6, 22), CHROME(), g, -0.52, 1.05, 1.5).rotation.y = Math.PI / 2;
+      light(g, 0.28, 1.25, 2.02, 0.08); light(g, -0.28, 1.25, 2.02, 0.08);
+      W.push(wheel2(0.5, 0.26, g, -0.62, 0.5, 1.55, { rim: '#e8322b', lug: true, capC: '#ffd43b' }), wheel2(0.5, 0.26, g, 0.62, 0.5, 1.55, { rim: '#e8322b', lug: true, capC: '#ffd43b' }));
+      for (const s of [-1, 1]){ rod([s * 0.25, 1.15, 1.2], [s * 0.46, 1.32, 0.42], 0.04, CHROME(), g, true); const k = vmesh(new THREE.CapsuleGeometry(0.045, 0.14, 4, 8), vmat('#212529'), g, s * 0.5, 1.33, 0.36); k.rotation.x = Math.PI / 2 - 0.3; }
+      rod([0, 0.72, 1.2], [0, 0.72, 0.6], 0.06, vmat('#495057'), g);
+      const cart = new THREE.Group(); cart.position.set(0, 0, -0.5); g.add(cart); const pl = new THREE.MeshLambertMaterial({ map: plankTex }), rail = vmat('#a8743a');
+      vmesh(new THREE.BoxGeometry(1.62, 0.16, 1.92), pl, cart, 0, 0.72, 0); rbox(1.7, 0.1, 2.0, 0.03, rail, cart, 0, 0.62, 0);
+      for (const s of [-1, 1]){ const sd = vmesh(new THREE.BoxGeometry(0.08, 0.42, 1.92), pl, cart, s * 0.81, 1.0, 0); sd.rotation.y = Math.PI / 2 * 0; rbox(0.1, 0.06, 2.0, 0.025, rail, cart, s * 0.81, 1.23, 0); }
+      vmesh(new THREE.BoxGeometry(1.62, 0.42, 0.08), pl, cart, 0, 1.0, -0.96); rbox(1.7, 0.06, 0.1, 0.025, rail, cart, 0, 1.23, -0.96);
+      for (const s of [-1, 1]){ W.push(wheel2(0.3, 0.16, g, s * 0.92, 0.3, -0.5, { rim: '#e8322b', capC: '#ffd43b' })); fender(0.36, 0.2, '#a8743a', g, s * 0.92, 0.3, -0.5, 0.15, 0.7); }
+      rbox(0.52, 0.12, 0.42, 0.05, vmat('#495057', { shiny: true }), g, 0, 1.0, 0.42); rbox(0.52, 0.32, 0.08, 0.04, vmat('#495057', { shiny: true }), g, 0, 1.18, 0.2);
+      for (let i = 0; i < 3; i++) vmesh(new THREE.SphereGeometry(0.16 - i * 0.03, 10, 8), vmat(['#ff922b', '#ffd43b', '#94d82d'][i]), cart, -0.4 + i * 0.32, 0.92, -0.5);
       seat.set(0, 0.72, 0.42); camDist = 11; rad = 1.4; }
-    g.visible = false; if (add) scene.add(g); return { g, W, seat, pose, camDist, rad, id };
+    else if (id === 'stroller'){
+      /* 자동 유모차: 아기가 누워서 스르르. 머리 쪽(-z)에 해가리개 */
+      const mint = PAINT('#8fd8c9'), wf = CHROME();
+      const ring = new THREE.Shape(), hole = new THREE.Path(), rr = (p, w, d, r) => { p.moveTo(-w / 2 + r, -d / 2); p.lineTo(w / 2 - r, -d / 2); p.quadraticCurveTo(w / 2, -d / 2, w / 2, -d / 2 + r); p.lineTo(w / 2, d / 2 - r); p.quadraticCurveTo(w / 2, d / 2, w / 2 - r, d / 2); p.lineTo(-w / 2 + r, d / 2); p.quadraticCurveTo(-w / 2, d / 2, -w / 2, d / 2 - r); p.lineTo(-w / 2, -d / 2 + r); p.quadraticCurveTo(-w / 2, -d / 2, -w / 2 + r, -d / 2); };
+      rr(ring, 1.24, 2.3, 0.5); rr(hole, 1.06, 2.12, 0.42); ring.holes.push(hole);
+      const tg = new THREE.ExtrudeGeometry(ring, { depth: 0.4, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.04, bevelSegments: 3, curveSegments: 10 }); tg.rotateX(-Math.PI / 2);
+      vmesh(tg, mint, g, 0, 0.62, 0);
+      const trim = new THREE.Shape(), th = new THREE.Path(); rr(trim, 1.34, 2.4, 0.55); rr(th, 1.08, 2.14, 0.43); trim.holes.push(th);
+      const tm = new THREE.ExtrudeGeometry(trim, { depth: 0.04, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 2, curveSegments: 10 }); tm.rotateX(-Math.PI / 2); vmesh(tm, vmat('#ffffff', { shiny: true }), g, 0, 1.03, 0);
+      const rib = new THREE.Shape(), rh = new THREE.Path(); rr(rib, 1.37, 2.43, 0.56); rr(rh, 1.25, 2.31, 0.5); rib.holes.push(rh);
+      const rbg = new THREE.ExtrudeGeometry(rib, { depth: 0.07, bevelEnabled: false, curveSegments: 10 }); rbg.rotateX(-Math.PI / 2); vmesh(rbg, vmat('#ff9ec4', { shiny: true }), g, 0, 0.78, 0);
+      for (const [x, z, c] of [[0.66, 0.5, '#ffd43b'], [0.66, -0.2, '#74c0fc'], [-0.66, 0.4, '#ffd43b'], [-0.66, -0.3, '#74c0fc']]){ const st = vmesh(new THREE.OctahedronGeometry(0.07), vmat(c, { shiny: true }), g, x, 0.92, z); st.scale.set(0.4, 1, 1); }
+      rbox(1.16, 0.1, 2.2, 0.05, mint, g, 0, 0.62, 0); rbox(1.02, 0.12, 2.04, 0.06, vmat('#ffffff'), g, 0, 0.72, 0);
+      rbox(0.62, 0.12, 0.34, 0.06, vmat('#fff0f6'), g, 0, 0.8, -0.78);
+      const hood = new THREE.Group(); hood.position.set(0, 1.04, -0.74); hood.rotation.y = Math.PI; hood.scale.set(0.95, 1.0, 1.0); g.add(hood);
+      vmesh(new THREE.SphereGeometry(0.66, 20, 10, 0, Math.PI, 0, Math.PI / 2), vmat('#ff9ec4', { shiny: true, side: THREE.DoubleSide }), hood);
+      for (const a of [0.02, 0.6, 1.15]) vmesh(new THREE.TorusGeometry(0.665, 0.02, 5, 22, Math.PI), vmat('#ffffff'), hood).rotation.x = a;
+      const toy = new THREE.Group(); toy.position.set(0, 1.5, -0.2); g.add(toy); rod([0, 0, 0], [0, -0.3, 0.08], 0.006, vmat('#ffffff'), toy); vmesh(new THREE.OctahedronGeometry(0.08), vmat('#ffd43b', { shiny: true }), toy, 0, -0.34, 0.09);
+      rod([-0.62, 1.04, -0.72], [0.62, 1.04, -0.72], 0.012, vmat('#ffffff'), g);
+      for (const s of [-1, 1]){
+        rod([s * 0.56, 0.58, -0.9], [s * 0.56, 0.3, -0.95], 0.03, wf, g, true); rod([s * 0.56, 0.58, 0.9], [s * 0.56, 0.24, 0.98], 0.03, wf, g, true);
+        rod([s * 0.56, 0.58, -0.9], [s * 0.56, 0.58, 0.9], 0.028, wf, g);
+        rod([s * 0.56, 0.6, -1.0], [s * 0.5, 1.75, -1.5], 0.035, wf, g, true); }
+      const hb = vmesh(new THREE.CapsuleGeometry(0.05, 0.95, 4, 10), vmat('#495057'), g, 0, 1.76, -1.51); hb.rotation.z = Math.PI / 2;
+      rbox(0.9, 0.22, 0.8, 0.06, vmat('#495057'), g, 0, 0.36, -0.2);
+      for (const s of [-1, 1]){ W.push(wheel2(0.3, 0.12, g, s * 0.62, 0.3, -0.95, { rim: '#ffffff', capC: '#ff9ec4' })); W.push(wheel2(0.24, 0.1, g, s * 0.62, 0.24, 0.98, { rim: '#ffffff', capC: '#ff9ec4' })); }
+      for (const s of [-1, 1]) rod([s * 0.56, 0.3, -0.95], [s * 0.62, 0.3, -0.95], 0.02, wf, g);
+      seat.set(0, 0.36, 0.3); pose = 'lie'; camDist = 10; rad = 1.1; }
+    bakeVehicle(g, W); g.visible = false; if (add) scene.add(g); return { g, W, seat, pose, camDist, rad, id };
   }
+  /* 같은 재질끼리 한 덩어리로 합쳐서 그리기 횟수를 줄인다(바퀴는 돌아야 하니 바퀴끼리만 따로) */
+  const BK_M = new THREE.Matrix4(), BK_I = new THREE.Matrix4();
+  function bakeInto(root, skip){
+    root.updateMatrixWorld(true); BK_I.copy(root.matrixWorld).invert(); const groups = new Map();
+    root.traverse(o => { if (!o.isMesh) return; for (let p = o.parent; p && p !== root; p = p.parent) if (skip.has(p)) return; if (!groups.has(o.material)) groups.set(o.material, []); groups.get(o.material).push(o); });
+    for (const [mat, list] of groups){ if (list.length < 2) continue; let n = 0;
+      const parts = list.map(o => { const gg = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); gg.applyMatrix4(BK_M.multiplyMatrices(BK_I, o.matrixWorld)); n += gg.attributes.position.count; return gg; });
+      const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2); let i = 0;
+      for (const p of parts){ pos.set(p.attributes.position.array, i * 3); if (p.attributes.normal) nor.set(p.attributes.normal.array, i * 3); if (p.attributes.uv) uv.set(p.attributes.uv.array, i * 2); i += p.attributes.position.count; p.dispose(); }
+      const mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); mg.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); mg.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      for (const o of list){ o.parent.remove(o); o.geometry.dispose(); } root.add(new THREE.Mesh(mg, mat)); } }
+  function bakeVehicle(g, W){ const wheels = new Set(W.map(w => w.m)); bakeInto(g, wheels); for (const w of wheels) bakeInto(w, new Set()); }
   let VOBJ = {}; const vobj = id => VOBJ[id] || (VOBJ[id] = makeVehicle(id));
 
   /* ---------- 단양읍 (구경시장) · 다리 ---------- */
@@ -329,7 +471,7 @@ export function createSky(H){
     const aw = canvasTex(64, 64, (c, W, Hh) => { for (let i = 0; i < 8; i++){ c.fillStyle = i % 2 ? '#ffffff' : '#ff7a59'; c.fillRect(i * 8, 0, 8, Hh); } });
     const awm = new THREE.Mesh(new THREE.BoxGeometry(10.4, 0.15, 2.2), new THREE.MeshLambertMaterial({ map: aw })); awm.position.set(0, 4.1, 4.5); awm.rotation.x = 0.22; sh.add(awm);
     scene.add(sh); COLL.push({ x: SHOP_POS.x, z: SHOP_POS.z, r: 5.2 });
-    ['kick', 'bike', 'moto', 'car', 'tiller'].forEach((id, i) => { const v = makeVehicle(id); const lx = -7 + i * 3.6, lz = 9.5; const wx = SHOP_POS.x + Math.cos(face) * lx + Math.sin(face) * lz, wz = SHOP_POS.z - Math.sin(face) * lx + Math.cos(face) * lz;
+    ['stroller', 'kick', 'bike', 'moto', 'car', 'tiller'].forEach((id, i) => { const v = makeVehicle(id); const lx = -9.5 + i * 3.8, lz = 9.5; const wx = SHOP_POS.x + Math.cos(face) * lx + Math.sin(face) * lz, wz = SHOP_POS.z - Math.sin(face) * lx + Math.cos(face) * lz;
       v.g.position.set(wx, heightAt(wx, wz), wz); v.g.rotation.y = face + 0.6; v.g.visible = true; const tg = makeTag(VEHMAP[id].icon + ' 진주 ' + VEHMAP[id].price, '#ffffff', '#e8603c', 1.6); tg.position.set(wx, v.g.position.y + (id === 'car' ? 2.4 : 2.2), wz); scene.add(tg); DISPLAY.push(v.g, tg); });
     const tent = new THREE.Group(); tent.position.set(SNACK_POS.x, heightAt(SNACK_POS.x, SNACK_POS.z), SNACK_POS.z);
     const roof = new THREE.Mesh(new THREE.ConeGeometry(5, 2.6, 4), M('#ff9f43')); roof.rotation.y = Math.PI / 4; roof.position.y = 4.8; tent.add(roof);
@@ -456,6 +598,7 @@ export function createSky(H){
   function poseSeat(b, armX = -1.15){ const T = T0(); T.pitch = -0.1; T.lLx = T.lRx = -1.45; T.aLx = T.aRx = armX; T.aLz = 0.25; T.aRz = -0.25; setSt(b, 'pose', { T }); }
   function posePedal(b, ph){ const T = T0(); T.pitch = 0.12; T.lLx = -1.05 + Math.sin(ph) * 0.5; T.lRx = -1.05 - Math.sin(ph) * 0.5; T.aLx = T.aRx = -1.2; T.aLz = 0.25; T.aRz = -0.25; setSt(b, 'pose', { T }); }
   function poseKick(b, ph, mv){ const T = T0(); T.pitch = 0.08; T.aLx = T.aRx = -1.15; T.aLz = 0.12; T.aRz = -0.12; T.lRx = mv ? Math.max(0, Math.sin(ph)) * 0.9 - 0.1 : 0; setSt(b, 'pose', { T }); }
+  function poseLie(b, ph, mv){ const T = T0(), k = Math.sin(ph); T.pitch = -1.36 + Math.sin(ph * 0.35) * 0.03; T.roll = Math.sin(ph * 0.5) * (mv ? 0.05 : 0.02); T.aLz = 1.0 + k * 0.25; T.aRz = -(1.0 - k * 0.25); T.aLx = T.aRx = -0.2; T.lLx = -0.35 + k * (mv ? 0.25 : 0.08); T.lRx = -0.35 - k * (mv ? 0.25 : 0.08); T.lLz = 0.18; T.lRz = -0.18; setSt(b, 'pose', { T }); }
   function poseSkate(b, ph, mv){ const T = T0(), s = Math.sin(ph) * (mv ? 1 : 0); T.pitch = 0.22; T.roll = s * 0.08; T.lLz = 0.12 + Math.max(0, s) * 0.45; T.lRz = -(0.12 + Math.max(0, -s) * 0.45); T.lLx = T.lRx = -0.15; T.aLx = s * 0.6; T.aRx = -s * 0.6; T.aLz = 0.6; T.aRz = -0.6; setSt(b, 'pose', { T }); }
   function posePiggy(b){ const T = T0(); T.pitch = -0.05; T.lLx = T.lRx = -1.0; T.lLz = 0.55; T.lRz = -0.55; T.aLx = T.aRx = -1.65; T.aLz = -0.25; T.aRz = 0.25; setSt(b, 'pose', { T }); }
   function poseCarry(b, ph, mv){ const T = T0(), s = Math.sin(ph) * (mv ? 1 : 0); T.pitch = 0.18; T.lLx = s * 0.7; T.lRx = -s * 0.7; T.bob = Math.abs(Math.cos(ph)) * 0.05 * (mv ? 1 : 0); T.aLx = T.aRx = 0.9; T.aLz = 0.45; T.aRz = -0.45; setSt(b, 'pose', { T }); }
@@ -588,7 +731,7 @@ export function createSky(H){
     if (P.mode === 'ground'){ if (P.cy){ toast('친구를 업고 있어요. 정상까지 걸어가요'); return; } if (nearPad()) startTakeoff(); else if (P.ride) honk(); else if (P.y <= groundAt(P.x, P.z) + 0.05){ P.jv = 6.5; beep(520, 0.12, 0.08, 'sine', 780); } }
     else if (P.mode === 'sit') standUp(); }
   function useAction(){ if (P.mode === 'sit'){ standUp(); return; } if (P.mode === 'bus'){ cancelBus(); return; } if (P.mode === 'piggy' && P.carrier){ toast('친구가 내려 줄 때까지 꽉 잡아요'); return; } const it = nearInter(); if (it) it.act(); }
-  function zoom(f){ if (P.mode === 'flying' || P.mode === 'takeoff') cam.flyDist = clamp(cam.flyDist * f, 7, 60); else cam.walkDist = clamp(cam.walkDist * f, 3.5, 40); }
+  function zoom(f){ if (P.mode === 'flying' || P.mode === 'takeoff') cam.flyDist = clamp(cam.flyDist * f, 5, 60); else cam.walkDist = clamp(cam.walkDist * f, 1.6, 40); }
   function drag(dx, dy){ const flying = P.mode === 'flying' || P.mode === 'takeoff'; if (flying) cam.off -= dx * 0.006; else cam.yaw -= dx * 0.006; cam.pitch = clamp(cam.pitch + dy * 0.004, -0.15, 1.25); cam.drag = true; cam.dragT = NOW; }
   function interactables(){ const L = [
     { x: SHOP_POS.x, z: SHOP_POS.z, r: 10, label: '아기 탈것 가게 들어가기', short: '가게', act: () => H.openStore('veh') },
@@ -841,7 +984,7 @@ export function createSky(H){
       else if (R.md === 's') setSt(b, 'sit');
       else if (R.md === 'p') posePiggy(b);
       else if (R.veh){ placeVehicle(R.veh.g, root.position.x, root.position.z, root.rotation.y, 1.2); R.veh.g.updateMatrixWorld(true); V3.copy(R.veh.seat); R.veh.g.localToWorld(V3); root.position.copy(V3); root.quaternion.copy(R.veh.g.quaternion);
-        for (const w of R.veh.W) if (R.mv) w.m.rotation.x += 14 * dt / w.r; const pz = R.veh.pose, ph = NOW * 8; if (pz === 'kick') poseKick(b, ph, R.mv); else if (pz === 'skate') poseSkate(b, ph, R.mv); else if (pz === 'pedal') posePedal(b, ph); else poseSeat(b); }
+        for (const w of R.veh.W) if (R.mv) w.m.rotation.x += 14 * dt / w.r; const pz = R.veh.pose, ph = NOW * 8; if (pz === 'kick') poseKick(b, ph, R.mv); else if (pz === 'skate') poseSkate(b, ph, R.mv); else if (pz === 'pedal') posePedal(b, ph); else if (pz === 'lie') poseLie(b, NOW * 2.5, R.mv); else poseSeat(b); }
       else if (R.cy) poseCarry(b, NOW * 10, R.mv);
       else poseStand(b, R.mv, R.run);
       H.animRig(b.rig, dt, b.st, b.o);
@@ -873,7 +1016,7 @@ export function createSky(H){
     else if (P.mode === 'landing'){ if (lastResult?.q === 'hard') poseHard(b, Math.min(1, P.landT / 1.1)); else setSt(b, 'idle'); b.harness.visible = P.landT < 0.66; }
     else if (P.mode === 'ground' && P.ride){ const v = vobj(P.ride); placeVehicle(v.g, P.x, P.z, P.heading, 1.2); v.g.visible = true; for (const w of v.W) w.m.rotation.x += P.spd * dt / w.r;
       v.g.updateMatrixWorld(true); V3.copy(v.seat); v.g.localToWorld(V3); me.rig.position.copy(V3); me.rig.quaternion.copy(v.g.quaternion);
-      const pz = v.pose; if (pz === 'kick') poseKick(b, P.anim * 1.3, P.moving); else if (pz === 'skate') poseSkate(b, P.anim * 1.1, P.moving); else if (pz === 'pedal') posePedal(b, P.anim * 2.2); else poseSeat(b);
+      const pz = v.pose; if (pz === 'kick') poseKick(b, P.anim * 1.3, P.moving); else if (pz === 'skate') poseSkate(b, P.anim * 1.1, P.moving); else if (pz === 'pedal') posePedal(b, P.anim * 2.2); else if (pz === 'lie') poseLie(b, NOW * 2.5, P.moving); else poseSeat(b);
       if (P.ride === 'tiller' && P.moving){ puffT -= dt; if (puffT <= 0){ puffT = 0.16; V3.set(0.25, 1.95, 1.4); v.g.localToWorld(V3); const p = PUFFS.find(q => !q.m.visible); if (p){ p.m.visible = true; p.t = 0; p.m.position.copy(V3); p.vy = 1.6; } beep(110, 0.05, 0.05, 'square'); } } }
     else if (P.cy) poseCarry(b, P.anim, P.moving);
     else { poseStand(b, P.moving, P.run); b.o.wave = !P.moving && P.idleT > 1.6 && P.mode === 'ground'; }
@@ -902,7 +1045,8 @@ export function createSky(H){
     const flying = P.mode === 'flying' || P.mode === 'takeoff'; let tx = P.x, ty = P.y + (flying ? 3.4 : 1.3), tz = P.z, want = started ? (flying ? cam.flyDist : cam.walkDist) : 26;
     if (P.mode === 'bus'){ tx = BUS.g.position.x; ty = BUS.g.position.y + 2.2; tz = BUS.g.position.z; want = Math.max(20, cam.walkDist); cam.pitch = Math.max(cam.pitch, 0.42); }
     else if (P.mode === 'piggy'){ ty = P.y + 1.4; want = Math.max(11, cam.walkDist); }
-    else if (P.ride) want = Math.max(cam.walkDist, vobj(P.ride).camDist);
+    else if (P.ride) want = cam.walkDist * vobj(P.ride).camDist / 9;
+    if (!flying && P.mode !== 'bus' && want < 6) ty += (6 - want) * 0.08; /* 가까이 당기면 얼굴 쪽을 본다 */
     if (cam.drag && NOW - cam.dragT > 0.25) cam.drag = false;
     if (!started){ cam.yaw += dt * 0.1; }
     else if (flying){ cam.yaw = lerpAngle(cam.yaw, P.heading + Math.PI + cam.off, Math.min(1, dt * 2.2)); if (!cam.drag) cam.off *= Math.exp(-dt * 0.6); }
@@ -1052,11 +1196,30 @@ export function createSky(H){
   }
 
   /* ============================== 탈것 가게 (매점 창 그대로) ============================== */
+  /* 가게 그림: 이모지 대신 진짜 탈것 모양을 작게 찍어서 보여 준다(렌더러가 없으면 이모지) */
+  const THUMB = {}; let TH = null; const SRGB8 = new Uint8Array(256).map((_, i) => { const c = i / 255; return Math.round((c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055) * 255); });
+  function vehThumb(id){
+    if (THUMB[id] !== undefined) return THUMB[id]; const R = H.renderer?.(); if (!R){ THUMB[id] = null; return null; }
+    try {
+      const S = 192; if (!TH){ const sc = new THREE.Scene(); sc.add(new THREE.HemisphereLight(0xe8f6ff, 0x9a8a70, 1.7)); const d = new THREE.DirectionalLight(0xfff0d8, 2.3); d.position.set(-2, 5, 4); sc.add(d); TH = { sc, cam: new THREE.PerspectiveCamera(30, 1, 0.05, 80), rt: new THREE.WebGLRenderTarget(S, S, { samples: 4 }), buf: new Uint8Array(S * S * 4) }; }
+      let o; if (id === 'roller'){ o = new THREE.Group(); for (const x of [-0.18, 0.18]){ const k = makeSkate(); k.position.set(x, 0.18, x * 0.8); o.add(k); } } else { o = makeVehicle(id, false).g; o.visible = true; }
+      o.rotation.y = 0.75; TH.sc.add(o); o.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(o), c = bb.getCenter(new THREE.Vector3()), r = bb.getSize(new THREE.Vector3()).length() * 0.5, dist = r / Math.sin(15 * Math.PI / 180) * 0.95;
+      TH.cam.position.set(c.x + dist * 0.12, c.y + dist * 0.36, c.z + dist * 0.92); TH.cam.lookAt(c);
+      const prev = R.getRenderTarget(), cc = new THREE.Color(); R.getClearColor(cc); const ca = R.getClearAlpha();
+      R.setRenderTarget(TH.rt); R.setClearColor(0x000000, 0); R.clear(); R.render(TH.sc, TH.cam); R.readRenderTargetPixels(TH.rt, 0, 0, S, S, TH.buf); R.setRenderTarget(prev); R.setClearColor(cc, ca);
+      TH.sc.remove(o); o.traverse(m => { if (m.geometry) m.geometry.dispose(); });
+      const cv = document.createElement('canvas'); cv.width = cv.height = S; const x = cv.getContext('2d'), img = x.createImageData(S, S), B = TH.buf;
+      for (let y = 0; y < S; y++) for (let i = 0; i < S; i++){ const si = ((S - 1 - y) * S + i) * 4, di = (y * S + i) * 4, a = B[si + 3]; if (!a) continue; const k = 255 / a;
+        img.data[di] = SRGB8[Math.min(255, Math.round(B[si] * k))]; img.data[di + 1] = SRGB8[Math.min(255, Math.round(B[si + 1] * k))]; img.data[di + 2] = SRGB8[Math.min(255, Math.round(B[si + 2] * k))]; img.data[di + 3] = a; }
+      x.putImageData(img, 0, 0); THUMB[id] = cv; return cv;
+    } catch (e){ console.warn('veh thumb', e); THUMB[id] = null; return null; }
+  }
   function renderStore(tab, body, sub){
     const mk = H.el, ic = (e, bg) => H.iconCanvas(x => { x.fillStyle = bg || '#fff3e6'; x.beginPath(); x.arc(0, 0, 50, 0, 7); x.fill(); x.font = '58px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(e, 0, 5); });
+    const vic = v => { const t = vehThumb(v.id); return t ? H.iconCanvas(x => { x.fillStyle = '#fff3e6'; x.beginPath(); x.arc(0, 0, 50, 0, 7); x.fill(); x.drawImage(t, -56, -56, 112, 112); }) : ic(v.icon); };
     const price = n => { const p = mk('span', 'price'); p.appendChild(mk('i')); p.appendChild(document.createTextNode(String(n))); return p; };
     if (tab === 'veh'){ sub.textContent = '한 번 사면 계속 타요 · 사뿐히 착륙할수록 진주가 쌓여요';
-      for (const v of VEH){ const own = owns(v.id), on = P.ride === v.id, c = mk('div', 'sti' + (on ? ' on' : '')); c.id = 'sv-' + v.id; c.appendChild(ic(v.icon));
+      for (const v of VEH){ const own = owns(v.id), on = P.ride === v.id, c = mk('div', 'sti' + (on ? ' on' : '')); c.id = 'sv-' + v.id; c.appendChild(vic(v));
         const w = mk('div', 'w'); w.appendChild(mk('b', '', v.name + (own ? ' ✓' : ''))); w.appendChild(mk('small', '', `${v.desc} · 걷기의 ${(v.speed / 8).toFixed(1)}배${v.climb < 0.8 ? ' · 오르막은 낑낑' : ''}`)); c.appendChild(w);
         const b = mk('button', 'btn' + (own && on ? '' : ' primary')); b.type = 'button';
         if (!own){ b.appendChild(price(v.price)); b.appendChild(document.createTextNode(' 사기')); b.disabled = H.pearl() < v.price; b.onclick = () => { if (!H.spendPearl(v.price)) { toast(`진주가 ${v.price - H.pearl()}개 더 필요해요`); return; } H.giveOwned('veh', v.id); chime(); H.openStore(false); if (P.mode === 'ground') mount(v.id); toast(`${v.icon} ${v.name}를 샀어요! 타고 출발~`, 'found'); }; }
