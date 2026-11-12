@@ -282,6 +282,18 @@ body.touch #mung .mrow .btn{padding:9px 11px;font-size:14px;white-space:nowrap}
 body.touch #mung .mrow .btn.primary{flex:none;min-width:0}
 body.touch #mung .mrow .btn:disabled{display:none}
 #mung,#topbar,#spotcard,#friend{transition:opacity .5s}
+.fwhere{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 16px 8px}
+.fwhere b{width:100%;font-family:var(--display);font-weight:400;font-size:15px}
+.fwhere .btn{padding:7px 11px;font-size:14px}
+#bMenu{position:relative}
+#bMenu.on{background:var(--basalt);color:#fff}
+#bMenu .dot{position:absolute;top:3px;right:3px;width:10px;height:10px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 0 2px #fff}
+#menuPop{position:fixed;right:12px;z-index:9;width:min(250px,calc(100vw - 24px));background:var(--sand);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:8px;display:grid;gap:6px;animation:tin .18s ease-out}
+#menuPop .chip{width:100%;justify-content:flex-start;padding:10px 14px;box-shadow:none;background:#fff;font-size:15px}
+#menuPop .chip .lbl{display:inline}
+#menuPop #rankN{display:inline}
+#menuPop .chip svg{width:20px;height:20px;flex:none}
+body.clean #topbar,body.clean #spotcard,body.clean #actions,body.clean #joy,body.clean #act,body.clean #mung,body.clean #breath,body.clean #dive,body.clean #calm,body.clean #bagHud,body.clean #tags,body.clean #menuPop,body.clean #surfHud{visibility:hidden}
 body.zen #mung,body.zen #topbar,body.zen #spotcard,body.zen #friend{opacity:0;pointer-events:none}
 
 #start{position:fixed;inset:0;z-index:10;display:flex;align-items:stretch;justify-content:flex-start;padding:clamp(12px,3vw,30px);background:linear-gradient(90deg,rgba(7,48,66,.5) 0%,rgba(7,48,66,.12) 52%,rgba(7,48,66,0) 100%)}
@@ -308,8 +320,9 @@ body.zen #mung,body.zen #topbar,body.zen #spotcard,body.zen #friend{opacity:0;po
 .srow .tg span{font-size:11.5px;border-radius:999px;padding:2px 8px;background:rgba(255,255,255,.16);white-space:nowrap}
 .srow .tg .sf{background:#ff8a2a;color:#fff}
 .srow .tg .nw{background:var(--emerald);color:#06352f}
+.srow .tg .pp,.bdg .b.pp{background:#ff4d6d;color:#fff}
 .srow[aria-pressed="true"]{background:#fff;color:var(--basalt);box-shadow:0 3px 0 rgba(0,0,0,.18);text-shadow:none}
-.srow[aria-pressed="true"] .tg span:not(.sf):not(.nw){background:#eef6f4;color:#28504c}
+.srow[aria-pressed="true"] .tg span:not(.sf):not(.nw):not(.pp){background:#eef6f4;color:#28504c}
 .ssel{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 12px;display:grid;gap:6px}
 .sst{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 .sst b{font-family:var(--display);font-weight:400;font-size:19px}
@@ -1388,24 +1401,27 @@ function buildFish(def){
 const tmpV = new V3(), tmpV2 = new V3(), tmpQ = new THREE.Quaternion(), tmpE = new THREE.Euler(), tmpM = new THREE.Matrix4(), tmpS = new V3(), prevP = new V3();
 const headW = new V3();
 function updateFish(dt){
-  const inW = P.mode === 'swim' || (P.mode === 'land' && P.feet < -0.25), A = SPOT.area;
+  /* 물고기 반응: 움직이며 다가가면 재빨리 흩어지고, 가만히 있으면(누워서 물멍 포함) 궁금해서 슬금슬금 다가온다 */
+  const inW = P.mode === 'swim' || (P.mode === 'land' && P.feet < -0.25) || P.sit?.kind === 'float', A = SPOT.area, mv = P.moving && !P.sit;
   for (const F of FISH){
     const sp = F.sp;
     for (const g of F.groups){
       const ep = Math.floor((Date.now() / 1000 + g.ph) / g.per);
       if (ep !== g.ep){ g.ep = ep; g.wp.copy(sampleZone(sp.zone, g.home, mulberry32((ep * 7919 + g.seed) | 0))); }
       tmpV.subVectors(g.wp, g.c); const d = tmpV.length();
-      g.c.addScaledVector(tmpV.normalize(), Math.min(d, sp.speed * dt * 0.7));
-      if (inW){ tmpV2.subVectors(g.c, headW); const pd = tmpV2.length(); if (pd < 3 && pd > 0.01) g.c.addScaledVector(tmpV2.multiplyScalar(1 / pd), dt * 1.6 * (3 - pd)); }
+      g.c.addScaledVector(tmpV.normalize(), Math.min(d, sp.speed * dt * 0.95));
+      if (inW){ tmpV2.subVectors(g.c, headW); const pd = tmpV2.length();
+        if (mv){ if (pd < 4.5 && pd > 0.01) g.c.addScaledVector(tmpV2.multiplyScalar(1 / pd), dt * 3.2 * (4.5 - pd)); }
+        else if (pd < 7 && pd > 2.0 && !sp.puff) g.c.addScaledVector(tmpV2.multiplyScalar(1 / pd), -dt * 0.55 * Math.min(1, pd - 2.0)); }
     }
     for (let i = 0; i < F.n; i++){
       const p = F.p[i], v = F.v[i], g = F.groups[F.g[i]]; prevP.copy(p);
       tmpV.copy(g.c).add(F.off[i]).sub(p).multiplyScalar(1.1);
       if (sp.radius > 0.5 && F.n > 1){ const j = (i + 1) % F.n; if (F.g[j] === F.g[i]){ tmpV2.subVectors(p, F.p[j]); const dd = tmpV2.length(); if (dd < 0.35 && dd > 0.001) tmpV.addScaledVector(tmpV2, (0.35 - dd) * 8 / dd); } }
       let flee = false;
-      if (inW){ tmpV2.subVectors(p, headW); const dl = tmpV2.length(); if (dl < 2.1 && dl > 0.01){ tmpV.addScaledVector(tmpV2, (2.1 - dl) * 7 / dl); flee = true; } }
+      if (inW){ tmpV2.subVectors(p, headW); const dl = tmpV2.length(), fr = mv ? 2.9 : 1.2; if (dl < fr && dl > 0.01){ tmpV.addScaledVector(tmpV2, (fr - dl) * (mv ? 11 : 6) / dl); flee = true; } }
       v.addScaledVector(tmpV, dt); v.multiplyScalar(1 - dt * 0.9);
-      const vmax = sp.speed * (flee ? 2.6 : 1.25), vl = v.length(); if (vl > vmax) v.multiplyScalar(vmax / vl);
+      const vmax = sp.speed * (flee ? 4.2 : 1.55), vl = v.length(); if (vl > vmax) v.multiplyScalar(vmax / vl);
       p.addScaledVector(v, dt);
       const gh = groundH(p.x, p.z);
       if (gh > -0.4 || p.x < A.x0 - 1 || p.x > A.x1 + 1 || p.z < A.z0 - 1 || p.z > A.z1 + 1){ p.copy(prevP); v.multiplyScalar(-0.4); }
@@ -1511,7 +1527,7 @@ const SPOTS = [
   area: { x0: -33, x1: 33, z0: -29.5, z1: 41 }, bounds: { minX: -45.5, maxX: 43.5, minZ: -41.5, maxZ: 41.5 }, start: { x: -5, z: -34, yaw: 0 }, cine: { c: [-2, 8, -40], r: [20, 4], look: [2, -0.8, 6] },
   map: { rects: [[-46, -34, -42, 36], [34, 44, -42, 18], [-34, 34, -42, -30]], circles: [[-40, 36, 6], [39, 18, 5]], buoys: [[-34, 34, 42.5]] },
   colors: Object.assign({}, C_JEJU, { sand: '#d9d4c8', wet: '#c2bcae', grav: '#a39b88', grav2: '#857e6e' }),
-  water: { shallow: '#4fe6cf', deep: '#0e83ab', sandT: '#e9f8e6', under: '#25a0ad', underTop: '#c4f6f0', underDeep: '#167a90', fogUnder: 0.055 },
+  water: { shallow: '#4fe6cf', deep: '#0e83ab', sandT: '#e9f8e6', under: '#25a0ad', underTop: '#c4f6f0', underDeep: '#167a90', fogUnder: 0.055 }, seaName: '에메랄드빛',
   terrain(x, z, T){
     let h = z < -14 ? lerp(-0.9, -1.6, sstep(-30, -14, z)) : z < 12 ? lerp(-1.6, -2.6, (z + 14) / 26) : z < 40 ? lerp(-2.6, -3.6, (z - 12) / 28) : lerp(-3.6, -6.5, sstep(40, 58, z));
     h += Math.sin(x * 0.9 + z * 0.35 + Math.sin(z * 0.2) * 2) * 0.03;
@@ -1568,7 +1584,7 @@ const SPOTS = [
   area: { x0: -30, x1: 30, z0: -22, z1: 46 }, bounds: { minX: -40, maxX: 40, minZ: -44, maxZ: 46.2 }, start: { x: -1, z: -31, yaw: 0 }, cine: { c: [0, 7, -36], r: [18, 6], look: [-4, -0.5, 10] },
   map: { buoys: [[-26, 26, 46.5]] },
   colors: Object.assign({}, C_JEJU, { sand: '#f6efdc', wet: '#e2d6b8', sea: '#f6eed6', seaD: '#d9cfb0', grass: '#7fae55', grass2: '#5f9446' }),
-  water: { shallow: '#5cecd8', deep: '#108fb5', sandT: '#f2fff8', under: '#2ab3b8', underTop: '#d0fbf4', underDeep: '#1689a0', fogUnder: 0.045 },
+  water: { shallow: '#86f2cf', deep: '#1aa5a8', sandT: '#f4fff4', under: '#3dbfae', underTop: '#e2fff2', underDeep: '#178f92', fogUnder: 0.045 }, seaName: '옥빛 연두',
   terrain(x, z, T){
     let h = z < -40 ? 1.5 : z < -30 ? lerp(1.5, 0.55, (z + 40) / 10) : z < -22 ? lerp(0.55, -0.12, smooth((z + 30) / 8)) : z < 12 ? lerp(-0.12, -0.75, (z + 22) / 34) : lerp(-0.75, -2.7, sstep(12, 48, z));
     if (h < -0.15) h += Math.sin(x * 0.7 + z * 0.45 + Math.sin(x * 0.1) * 3) * 0.04;
@@ -1615,7 +1631,7 @@ const SPOTS = [
   area: { x0: -36, x1: 28, z0: -34, z1: 36 }, bounds: { minX: -38, maxX: 30, minZ: -36, maxZ: 38 }, start: { x: -11.8, z: -8.4, yaw: Math.PI / 2 }, cine: { c: [-26, 9, -16], r: [14, 10], look: [6, 1, 4] },
   map: { rects: [[-13.6, -10.4, -10.9, -1.5, '#ffffff']] },
   colors: { sand: '#8a857a', wet: '#6f6a60', sea: '#9c968a', seaD: '#7a756b', rock: '#5a564f', rock2: '#77726a', alg: '#5d6a48', grass: '#5f8a45', grass2: '#4c7a3a' },
-  water: { shallow: '#3cb6c9', deep: '#0d5f99', sandT: '#cfe6e8', under: '#1e7aa3', underTop: '#a9e8f2', underDeep: '#0f5b86', fogUnder: 0.045 },
+  water: { shallow: '#2fa6cf', deep: '#073b7a', sandT: '#c6dfe8', under: '#145f96', underTop: '#9ed5ef', underDeep: '#0a396a', fogUnder: 0.05 }, seaName: '짙은 쪽빛',
   terrain(x, z, T){
     let h = -9 + fbm(x * 0.05, z * 0.05) * 1.5;
     const d1 = Math.hypot(x - 4, (z - 6) * 1.15) + (vnoise(x * 0.15, z * 0.15) - 0.5) * 3;
@@ -1666,7 +1682,7 @@ const SPOTS = [
   area: { x0: -31, x1: 30, z0: -21, z1: 40 }, bounds: { minX: -41.5, maxX: 34, minZ: -39, maxZ: 40.6 }, start: { x: -2, z: -27, yaw: 0 }, cine: { c: [-4, 9, -26], r: [16, 5], look: [2, 0, 10] },
   map: { rects: [[-42, -33, -34, 30], [-42, -18, -40, -30]], circles: [[-37.5, 30, 5]], buoys: [[-30, 26, 40.6]] },
   colors: { sand: '#d6cfbf', wet: '#b8b1a1', sea: '#c9c3b5', seaD: '#a8a296', rock: '#8a857c', rock2: '#a39e94', alg: '#5d6b4a', grass: '#5f8a45', grass2: '#4c7536', grav: '#8c877d', grav2: '#6d6960' },
-  water: { shallow: '#43d3c0', deep: '#0e6aa6', sandT: '#dfe9dc', under: '#1f8fae', underTop: '#bff3ef', underDeep: '#126e92', fogUnder: 0.04 },
+  water: { shallow: '#35c8d8', deep: '#0a4d9e', sandT: '#dce8e6', under: '#1878b0', underTop: '#b2e8f6', underDeep: '#0d4f86', fogUnder: 0.04 }, seaName: '나폴리 블루',
   terrain(x, z, T){
     let h = z < -34 ? 3 + sstep(-34, -46, z) * 9 : z < -26 ? lerp(3, 0.4, (z + 34) / 8) : z < -20 ? lerp(0.4, -0.35, smooth((z + 26) / 6)) : z < 10 ? lerp(-0.35, -2.4, (z + 20) / 30) : lerp(-2.4, -6.5, sstep(10, 46, z));
     T.grav = clamp(0.65 + (fbm(x * 0.3, z * 0.3) - 0.5) * 0.6, 0, 1);
@@ -1722,7 +1738,7 @@ const SPOTS = [
   map: { buoys: [[14, 34, 40]] },
   surf: { x0: -38, x1: 12, zStart: 46, zEnd: -16, speed: 2.6, n: 4, amp: 1.0 },
   colors: { sand: '#ecdcb2', wet: '#cdb88a', sea: '#e6d6ad', seaD: '#c5b893', rock: '#7a766e', rock2: '#948f85', alg: '#5d6b4a', grass: '#4f7d3c', grass2: '#3e6a30' },
-  water: { shallow: '#3fcac6', deep: '#0d5d95', sandT: '#f0e6cf', under: '#1f86a8', underTop: '#b9f0ee', underDeep: '#105f88', fogUnder: 0.05 },
+  water: { shallow: '#44c9b4', deep: '#0d5a8a', sandT: '#efe5cd', under: '#1f8a9c', underTop: '#b9efe4', underDeep: '#105a7a', fogUnder: 0.05 }, seaName: '파도 청록',
   terrain(x, z, T){
     let h = z < -36 ? 1.8 + sstep(-36, -50, z) * 4 : z < -26 ? lerp(1.8, 0.5, (z + 36) / 10) : z < -20 ? lerp(0.5, -0.4, smooth((z + 26) / 6)) : z < -8 ? lerp(-0.4, -1.3, (z + 20) / 12) : lerp(-1.3, -5, sstep(-8, 46, z));
     h += Math.exp(-(((z + 13) / 3) ** 2)) * 0.25; if (h < -0.2) h += Math.sin(x * 0.6 + z * 0.5) * 0.04;
@@ -1768,7 +1784,7 @@ const SPOTS = [
   area: { x0: -33, x1: 33, z0: -20, z1: 34 }, bounds: { minX: -40, maxX: 40, minZ: -32, maxZ: 34.8 }, start: { x: 2, z: -27, yaw: 0 }, cine: { c: [0, 8, -24], r: [16, 4], look: [0, -0.8, 10] },
   map: { foam: [[-45, 45, 35.6]] },
   colors: { sand: '#f8f4e6', wet: '#e8dfc6', sea: '#f6f0dc', seaD: '#ddd3b8', rock: '#bdb39d', rock2: '#d4cab3', alg: '#9aa47b', grass: '#5f9a48', grass2: '#4b8a3c', grav: '#cfc4aa', grav2: '#b7ac94' },
-  water: { shallow: '#58ecdf', deep: '#0a5cb4', sandT: '#f7fffb', under: '#2fb2cf', underTop: '#c9fbff', underDeep: '#1176a8', fogUnder: 0.032 },
+  water: { shallow: '#5cf0e0', deep: '#0868c4', sandT: '#f7fffb', under: '#2bbad4', underTop: '#cffdff', underDeep: '#0f74b8', fogUnder: 0.032 }, seaName: '산호 터키석',
   terrain(x, z, T){
     let h = z < -30 ? 1.2 + sstep(-30, -46, z) * 13 : z < -24 ? lerp(1.2, 0.35, (z + 30) / 6) : z < -20 ? lerp(0.35, -0.3, smooth((z + 24) / 4)) : z < 32 ? lerp(-0.45, -1.9, sstep(-20, 12, z)) + (fbm(x * 0.08, z * 0.08) - 0.5) * 0.5 : z < 36 ? lerp(-1.8, -0.3, sstep(32, 35.5, z)) : lerp(-0.3, -12, sstep(36.5, 46, z));
     const e = Math.max(sstep(-34, -44, x + (vnoise(z * 0.1, 2) - 0.5) * 8), sstep(34, 44, x + (vnoise(z * 0.1, 9) - 0.5) * 8));
@@ -1929,7 +1945,7 @@ SPOTS.push(
   surf: { x0: -32, x1: 14, zStart: 46, zEnd: -14, speed: 2.4, n: 4, amp: 0.85 },
   map: { rects: [[26, 32, -42, 18], [38, 44, -42, 30]], circles: [[29, 18, 3.2], [41, 30, 3.2]] },
   colors: Object.assign({}, C_JEJU, { sand: '#e6dfcf', wet: '#c9bfab', sea: '#e0d8c4', seaD: '#bab2a0' }),
-  water: { shallow: '#4fd8d2', deep: '#0f7fae', sandT: '#eaf7ee', under: '#239fb0', underTop: '#c4f4f0', underDeep: '#157a92', fogUnder: 0.05 },
+  water: { shallow: '#55dcd6', deep: '#0f7fae', sandT: '#eaf7ee', under: '#23a3b4', underTop: '#c8f6f2', underDeep: '#157a92', fogUnder: 0.05 }, seaName: '맑은 청록',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 5], [-38, 1.6], [-30, 0.8], [-22, -0.25], [-10, -1.0], [4, -1.7], [46, -4.6]]), x, z);
     const w = cape(x, z, -30, -40, 4); if (w > 0){ h = lerp(h, 1.2 + fbm(x * 0.3, z * 0.3) * 1.2 - sstep(-10, 40, z) * 2.4, w); T.rock = w; }
@@ -1965,7 +1981,7 @@ SPOTS.push(
   area: { x0: -34, x1: 34, z0: -24, z1: 44 }, bounds: { minX: -36, maxX: 36, minZ: -42, maxZ: 45 }, start: { x: 0, z: -30, yaw: 0 }, cine: { c: [0, 9, -34], r: [16, 4], look: [0, 1, 12] },
   surf: { x0: -24, x1: 24, zStart: 46, zEnd: -14, speed: 2.9, n: 4, amp: 1.2 },
   colors: Object.assign({}, C_JEJU, { sand: '#cfc3ae', wet: '#a7998a', sea: '#c9bca6', seaD: '#9d9283', grav: '#46433f', grav2: '#93604f' }),
-  water: { shallow: '#41c6cf', deep: '#0c6aa6', sandT: '#e4efe8', under: '#1f8fae', underTop: '#bdeff2', underDeep: '#126e92', fogUnder: 0.05 },
+  water: { shallow: '#3fbfd6', deep: '#0b5fa8', sandT: '#e1ecee', under: '#1c86b2', underTop: '#b9ecf6', underDeep: '#0f5f90', fogUnder: 0.05 }, seaName: '푸른 비취',
   terrain(x, z, T){
     const zz = z - 0.009 * x * x;
     let h = ripple(prof(zz, [[-52, 9], [-38, 2.4], [-30, 0.9], [-23, -0.3], [-12, -1.6], [10, -3.0], [46, -7]]), x, z);
@@ -2002,7 +2018,7 @@ SPOTS.push(
   area: { x0: -36, x1: 32, z0: -16, z1: 40 }, bounds: { minX: -40, maxX: 34, minZ: -40, maxZ: 42 }, start: { x: 8, z: -26, yaw: 0 }, cine: { c: [16, 10, -28], r: [14, 4], look: [-4, 1, 12] },
   map: { rects: [[4.7, 7.3, -24, 4], [-3.3, 7.3, 2.7, 5.3], [-3.3, -0.7, 4, 12], [-6, 3, 10, 15, '#b98a5a'], [28, 34, -40, 22]] },
   colors: Object.assign({}, C_EAST, { rock: '#8f8a82', rock2: '#b4afa6', sand: '#d9d0bd', wet: '#b8af9c', sea: '#cfc7b6', seaD: '#a9a291' }),
-  water: Object.assign({}, W_EAST, { shallow: '#3cc5c3', deep: '#0a5590', fogUnder: 0.042 }),
+  water: { shallow: '#2b97c9', deep: '#06347c', sandT: '#dfe5e4', under: '#155f9e', underTop: '#a6dcf4', underDeep: '#0a3a74', fogUnder: 0.042 }, seaName: '동해 코발트',
   terrain(x, z, T){
     let h = prof(z, [[-50, 7], [-32, 3.4], [-22, 2.0], [-17, -0.6], [-8, -3.2], [10, -5.2], [44, -9.5]]);
     T.rock = clamp(sstep(-12, -18, z) * sstep(-28, -22, z) + 0.3 * sstep(0.5, 0.75, fbm(x * 0.15, z * 0.15)), 0, 1); if (z < -26) T.grass = sstep(-26, -30, z) * 0.8;
@@ -2037,7 +2053,7 @@ SPOTS.push(
   edgeMsg: '부표 안쪽이 안전 구역이에요',
   area: { x0: -34, x1: 32, z0: -22, z1: 42 }, bounds: { minX: -38, maxX: 36, minZ: -42, maxZ: 43 }, start: { x: 0, z: -30, yaw: 0 }, cine: { c: [-4, 8, -34], r: [16, 4], look: [4, 0, 10] },
   surf: { x0: -30, x1: 12, zStart: 40, zEnd: -12, speed: 2.0, n: 3, amp: 0.6 },
-  colors: Object.assign({}, C_EAST, { sand: '#efe2bf', wet: '#d4bf92' }), water: Object.assign({}, W_EAST, { shallow: '#46d1c8' }),
+  colors: Object.assign({}, C_EAST, { sand: '#efe2bf', wet: '#d4bf92' }), water: { shallow: '#36abd0', deep: '#0a438a', sandT: '#ece4cf', under: '#1a74a8', underTop: '#b6e6f4', underDeep: '#0c4a80', fogUnder: 0.046 }, seaName: '맑은 동해',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 5], [-38, 1.8], [-30, 0.6], [-22, -0.25], [-6, -0.9], [12, -1.6], [44, -4.2]]), x, z);
     const c = Math.max(cape(x, z, 32, 40, 9), cape(x, z, -32, -40, 8)); if (c > 0){ h = lerp(h, 1.6 + fbm(x * 0.2, z * 0.2) * 1.5 - sstep(0, 40, z) * 3, c); T.rock = c; }
@@ -2070,7 +2086,7 @@ SPOTS.push(
   area: { x0: -36, x1: 34, z0: -24, z1: 42 }, bounds: { minX: -40, maxX: 36, minZ: -42, maxZ: 43 }, start: { x: 6, z: -31, yaw: 0 }, cine: { c: [-6, 10, -8], r: [10, 3], look: [24, 9, -40] },
   surf: { x0: -38, x1: -12, zStart: 40, zEnd: -12, speed: 2.4, n: 3, amp: 0.8 },
   map: { buoys: [[-10, 34, 37]] },
-  colors: Object.assign({}, C_EAST, { sand: '#eee0bb', wet: '#d1bd90' }), water: Object.assign({}, W_EAST, { shallow: '#42c9c4' }),
+  colors: Object.assign({}, C_EAST, { sand: '#eee0bb', wet: '#d1bd90' }), water: { shallow: '#3399c4', deep: '#083a7c', sandT: '#e8e0cb', under: '#17669e', underTop: '#addcf0', underDeep: '#0b4078', fogUnder: 0.048 }, seaName: '새벽 남색',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 4.5], [-38, 2.0], [-31, 0.9], [-24, -0.2], [-10, -1.0], [10, -1.8], [44, -4.6]]), x, z);
     const B = bumps(x, z, SC_ROCKS); if (B.b > 0){ h += Math.min(B.b, Math.max(0, -1.0 - h)); T.rock = Math.max(T.rock, B.rk); }
@@ -2103,7 +2119,7 @@ SPOTS.push(
   area: { x0: -38, x1: 36, z0: -24, z1: 44 }, bounds: { minX: -42, maxX: 38, minZ: -42, maxZ: 45 }, start: { x: 0, z: -30, yaw: 0 }, cine: { c: [6, 8, -34], r: [18, 4], look: [-10, 1, 10] },
   surf: { x0: -40, x1: 18, zStart: 46, zEnd: -14, speed: 2.6, n: 4, amp: 1.0 },
   map: { buoys: [[22, 36, 36]] },
-  colors: Object.assign({}, C_EAST, { sand: '#f0e3c0', wet: '#d6c194' }), water: Object.assign({}, W_EAST, { shallow: '#3fd0cb', fogUnder: 0.044 }),
+  colors: Object.assign({}, C_EAST, { sand: '#f0e3c0', wet: '#d6c194' }), water: { shallow: '#3cb5d2', deep: '#0b4a8e', sandT: '#efe6cf', under: '#1c7fae', underTop: '#b9ecf4', underDeep: '#0d4c82', fogUnder: 0.044 }, seaName: '서핑 블루',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 3.6], [-38, 1.6], [-30, 0.6], [-23, -0.35], [-10, -1.2], [46, -4.8]]), x, z);
     h += Math.exp(-(((z + 12) / 3) ** 2)) * 0.22;
@@ -2136,7 +2152,7 @@ SPOTS.push(
   edgeMsg: '바위섬 바깥은 깊고 물살이 있어요',
   area: { x0: -30, x1: 34, z0: -22, z1: 40 }, bounds: { minX: -34, maxX: 38, minZ: -42, maxZ: 42 }, start: { x: 14, z: -30, yaw: -0.3 }, cine: { c: [16, 9, -34], r: [14, 4], look: [-14, 3, 8] },
   map: { rects: [[-3.3, -0.7, -30, 2], [-6, 2, 2, 6, '#b98a5a']] },
-  colors: Object.assign({}, C_EAST, { sand: '#efe2c0', wet: '#d3bf94', rock: '#8a857c', rock2: '#a39e94' }), water: Object.assign({}, W_EAST, { shallow: '#36c9c0', deep: '#0b5a93' }),
+  colors: Object.assign({}, C_EAST, { sand: '#efe2c0', wet: '#d3bf94', rock: '#8a857c', rock2: '#a39e94' }), water: { shallow: '#2a9fc2', deep: '#083c80', sandT: '#e2ddd0', under: '#16699f', underTop: '#a9e0f0', underDeep: '#0b4178', fogUnder: 0.046 }, seaName: '바위 쪽빛',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 4], [-38, 1.7], [-30, 0.5], [-23, -0.3], [-8, -1.1], [12, -1.9], [44, -4.4]]), x, z);
     const c = cape(x, z, -6, -16, 2, 6) * (1 - sstep(8, 26, z));
@@ -2174,7 +2190,7 @@ SPOTS.push(
   area: { x0: -34, x1: 30, z0: -22, z1: 40 }, bounds: { minX: -38, maxX: 26, minZ: -40, maxZ: 41 }, start: { x: 6, z: -28, yaw: 0 }, cine: { c: [10, 9, -32], r: [14, 4], look: [-14, 2, 8] },
   map: { rects: [[26, 32, -40, 10]], circles: [[29, 10, 3]] },
   colors: { sand: '#e4d8bd', wet: '#c3b597', sea: '#d6cbb0', seaD: '#b2a891', rock: '#8c7f72', rock2: '#a89a8a', alg: '#5d6b4a', grass: '#4f7d3c', grass2: '#3e6a30', grav: '#9b9183', grav2: '#7d756a' },
-  water: Object.assign({}, W_EAST, { shallow: '#33d6bf', deep: '#0b6aa0', fogUnder: 0.04 }),
+  water: { shallow: '#36d6c2', deep: '#0b65a0', sandT: '#e6e6d6', under: '#1d8aa8', underTop: '#bdf2ea', underDeep: '#0f5a88', fogUnder: 0.04 }, seaName: '투명 청록',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 8], [-36, 2.4], [-28, 0.6], [-22, -0.3], [-8, -1.0], [8, -2.0], [44, -6]]), x, z);
     const c = cape(x, z, -12, -22, 5) * (1 - sstep(4, 20, z)); if (c > 0){ h = lerp(h, 1.4 + fbm(x * 0.3, z * 0.3) * 1.5 - sstep(-10, 14, z) * 3, c); T.rock = c; }
@@ -2207,7 +2223,7 @@ SPOTS.push(
   edgeMsg: '리프 바깥은 파도와 조류가 세요. 안쪽에서 놀아요',
   area: { x0: -34, x1: 34, z0: -20, z1: 36 }, bounds: { minX: -40, maxX: 40, minZ: -34, maxZ: 36.5 }, start: { x: 0, z: -28, yaw: 0 }, cine: { c: [0, 8, -26], r: [16, 4], look: [0, -0.8, 12] },
   map: { foam: [[-45, 45, 38]] },
-  colors: C_OKI, water: Object.assign({}, W_OKI, { shallow: '#5ef0e2', fogUnder: 0.03 }),
+  colors: C_OKI, water: { shallow: '#4fe4f6', deep: '#0466d8', sandT: '#f7fffb', under: '#1ea6e8', underTop: '#d6fdff', underDeep: '#0a66bd', fogUnder: 0.03 }, seaName: '미야코 블루',
   terrain(x, z, T){
     let h = prof(z, [[-48, 9], [-34, 1.8], [-28, 0.6], [-22, -0.3], [-14, -0.6], [20, -1.1], [34, -1.4], [37.5, -0.3], [46, -11]]) + (fbm(x * 0.08, z * 0.08) - 0.5) * 0.3 * sstep(-20, -10, z);
     const e = Math.max(cape(x, z, -36, -46, 2), cape(x, z, 36, 46, 9)); if (e > 0){ h = lerp(h, 2 + fbm(x * 0.2, z * 0.2) * 3, e); T.rock = e; }
@@ -2236,7 +2252,7 @@ SPOTS.push(
   tips: ['주변에 가게가 적어요. 물과 간식을 챙겨 가요.', '물살과 물때를 꼭 확인하고, 처음이면 가이드와 함께 들어가요.', '서쪽을 보고 있어서 해 질 녘 노을이 아름다워요.'],
   edgeMsg: '만 바깥은 물살이 세요. 안쪽에서 놀아요',
   area: { x0: -30, x1: 28, z0: -22, z1: 36 }, bounds: { minX: -32, maxX: 24, minZ: -36, maxZ: 38 }, start: { x: -2, z: -30, yaw: 0 }, cine: { c: [-6, 8, -30], r: [12, 4], look: [6, 0, 12] },
-  colors: C_OKI, water: Object.assign({}, W_OKI, { shallow: '#4fe6e0', deep: '#0858b0' }),
+  colors: C_OKI, water: { shallow: '#45d2f0', deep: '#0548b4', sandT: '#f2fbfb', under: '#178ad8', underTop: '#c6f6ff', underDeep: '#0a4ea6', fogUnder: 0.034 }, seaName: '깊은 사파이어',
   terrain(x, z, T){
     let h = prof(z, [[-50, 8], [-36, 1.6], [-30, 0.6], [-24, -0.3], [-16, -1.0], [0, -2.2], [24, -3.2], [42, -10]]);
     const wl = cape(x, z, 22, 30, 4, 5); if (wl > 0){ h = lerp(h, 11 + fbm(x * 0.15, z * 0.15) * 3 - sstep(20, 44, z) * 6, wl); T.rock = wl; if (h > 9) T.grass = sstep(9, 12, h) * 0.8; }
@@ -2264,7 +2280,7 @@ SPOTS.push(
   tips: ['바위 아치는 무너질 위험이 있어서 위에 그물을 치고 둘레에 울타리를 쳐 두었어요. 안으로 들어가지 않아요.', '돌아갈 때는 모래 언덕을 다시 올라야 해서 힘들어요.', '사진은 오전에 찍으면 물빛이 예뻐요.'],
   edgeMsg: '해변 바깥은 깊고 물살이 있어요',
   area: { x0: -30, x1: 30, z0: -22, z1: 34 }, bounds: { minX: -32, maxX: 32, minZ: -46, maxZ: 36 }, start: { x: 0, z: -40, yaw: 0 }, cine: { c: [0, 14, -44], r: [12, 3], look: [-6, 0, 6] },
-  colors: C_OKI, water: Object.assign({}, W_OKI, { shallow: '#57ebe0', fogUnder: 0.034 }),
+  colors: C_OKI, water: { shallow: '#62e8f6', deep: '#086cd6', sandT: '#fbfffc', under: '#2eb2ea', underTop: '#e0feff', underDeep: '#0d6cc0', fogUnder: 0.032 }, seaName: '하늘 거울',
   terrain(x, z, T){
     let h = prof(z, [[-60, 6], [-46, 10], [-38, 10], [-30, 3.6], [-24, 0.6], [-20, -0.3], [-10, -1.2], [10, -2.4], [44, -8]]);
     if (z < -24) h += (vnoise(x * 0.12, z * 0.12) - 0.5) * 1.2 * sstep(-24, -34, z);
@@ -2294,7 +2310,7 @@ SPOTS.push(
   edgeMsg: '부표 안쪽에서 놀아요',
   area: { x0: -36, x1: 36, z0: -22, z1: 44 }, bounds: { minX: -40, maxX: 40, minZ: -40, maxZ: 45 }, start: { x: 0, z: -30, yaw: 0 }, cine: { c: [-6, 8, -32], r: [18, 4], look: [10, 2, 30] },
   surf: { x0: -34, x1: 18, zStart: 46, zEnd: -14, speed: 2.5, n: 3, amp: 0.8 },
-  colors: Object.assign({}, C_OKI, { sand: '#fbf8ee', wet: '#ece5d0' }), water: Object.assign({}, W_OKI, { shallow: '#6af2e4', deep: '#0a62bd', fogUnder: 0.03 }),
+  colors: Object.assign({}, C_OKI, { sand: '#fbf8ee', wet: '#ece5d0' }), water: { shallow: '#86eef6', deep: '#0a72d2', sandT: '#ffffff', under: '#3cbdea', underTop: '#e8ffff', underDeep: '#1176c4', fogUnder: 0.03 }, seaName: '우유빛 하늘',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 3.2], [-38, 1.5], [-30, 0.5], [-22, -0.2], [-4, -0.9], [20, -2.0], [46, -4.6]]), x, z);
     if (z < -38) T.grass = sstep(-38, -41, z);
@@ -2435,7 +2451,7 @@ function renderSpots(){
       const im = el('img'); im.alt = ''; queueThumb(im, d); b.appendChild(im);
       const bd = el('div', 'bd'); const tt = el('div', 'tt'); tt.append(el('b', '', d.short), el('span', 'ty', d.type)); bd.appendChild(tt);
       bd.appendChild(el('p', '', d.lead.split(/(?<=요\.)\s/)[0]));
-      const row = el('div', 'row'); row.append(el('span', '', `도감 ${fd}/${dex.length}`), el('span', 'go', here ? '지금 여기' : '이 바다로 가기')); bd.appendChild(row);
+      const row = el('div', 'row'); row.append(el('span', '', `도감 ${fd}/${dex.length}` + (othersIn(d.id) && !here ? ` · 지금 ${othersIn(d.id)}명` : '')), el('span', 'go', here ? '지금 여기' : '이 바다로 가기')); bd.appendChild(row);
       b.appendChild(bd); b.onclick = () => switchSpot(d.id); grid.appendChild(b);
     }
     body.appendChild(g);
@@ -2449,13 +2465,13 @@ const BACK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 function renderPick(focusFirst){
   if (!pickReg || !MAP_REGIONS.some(r => r.id === pickReg)) pickReg = SPOT ? SPOT.mr : 'jeju';
   const regs = $('#sRegs'); regs.innerHTML = '';
-  for (const r of MAP_REGIONS){ const ds = spotsIn(r.id), b = el('button'); b.type = 'button'; b.id = 'pr-' + r.id; b.setAttribute('aria-pressed', r.id === pickReg); b.append(el('b', '', r.name), el('small', '', `${ds.length}곳`)); b.onclick = () => { if (pickReg !== r.id){ pickReg = r.id; renderPick(true); } }; regs.appendChild(b); }
+  for (const r of MAP_REGIONS){ const ds = spotsIn(r.id), b = el('button'); b.type = 'button'; b.id = 'pr-' + r.id; b.setAttribute('aria-pressed', r.id === pickReg); const rn = ds.reduce((a, d) => a + othersIn(d.id), 0); b.append(el('b', '', r.name), el('small', '', rn ? `${ds.length}곳 · ${rn}명` : `${ds.length}곳`)); b.onclick = () => { if (pickReg !== r.id){ pickReg = r.id; renderPick(true); } }; regs.appendChild(b); }
   const m = el('button', 'mapbtn'); m.type = 'button'; m.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>'; m.append(document.createTextNode('지도')); m.setAttribute('aria-label', '지도에서 바다 고르기'); m.onclick = () => openSpots(true, pickReg || 'overview'); regs.appendChild(m);
   const list = $('#sList'); list.innerHTML = ''; list.setAttribute('aria-label', `${MAP_REGIONS.find(r => r.id === pickReg).name} 바다 목록`);
   for (const d of spotsIn(pickReg)){ const here = SPOT && d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size;
     const b = el('button', 'srow'); b.type = 'button'; b.id = 'pk-' + d.id; b.setAttribute('aria-pressed', !!here);
     const i = el('i'); i.style.background = d.surf ? '#ff8a2a' : d.water.shallow; const w = el('span', 'w'); w.append(el('b', '', d.short), el('small', '', `${d.addr.split(' · ')[0]} · ${d.type}`));
-    const tg = el('span', 'tg'); if (d.surf) tg.appendChild(el('span', 'sf', '서핑')); tg.appendChild(el('span', fd ? '' : 'nw', fd ? `도감 ${fd}/${dex.length}` : `친구 ${dex.length}종`));
+    const tg = el('span', 'tg'); const on = othersIn(d.id); if (on) tg.appendChild(el('span', 'pp', `${on}명`)); if (d.surf) tg.appendChild(el('span', 'sf', '서핑')); tg.appendChild(el('span', fd ? '' : 'nw', fd ? `도감 ${fd}/${dex.length}` : `친구 ${dex.length}종`));
     b.append(i, w, tg); b.onclick = () => { if (!SPOT || d.id !== SPOT.id) switchSpot(d.id); }; list.appendChild(b); }
   const sel = list.querySelector('[aria-pressed="true"]'); if (sel) sel.scrollIntoView({ block: 'nearest' });
   if (focusFirst) (sel || list.querySelector('button'))?.focus({ preventScroll: true });
@@ -2465,7 +2481,7 @@ function applySpotUI(){
   const d = SPOT;
   $('#spotName').textContent = d.label; canvas.setAttribute('aria-label', d.label + ' 3D 바다');
   $('#sName').textContent = d.short; $('#sAddr').textContent = d.addr.split(' · ').slice(0, 2).join(' · '); $('#sLead').textContent = d.lead; $('#sGo').textContent = `${roJ(d.short)} 들어가기`; if (d.mr !== pickReg && !spotsOpen) pickReg = d.mr;
-  const fx = $('#sFacts'); fx.innerHTML = ''; for (const t of [`바다 친구 ${d.dex.length}종`, ...d.facts, `물멍자리 ${SEATS.length}곳`, '같이 수영하기']) fx.appendChild(el('span', '', t));
+  const fx = $('#sFacts'); fx.innerHTML = ''; for (const t of [...(d.seaName ? [`물빛 ${d.seaName}`] : []), `바다 친구 ${d.dex.length}종`, ...d.facts, `물멍자리 ${SEATS.length}곳`, '같이 수영하기']) fx.appendChild(el('span', '', t));
   renderPick(); updateDexCount(); $('#dexT').textContent = `${d.short} 바다 친구 도감`;
   $('#hTitle').textContent = `${d.short} 안내`; $('#hNoSurf p').textContent = `이 바다에는 서핑 파도가 없어요. 서핑은 ${surfNames(d.mr) || surfNames()}에서 할 수 있어요. 위쪽 "바다 옮기기"를 눌러 보세요.`; $('#hSurf').classList.toggle('hidden', !SURF); $('#hNoSurf').classList.toggle('hidden', !!SURF);
   $('#hSeatT').textContent = `물멍자리 ${SEATS.length}곳`; $('#hSeats').textContent = seatSummary(); $('#hRealT').textContent = `실제 ${d.label}에 간다면`;
@@ -2488,7 +2504,7 @@ function switchSpot(id){
   if (def.id === SPOT.id){ openSpots(false); return; }
   switching = true; openSpots(false);
   if (P.sit) standUp(); P.surf = null; if (CAM.fp) setFP(false); if (gearOpen) openGear(false); if (dexOpen) openDex(false); if (helpOpen) openHelp(false); if (chatOpen) openChat(false);
-  const v = $('#veil'); $('#vName').textContent = def.label; $('#vSub').textContent = `${def.country} · ${def.region} · ${def.type}로 옮기는 중`; v.classList.remove('hidden', 'fade');
+  const v = $('#veil'); $('#vName').textContent = def.label; $('#vSub').textContent = `${def.country} · ${def.region}` + (def.seaName ? ` · ${def.seaName} 바다로 옮기는 중` : ` · ${def.type}로 옮기는 중`); v.classList.remove('hidden', 'fade');
   AudioSys.blip(440, 880, 0.25, 'sine', 0.07);
   setTimeout(() => {
     try { enterSpot(def.id); }
@@ -2498,6 +2514,28 @@ function switchSpot(id){
   }, 60);
 }
 /* 친구 방: 같은 바다를 고른 사람끼리만 만난다. 옮길 때는 지금 방을 나가고 새 바다 방에 들어간다 */
+const LOBBY = { room: null, counts: {}, total: 0, mine: null, nudged: false };
+function lobbyFeed(peers){ const c = {}; let n = 0; for (const p of peers){ const sid = p.presence?.s; if (typeof sid === 'string' && SPOTS.some(d => d.id === sid)){ c[sid] = (c[sid] || 0) + 1; n++; } }
+  LOBBY.counts = c; LOBBY.total = n; refreshCounts(); }
+async function joinLobby(){
+  try {
+    if (NET.mode === 'sb' && SB.client) LOBBY.room = await sbPresenceRoom(SB.client, `${SB_CFG.game}-lobby`);
+    else if (NET.lobby){ const r = await NET.lobby.join('lobby'); if (r){ const m = new Map();
+      r.onPeers(ch => { for (const p of ch.left) m.delete(p.peer); for (const p of ch.peers){ if (p.sameTab || p.isMe) continue; m.set(p.peer, { peer: p.peer, presence: p.presence || {} }); } lobbyFeed([...m.values()]); }, () => {});
+      LOBBY.room = { presence: pr => r.presence(pr), onAll(){}, leave: () => r.leave?.() }; } }
+  } catch (e){ LOBBY.room = null; }
+  if (LOBBY.room){ LOBBY.room.onAll(lobbyFeed); LOBBY.mine = null; lobbyTell(); }
+}
+function lobbyTell(){ if (!LOBBY.room) return; const sid = started && SPOT ? SPOT.id : ''; if (sid === LOBBY.mine) return; LOBBY.mine = sid; LOBBY.room.presence({ s: sid }); }
+const othersIn = id => LOBBY.counts[id] || 0;
+function refreshCounts(){
+  if (!started && !$('#start').classList.contains('hidden')) renderPick(false);
+  if (spotsOpen) setSpMode(spMode);
+  if (friendsOpen) renderFriends();
+  /* 내 바다엔 아무도 없는데 다른 바다에 사람이 있으면 한 번 알려 준다 */
+  if (started && !LOBBY.nudged && LOBBY.total > 0 && !othersIn(SPOT.id) && visiblePeers().length === 0){ const best = Object.entries(LOBBY.counts).sort((a, b) => b[1] - a[1])[0];
+    const d = best && SPOTS.find(x => x.id === best[0]); if (d){ LOBBY.nudged = true; toast(`지금 ${d.short}에 ${best[1]}명이 놀고 있어요. 바다 옮기기에서 가 볼 수 있어요`); } }
+}
 async function joinSpotRoom(){
   const base = NET.lobby; if (!base) return;
   const gen = ++NET.gen, old = NET.room;
@@ -2584,7 +2622,7 @@ function renderMapCard(d){
   const here = d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size;
   const im = el('img'); im.alt = `${d.short} 작은 지도`; im.src = spotMap(d); c.appendChild(im);
   const tt = el('div', 'tt'); tt.append(el('b', '', d.short), el('span', 'ty', `${d.region} · ${d.type}`)); c.appendChild(tt);
-  const bd = el('div', 'bdg'); bd.appendChild(el('span', 'b sn', '스노클링')); if (d.surf) bd.appendChild(el('span', 'b sf', '서핑')); bd.appendChild(el('span', 'b dx', `도감 ${fd}/${dex.length}`)); c.appendChild(bd);
+  const bd = el('div', 'bdg'); bd.appendChild(el('span', 'b sn', '스노클링')); if (d.surf) bd.appendChild(el('span', 'b sf', '서핑')); bd.appendChild(el('span', 'b dx', `도감 ${fd}/${dex.length}`)); if (othersIn(d.id) && !(SPOT && d.id === SPOT.id)) bd.appendChild(el('span', 'b pp', `지금 ${othersIn(d.id)}명`)); c.appendChild(bd);
   c.appendChild(el('p', '', d.lead));
   const go = el('button', 'btn primary', here ? '지금 여기에 있어요' : '이 바다로 가기'); go.type = 'button'; go.disabled = here; go.onclick = () => switchSpot(d.id); c.appendChild(go);
 }
@@ -2697,6 +2735,10 @@ function babyFace2(head, G, S, CH, skin, drk, wht){
     const m = mesh(new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), L('#8a2f40'), mouth, 0, 0.01, 0); m.scale.set(0.036, 0.034, 0.02);
     sph(L('#ff7f96'), mouth, 0, -0.014, 0.006, 0.019, 0.01, 0.01);
     if (S.mouth === 'teeth') for (const s of [1, -1]) mesh(new THREE.BoxGeometry(0.011, 0.011, 0.006), wht, mouth, s * 0.008, 0.004, 0.016); }
+  CH.mouthO = null;
+  if (S.extra !== 'pacifier'){ const g = new THREE.Group(); g.position.set(0, my - 0.006, mz - 0.004); head.add(g);
+    sph(L('#7a2335'), g, 0, 0, 0, 0.034, 0.038, 0.014); sph(L('#ff8aa0'), g, 0, -0.02, 0.007, 0.021, 0.013, 0.01);
+    g.scale.set(0.8, 0.01, 1); g.visible = false; CH.mouthO = g; }
   return mouth;
 }
 /* 얼굴: 눈 · 볼 · 입 · 코. 입 메시를 돌려준다(스노클을 물면 숨긴다) */
@@ -2732,7 +2774,10 @@ function babyFace(head, G, S, CH, skin, drk, wht){
   return mouth;
 }
 /* 머리카락: classic은 예전 그대로 */
+const keepsCover = G => G.cap === 'none' || G.cap === 'flower';
+const hasCover = S => !!(S.hood || S.bonnet || S.extra === 'wrap' || S.extra === 'bonnet' || S.extra === 'bearcap');
 function babyHair(head, G, S){
+  if ((!S.hair || S.hair === 'none') && hasCover(S) && !keepsCover(G)) S = Object.assign({}, S, { hair: 'fluffy' });
   if (G.cap === 'swim' || G.cap === 'shark' || S.hair === 'none') return; const hm = L(G.hair);
   const backCap = () => { const b = mesh(new THREE.SphereGeometry(1, 30, 14, 0, Math.PI * 2, 0, Math.PI * 0.42), hm, head, 0, 0.005, -0.014); b.scale.set(0.283, 0.278, 0.273); b.rotation.x = -0.5; };
   if (S.hair === 'tuft'){ const tuft = mesh(new THREE.TorusGeometry(0.045, 0.016, 6, 14, Math.PI * 1.4), hm, head, 0, 0.275, 0.02); tuft.rotation.y = Math.PI / 2; backCap(); }
@@ -2761,13 +2806,13 @@ function babyHood(head, G, S, drk, wht){
 function babyExtra(pose, head, G, S, drk, wht){
   const BB = S.body === 'baby';
   if (S.bow){ const bm = L(S.bow); for (const s of [1, -1]){ const w = sph(bm, pose, s * 0.045, 0.13, 0.175, 0.045, 0.032, 0.02); w.rotation.z = s * 0.35; } sph(bm, pose, 0, 0.13, 0.19, 0.018, 0.018, 0.014); }
-  if (G.cap === 'none' && S.hood) babyHood(head, G, S, drk, wht);
-  if (G.cap === 'none' && S.bonnet) babyExtra(pose, head, G, { extra: 'bonnet' }, drk, wht);
+  if (keepsCover(G) && S.hood) babyHood(head, G, S, drk, wht);
+  if (keepsCover(G) && S.bonnet) babyExtra(pose, head, Object.assign({}, G, { cap: 'none' }), { extra: 'bonnet' }, drk, wht);
   const e = S.extra; if (!e) return;
   if (e === 'pacifier'){ const g = BB ? faceGroup2(head, 0, -0.13, -0.008) : faceGroup(head, 0, -0.085, -0.01); sph(L('#8fd8ff', { transparent: true, opacity: 0.92 }), g, 0, 0, 0, 0.055, 0.038, 0.014); sph(L('#ffd9a0'), g, 0, 0, -0.01, 0.016, 0.014, 0.02); const r = mesh(new THREE.TorusGeometry(0.03, 0.009, 6, 18), L('#ff8fb8'), g, 0, -0.012, 0.024); r.rotation.x = 0.3; }
   if (e === 'bib'){ sph(L('#ff9fbf'), pose, 0, 0.085, 0.208, 0.142, 0.112, 0.03); sph(wht, pose, 0, 0.088, 0.214, 0.128, 0.1, 0.03);
     const hg = mesh(new THREE.ShapeGeometry(heartShape(0.032), 8), L('#ff6f9a'), pose, 0, 0.07, 0.246); hg.rotation.x = -0.1; }
-  if (G.cap !== 'none') return;
+  if (!keepsCover(G)) return;
   if (e === 'bearcap'){ const cm = L('#b98256'), inn = L('#ffc6b0'); const c = mesh(new THREE.SphereGeometry(1, 22, 10, 0, Math.PI * 2, 0, Math.PI * 0.52), cm, head, 0, 0.012, -0.005); c.scale.set(0.29, 0.285, 0.28);
     for (const s of [1, -1]){ sph(cm, head, s * 0.18, 0.22, -0.02, 0.075, 0.075, 0.05); sph(inn, head, s * 0.18, 0.22, 0.02, 0.045, 0.045, 0.02); } }
   if (e === 'wrap'){ const wm = L('#f7f5ef'); const b = mesh(new THREE.SphereGeometry(1, 22, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), wm, head, 0, 0.02, -0.01); b.scale.set(0.285, 0.28, 0.275);
@@ -2860,7 +2905,7 @@ function buildBabyInto(rig, G){
     for (let k = -4; k <= 4; k++){ const a = k * 0.16, t = mesh(new THREE.ConeGeometry(0.016, 0.038, 4), wht, head, Math.sin(a) * 0.25, 0.155, Math.cos(a) * 0.25 - 0.005); t.rotation.x = Math.PI; } }
   else if (G.cap === 'crown'){ const gold = L('#ffcf3a', { emissive: '#7a5200', emissiveIntensity: 0.35, side: THREE.DoubleSide }); mesh(new THREE.CylinderGeometry(0.15, 0.165, 0.08, 22, 1, true), gold, head, 0, 0.285, -0.01);
     for (let k = 0; k < 5; k++){ const a = k / 5 * Math.PI * 2 + Math.PI / 2, cx = Math.cos(a) * 0.152, cz = Math.sin(a) * 0.152 - 0.01; mesh(new THREE.ConeGeometry(0.034, 0.1, 4), gold, head, cx, 0.37, cz); sph(gold, head, cx, 0.425, cz, 0.016); sph(L(G.capColor === '#ffffff' ? '#ff4f8b' : G.capColor), head, Math.cos(a) * 0.163, 0.285, Math.sin(a) * 0.163 - 0.01, 0.019); } }
-  else if (G.cap === 'flower'){ const pm = L(G.capColor === '#ffffff' ? '#ff5f8f' : G.capColor), fl = new THREE.Group(); fl.position.set(0.215, 0.13, 0.06); fl.rotation.set(0, 1.0, -0.3); fl.scale.setScalar(1.45); head.add(fl);
+  else if (G.cap === 'flower'){ const pm = L(G.capColor === '#ffffff' ? '#ff5f8f' : G.capColor), fl = new THREE.Group(); fl.position.set(0.215, 0.13, 0.06); if (hasCover(S)) fl.position.multiplyScalar(S.hood ? 1.24 : 1.14); fl.rotation.set(0, 1.0, -0.3); fl.scale.setScalar(1.45); head.add(fl);
     for (let k = 0; k < 5; k++){ const a = k / 5 * Math.PI * 2, pe = sph(pm, fl, Math.cos(a) * 0.045, Math.sin(a) * 0.045, 0, 0.044, 0.03, 0.012); pe.rotation.z = a; } sph(L('#ffd23a'), fl, 0, 0, 0.012, 0.018); const stm = mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.07, 4), L('#ffe14a'), fl, 0.0, 0.0, 0.035); stm.rotation.x = Math.PI / 2 + 0.4; }
   else if (G.cap === 'captain'){ const wm = L('#ffffff'), nv = L('#1f2f52'), gd = L('#ffcf3a', { emissive: '#7a5200', emissiveIntensity: 0.3 });
     mesh(new THREE.CylinderGeometry(0.27, 0.21, 0.1, 24), wm, head, 0, 0.31, -0.01); mesh(new THREE.CylinderGeometry(0.213, 0.21, 0.07, 24, 1, true), nv, head, 0, 0.24, -0.01);
@@ -3260,7 +3305,21 @@ function animRig(rig, dt, st, o){
   { const MK = CH.mask; if (MK){ const land = st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet' || st === 'trip' || st === 'float', upT = MK.on && land ? 1 : 0;
     PS.mUp = lerp(PS.mUp || 0, upT, 1 - Math.exp(-dt * 6)); const u = PS.mUp, isUp = u > 0.5; MK.mp.rotation.x = -0.74 * u; MK.mp.scale.setScalar(1 + MK.upK * u);
     MK.sg.visible = MK.snork && !(MK.on && isUp); MK.su.visible = MK.snork && MK.on && isUp; if (MK.mouth) MK.mouth.visible = !MK.sg.visible; } }
-  rig.blinkT -= dt; const bl = rig.blinkT < 0.12 ? 0.15 : 1; if (rig.blinkT < 0) rig.blinkT = 2 + Math.random() * 3; CH.eyes?.forEach(e => e.scale.y = (e.userData.sy ?? 0.046) * bl);
+  { const X = rig.X || (rig.X = { t: 2 + Math.random() * 6, kind: '', el: 0, dur: 0 }), mouthFree = !(CH.mask && CH.mask.sg.visible);
+    let want = 0, ek = 1;
+    if (o.sip && cup) want = 0.42;
+    else if (o.eat && rig.foodObj) want = 0.2 + Math.abs(Math.sin(t * 9)) * 0.6;
+    else if (st === 'wet'){ want = 0.55 + Math.sin(t * 15) * 0.15; ek = 0.3; }
+    else if (X.kind){ X.el += dt; const a = Math.sin(clamp(X.el / X.dur, 0, 1) * Math.PI);
+      if (X.kind === 'yawn'){ want = a; ek = 1 - a * 0.85; }
+      else if (X.kind === 'laugh'){ want = (0.45 + Math.sin(t * 15) * 0.15) * Math.min(1, a * 3); ek = 1 - Math.min(1, a * 3) * 0.7; }
+      else if (X.kind === 'ooh'){ want = 0.32 * Math.min(1, a * 2.5); ek = 1 + Math.min(1, a * 2.5) * 0.22; }
+      if (X.el >= X.dur){ X.kind = ''; X.t = 4 + Math.random() * 8; } }
+    else { X.t -= dt; const busy = st === 'swim' || st.startsWith('dive') || st === 'surf' || st === 'paddle' || st === 'fall' || st === 'run';
+      if (X.t <= 0 && !busy){ const calm = st === 'float' || st === 'sit' || st === 'tube'; X.kind = pickOne(calm ? ['yawn', 'yawn', 'ooh', 'laugh'] : ['laugh', 'ooh', 'yawn', 'laugh']); X.dur = X.kind === 'yawn' ? 2.8 : X.kind === 'laugh' ? 1.8 : 1.5; X.el = 0; } }
+    PS.mo = lerp(PS.mo || 0, want, 1 - Math.exp(-dt * 12)); PS.ek = lerp(PS.ek ?? 1, ek, 1 - Math.exp(-dt * 10));
+    if (CH.mouthO){ const m = PS.mo; CH.mouthO.visible = mouthFree && m > 0.05; CH.mouthO.scale.set(0.75 + m * 0.35, Math.max(0.01, m), 1); if (CH.mask?.mouth) CH.mask.mouth.visible = mouthFree && m < 0.35; } }
+  rig.blinkT -= dt; const bl = (rig.blinkT < 0.12 ? 0.15 : 1) * (PS.ek ?? 1); if (rig.blinkT < 0) rig.blinkT = 2 + Math.random() * 3; CH.eyes?.forEach(e => e.scale.y = (e.userData.sy ?? 0.046) * bl);
 }
 function animateBaby(dt){
   P.st = localState();
@@ -3369,10 +3428,12 @@ function checkDiscover(){
 }
 function discover(id){
   if (FOUND.has(id) || !SPOT.dex.includes(id)) return; const first = !foundAll().has(id); FOUND.add(id); saveLS('pp_found_' + SPOT.id, [...FOUND]); FOUND_ALL = null; NET.fd = id;
-  const sp = SPEC[id], pr = addPearl(first ? 15 : 5); toast((id === 'turtle' ? `행운이에요! ${josa(sp.name, '을', '를')} 만났어요` : first ? `새 친구 발견! ${sp.name}` : `${SPOT.short}에서도 만났어요! ${sp.name}`) + ` · 진주 +${pr}`, 'found', first && id !== 'turtle' ? { group: 'found', name: sp.name, pearls: pr } : {}); AudioSys.chime(); updateDexCount(); if (dexOpen) renderDex();
+  const sp = SPEC[id], pr = addPearl(first ? 15 : 5); toast((id === 'turtle' ? `행운이에요! ${josa(sp.name, '을', '를')} 만났어요` : first ? `새 친구 발견! ${sp.name}` : `${SPOT.short}에서도 만났어요! ${sp.name}`) + ` · 진주 +${pr}`, 'found', first && id !== 'turtle' ? { group: 'found', name: sp.name, pearls: pr } : {}); AudioSys.chime(); ME.X = { kind: 'ooh', el: 0, dur: 1.6, t: 0 }; updateDexCount(); if (dexOpen) renderDex();
   if (FOUND.size === SPOT.dex.length){ const b = addPearl(50); setTimeout(() => toast(`${SPOT.short} 도감 완성! 진주 +${b} · 다른 바다로 옮겨 가 볼까요?`, 'found'), 2600); }
 }
-function updateDexCount(){ $('#dexN').textContent = `${FOUND.size}/${SPOT.dex.length}`; }
+let dexSeen = 0, setMenu = () => {};
+function updateMenuDot(){ const d = $('#bMenu .dot'); if (d) d.classList.toggle('hidden', FOUND.size <= dexSeen); }
+function updateDexCount(){ $('#dexN').textContent = `${FOUND.size}/${SPOT.dex.length}`; updateMenuDot(); }
 function drawIcon(cv, sp, found){
   const x = cv.getContext('2d'), W = cv.width, H = cv.height; x.clearRect(0, 0, W, H); x.save(); x.translate(W / 2, H / 2);
   const gray = '#7c8789', col = c => found ? c : gray;
@@ -3504,7 +3565,7 @@ function renderGear(){
 function setGear(k, v){ if (!owns(k, v)) return; G[k] = v; if (k === 'face'){ const pal = BABY_STYLES[v]?.pal || {}; if (pal.suit) G.suit = pal.suit; if (pal.shorts) G.shorts = pal.shorts; if (pal.suitPat && owns('suitPat', pal.suitPat)) G.suitPat = pal.suitPat; } if (k === 'board' && v !== 'none') G.tube = 'none'; if (k === 'tube' && v !== 'none') G.board = 'none'; if (!hasBoard(G) && P.surf) P.surf = null; saveLS('pp_gear', G); buildBaby(); renderGear(); AudioSys.blip(660, 880, 0.08, 'sine', 0.06); }
 function randomGear(){ const pick = a => a[(Math.random() * a.length) | 0]; G = Object.assign({}, G, { face: pick(FACE_IDS), skin: pick(SKINS), hair: pick(HAIRS), suit: pick(PAL), shorts: pick(PAL), mask: pick(['classic', 'classic', 'full']), maskColor: pick(PAL), snorkelColor: pick(PAL), fins: pick(['short', 'long', 'none']), finColor: pick(PAL), vestColor: pick(PAL), tube: pick(['none', 'none', 'donut', 'duck']), tubeColor: pick(PAL), cap: pick(['none', 'swim', 'bucket', 'straw']), capColor: pick(PAL), boardColor: pick(PAL) }); if (G.tube !== 'none') G.board = 'none'; saveLS('pp_gear', G); buildBaby(); renderGear(); }
 function openGear(v){ gearOpen = v; gearBuy = null; $('#gear').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); CAM.gearYaw = P.yaw; CAM.prevYaw = CAM.yaw; renderGear(); if (CAM.fp) setFP(false); hintOnce('gearspin', TOUCH ? '아이를 옆으로 밀면 빙글 돌려 볼 수 있어요' : '아이를 드래그하면 빙글 돌려 볼 수 있어요'); } else if (CAM.gearYaw !== undefined){ P.yaw = CAM.gearYaw; CAM.yaw = CAM.prevYaw ?? P.yaw; } refreshHUD(); }
-function openDex(v){ dexOpen = v; $('#dex').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); renderDex(); } refreshHUD(); }
+function openDex(v){ dexOpen = v; if (v){ dexSeen = FOUND.size; updateMenuDot(); } $('#dex').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); renderDex(); } refreshHUD(); }
 function openHelp(v){ helpOpen = v; $('#help').classList.toggle('hidden', !v); refreshHUD(); }
 function setFP(v){ if (P.sit?.kind === 'float'){ setSky(!CAM.sky); return; } CAM.fp = v; $('#mask').classList.add('hidden'); updateViewBtn(); charRoot.visible = !v; blob.visible = !v; if (v){ CAM.yaw = P.yaw; CAM.fpPitch = P.mode === 'swim' ? -0.6 : -0.1; hintOnce('fp', P.mode === 'swim' ? '아기 눈으로 물속을 봐요. 드래그하면 둘러볼 수 있어요' : '아기 눈으로 봐요. 드래그하면 하늘까지 올려다볼 수 있어요'); } }
 function showMung(v){ $('#mung').classList.toggle('hidden', !v); if (!v) CAM.sky = false; if (v){ const fl = P.sit.kind === 'float'; $('#mUp').textContent = fl ? (TOUCH ? '헤엄치기' : '다시 헤엄치기') : '일어나기'; $('#mung').classList.remove('open'); $('#mSnack').setAttribute('aria-expanded', 'false'); if (TOUCH){ $('#mTod').textContent = todName === 'day' ? '노을' : '낮'; $('#mSip').textContent = '꿀꺽'; $('#mBite').textContent = '냠냠'; } $('#mTitle').textContent = P.sit.title || '물멍 중'; $('#mTime').textContent = '00:00'; renderDrinks(); if (CAM.fp) setFP(false); updateViewBtn(); } refreshHUD(); }
@@ -3527,10 +3588,10 @@ const ST_LABEL = { idle: '쉬는 중', walk: '걷는 중', fall: '점프!', swim
 let hudT = 0, curInteract = null;
 let zenT = 0;
 document.addEventListener('pointerdown', () => { zenT = 0; document.body.classList.remove('zen'); }, true);
-function updateZen(dt){ const on = TOUCH && started && !!P.sit && !(gearOpen || dexOpen || helpOpen || chatOpen || spotsOpen || rankOpen || storeOpen || bagOpen);
+function updateZen(dt){ if (document.body.classList.contains('zen')) setMenu(false); const on = TOUCH && started && !!P.sit && !(gearOpen || dexOpen || helpOpen || chatOpen || spotsOpen || rankOpen || storeOpen || bagOpen);
   if (!on){ zenT = 0; document.body.classList.remove('zen'); return; }
   zenT += dt; if (zenT > 5 && !document.body.classList.contains('zen')){ document.body.classList.add('zen'); hintOnce('zen', '화면을 톡 누르면 버튼이 다시 나와요'); } }
-function updateHUD(dt){ updateZen(dt);
+function updateHUD(dt){ updateZen(dt); lobbyTell();
   hudT -= dt; if (hudT > 0) return; hudT = 0.1;
   const gh = groundH(P.x, P.z), depth = Math.max(0, -gh);
   let st = P.sit ? '물멍 중' : P.surf ? '서핑 중!' : P.mode === 'land' ? (P.feet < -0.08 ? '물에서 걷는 중' : '걷는 중') : (P.body < -0.52 ? '잠수 중' : hasBoard(G) ? (laneMask(P.x) > 0.6 ? '파도 기다리는 중' : '패들 중') : (G.tube !== 'none' ? '둥실둥실' : '스노클링 중'));
@@ -3657,7 +3718,7 @@ function onPeersChange(ch){
 }
 function clearPeers(){ for (const k of [...NET.peers.keys()]) removePeer(k); updateFriendChip(); }
 async function initNet(){
-  const C = window.claude; if (!C || typeof C.use !== 'function'){ const sb = await sbClient(); if (sb){ NET.mode = 'sb'; NET.lobby = sbLobby(sb); initRank(); await joinSpotRoom(); return; } setNetStatus('solo'); return; }
+  const C = window.claude; if (!C || typeof C.use !== 'function'){ const sb = await sbClient(); if (sb){ NET.mode = 'sb'; NET.lobby = sbLobby(sb); initRank(); await joinSpotRoom(); joinLobby(); return; } setNetStatus('solo'); return; }
   let room = null, user = null;
   try { [room, user] = await Promise.all([C.use('room'), C.use('user')]); } catch (e){}
   if (!user && !room){ RANK.status = 'solo'; }
@@ -3665,7 +3726,7 @@ async function initNet(){
   if (user){ try { const me = await user.me(); NET.myName = me.name || ''; NET.myColor = me.color || NET.myColor; } catch (e){} }
   initRank();
   if (!room){ setNetStatus('solo'); return; }
-  NET.lobby = room; await joinSpotRoom();
+  NET.lobby = room; await joinSpotRoom(); joinLobby();
 }
 function sendPresence(dt){
   if (!NET.room || !started) return; NET.sendT -= dt; if (NET.sendT > 0) return; NET.sendT = 0.1;
@@ -3718,7 +3779,10 @@ function goToPeer(Rm){
 function openFriends(v){ friendsOpen = v; $('#friends').classList.toggle('hidden', !v); if (v){ $('#nkIn').value = NICK; renderFriends(); } }
 function renderFriends(){
   const list = $('#fList'); list.innerHTML = ''; const peers = visiblePeers();
-  $('#frSub').textContent = NET.status === 'on' ? `${peers.length + 1}명이 바다에 있어요` : '';
+  $('#frSub').textContent = NET.status === 'on' ? `이 바다 ${peers.length + 1}명` + (LOBBY.total ? ` · 전체 ${LOBBY.total + 1}명` : '') : '';
+  { const w = $('#fWhere') || (() => { const e = document.createElement('div'); e.id = 'fWhere'; e.className = 'fwhere'; list.parentNode.insertBefore(e, list); return e; })(); w.innerHTML = '';
+    const elsewhere = Object.entries(LOBBY.counts).filter(([id]) => id !== SPOT.id).sort((a, b) => b[1] - a[1]);
+    if (elsewhere.length){ w.appendChild(el('b', '', '다른 바다에서 노는 친구')); for (const [id, n] of elsewhere){ const d = SPOTS.find(x => x.id === id); if (!d) continue; const b = el('button', 'btn'); b.type = 'button'; b.textContent = `${d.short} ${n}명 · 가기`; b.onclick = () => { openFriends(false); switchSpot(id); }; w.appendChild(b); } } }
   $('#fNote').textContent = NET.status === 'solo' && (NET.mode === 'sb' || !window.claude) ? '지금은 혼자 놀기예요. 인터넷 연결을 확인해 주세요. 다시 연결되면 같은 바다에 있는 친구들이 보여요.' : NET.status === 'solo' ? '지금은 혼자 놀기예요. 같이 수영하기는 이 페이지를 공유받은 사람이 Claude에 로그인한 채로 열었을 때 연결돼요. 공개 링크로 들어온 경우에는 혼자 놀기로만 열려요.'
     : NET.status === 'connecting' ? '연결하는 중이에요. 잠시만 기다려 주세요.'
     : peers.length ? `지금 ${SPOT.short}에 함께 있는 친구들이에요. 파도는 모두에게 똑같이 보이고, 물고기 무리도 거의 같은 곳에 있어요. 다른 바다에 있는 친구는 같은 바다로 옮겨야 만나요.` : `아직 ${SPOT.short}에는 아무도 없어요. 이 페이지를 공유하고 친구에게 지금 열어서 같은 바다를 골라 달라고 해 보세요. 같은 시간에 같은 바다에 있어야 만나요.`;
@@ -3735,6 +3799,24 @@ function openChat(v){ chatOpen = v; $('#chat').classList.toggle('hidden', !v); i
   $('#cClose').onclick = () => openChat(false);
   $('#bChat').onclick = () => openChat(!chatOpen); $('#bChat2').onclick = () => openChat(true);
   $('#bFriends').onclick = () => openFriends(!friendsOpen); $('#fClose').onclick = () => openFriends(false);
+if (TOUCH){
+  dexSeen = FOUND.size;
+  const tb = $('#topbar'), pop = document.createElement('div'); pop.id = 'menuPop'; pop.className = 'hidden'; pop.setAttribute('aria-label', '메뉴'); document.body.appendChild(pop);
+  const mb = document.createElement('button'); mb.className = 'chip'; mb.id = 'bMenu'; mb.title = '메뉴'; mb.setAttribute('aria-label', '메뉴'); mb.setAttribute('aria-expanded', 'false');
+  mb.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg><i class="dot hidden"></i>'; tb.appendChild(mb);
+  for (const id of ['#bSpot', '#bDex', '#bRank', '#bFriends', '#bTod', '#bSnd', '#bHelp']) pop.appendChild($(id));
+  const cl = document.createElement('button'); cl.className = 'chip'; cl.id = 'bClean';
+  cl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg><span class="lbl">화면 깨끗이 (사진 찍기)</span>'; pop.appendChild(cl);
+  setMenu = v => { pop.classList.toggle('hidden', !v); mb.setAttribute('aria-expanded', String(v)); mb.classList.toggle('on', v); if (v){ const r = tb.getBoundingClientRect(); pop.style.top = Math.round(r.bottom + 8) + 'px'; } };
+  mb.onclick = () => setMenu(pop.classList.contains('hidden'));
+  pop.addEventListener('click', e => { if (e.target.closest('.chip')) setTimeout(() => setMenu(false), 60); });
+  document.addEventListener('pointerdown', e => { if (!pop.classList.contains('hidden') && !e.target.closest('#menuPop') && !e.target.closest('#bMenu')) setMenu(false); }, true);
+  /* 화면 깨끗이: 버튼을 다 숨기고 아기와 바다만. 끌면 시점만 돌고, 톡 누르면 다시 나온다 */
+  cl.onclick = () => setTimeout(() => { document.body.classList.add('clean'); hintOnce('clean', '화면을 끌면 시점이 돌고, 톡 누르면 버튼이 다시 나와요'); }, 80);
+  let cd = null;
+  document.addEventListener('pointerdown', e => { cd = document.body.classList.contains('clean') ? { x: e.clientX, y: e.clientY, t: performance.now() } : null; }, true);
+  document.addEventListener('pointerup', e => { if (cd && Math.hypot(e.clientX - cd.x, e.clientY - cd.y) < 12 && performance.now() - cd.t < 450) document.body.classList.remove('clean'); cd = null; }, true);
+}
   setInterval(() => { if (friendsOpen) renderFriends(); }, 1000);
 }
 
@@ -5099,6 +5181,16 @@ async function sbClient(){
 }
 /* Claude의 room과 똑같이 쓰이도록 감싼다: join(name) → { presence(pr), onPeers(cb, onClose), onConnection(cb), leave() } */
 function sbLobby(sb){ return { join: name => sbRoom(sb, `${SB_CFG.game}-${name}`) }; }
+/* 바다별 인원 로비: 지금 어느 바다에 있는지만 알린다. 바다를 옮길 때만 보내서 가볍다 */
+async function sbPresenceRoom(sb, topic){
+  const ch = sb.channel(topic, { config: { presence: { key: SB.id } } }); let cb = null, mine = {};
+  const state = () => { let st = {}; try { st = ch.presenceState() || {}; } catch (e){} const out = [];
+    for (const [k, metas] of Object.entries(st)){ if (k === SB.id || !/^[0-9a-f-]{36}$/.test(k)) continue; const m = Array.isArray(metas) && metas.length ? metas[metas.length - 1] : {}; out.push({ peer: k, presence: m || {} }); } return out; };
+  ch.on('presence', { event: 'sync' }, () => { if (cb) cb(state()); });
+  const ok = await new Promise(res => { const t = setTimeout(() => res(false), 10000); ch.subscribe(async st => { if (st === 'SUBSCRIBED'){ clearTimeout(t); try { await ch.track(mine); } catch (e){} res(true); } else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT'){ clearTimeout(t); res(false); } }); });
+  if (!ok){ try { sb.removeChannel(ch); } catch (e){} return null; }
+  return { presence(pr){ mine = pr; return ch.track(pr).catch(() => {}); }, onAll(f){ cb = f; f(state()); }, leave(){ try { sb.removeChannel(ch); } catch (e){} } };
+}
 async function sbRoom(sb, topic){
   const peers = new Map(); let onPeersCb = null, onCloseCb = null, onConnCb = null, last = null, lastSent = 0, timer = 0, others = 0, closed = false, keep = 0;
   const ch = sb.channel(topic, { config: { presence: { key: SB.id }, broadcast: { self: false, ack: false } } });
