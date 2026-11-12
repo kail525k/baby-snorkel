@@ -122,6 +122,8 @@ const SHOP_POS = { x: 198, z: 298 }, SNACK_POS = { x: 174, z: 340 }, STOP_POS = 
 const WINDDIR = Math.atan2(WIND.x, WIND.z);
 /* 걸어서 등산 기록은 착륙장 쪽(정상에서 200 넘게, 해발 100 넘게 아래)에서 출발했을 때만 쳐요 */
 const CLIMB_MIN_DIST = 200, CLIMB_MIN_DROP = 100;
+/* 쉽게: 링은 크게(반지름 10, 13 안이면 통과), 다음 링·착륙 과녁 근처에서는 살짝 그쪽으로 이끌어 줘요 */
+const RING_R = 10, RING_HIT = 13, RING_ASSIST = 75, LAND_ASSIST = 95, ACC_RANGE = 75;
 
 /* ============================== 하늘 월드 만들기 ============================== */
 export function createSky(H){
@@ -134,6 +136,16 @@ export function createSky(H){
     const mc = document.createElement('canvas').getContext('2d'); mc.font = 'bold 44px Jua, sans-serif'; const tw = Math.ceil(mc.measureText(text).width) + 48; const CW = Math.max(256, Math.min(2048, tw + 16));
     const tex = canvasTex(CW, 96, (g, W, Hh) => { g.font = 'bold 44px Jua, sans-serif'; g.fillStyle = bg; g.globalAlpha = .94; roundRect(g, (W - tw) / 2, 10, tw, 76, 38); g.fill(); g.globalAlpha = 1; g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, W / 2, 50); });
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); const k = w * 0.3 / 96; s.scale.set(CW * k, w * 0.3, 1); s.renderOrder = 10; STAGS.push(s); return s;
+  }
+  /* 여러 줄 말풍선: 긴 안내도 화면 밖으로 안 나가게 줄을 나눠 그린다 */
+  function makeBubble(text, bg = '#ffffff', fg = '#3b3a4a'){
+    const W = 620, pad = 30, fs = 40, mc = document.createElement('canvas').getContext('2d'); mc.font = `bold ${fs}px Jua, sans-serif`;
+    const lines = []; let cur = ''; for (const ch of [...text]){ const t = cur + ch; if (mc.measureText(t).width > W - pad * 2 && cur){ const sp = cur.lastIndexOf(' '); if (sp > cur.length * 0.5){ lines.push(cur.slice(0, sp)); cur = cur.slice(sp + 1) + ch; } else { lines.push(cur); cur = ch; } } else cur = t; } if (cur) lines.push(cur);
+    const tw = Math.min(W - pad * 2, Math.max(...lines.map(l => mc.measureText(l).width))) + pad * 2, Hh = lines.length * (fs + 12) + 44;
+    const tex = canvasTex(W, Hh, (g, Wc, Hc) => { g.font = `bold ${fs}px Jua, sans-serif`; g.fillStyle = bg; g.globalAlpha = .96; const x0 = (Wc - tw) / 2; roundRect(g, x0, 4, tw, Hc - 26, 26); g.fill();
+      g.beginPath(); g.moveTo(Wc / 2 - 14, Hc - 23); g.lineTo(Wc / 2, Hc - 4); g.lineTo(Wc / 2 + 14, Hc - 23); g.closePath(); g.fill(); g.globalAlpha = 1;
+      g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; lines.forEach((l, i) => g.fillText(l, Wc / 2, 4 + 18 + (fs + 12) * (i + 0.5) - 6)); });
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true })); const k = 0.0068; s.scale.set(W * k, Hh * k, 1); s.center.set(0.5, 0); s.renderOrder = 11; return s;
   }
   function makeSign(lines, w = 6, h = 3, bg = '#7a5236'){
     const g = new THREE.Group(); const post = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.18, h + 1.4, 8), M('#6b4a2f')); post.position.y = (h + 1.4) / 2; g.add(post);
@@ -378,7 +390,7 @@ export function createSky(H){
     THERMALS.forEach((t, i) => { [t.top - 95, t.top - 62, t.top - 32].forEach((y, k) => { const a = k * 2.1 + i; addStar(t.x + Math.cos(a) * t.r * 0.26, y, t.z + Math.sin(a) * t.r * 0.26); }); });
     [[-120, 70, 330], [-260, 55, 300], [200, 60, 300], [140, 95, 120], [-90, 120, 40], [60, 40, 420]].forEach(p => addStar(p[0], p[1], p[2]));
     { const pts = [[10, 150, 90], [40, 138, 175], [70, 128, 250]]; const cx = LAND.x, cz = LAND.z, rr = 55; for (let k = 0; k < 7; k++){ const ph = -2.2 + k * Math.PI / 3; pts.push([cx + rr * Math.sin(ph), 118 - k * 8, cz + rr * Math.cos(ph)]); }
-      const geo = new THREE.TorusGeometry(8, 0.55, 10, 44);
+      const geo = new THREE.TorusGeometry(RING_R, 0.75, 10, 48);
       pts.forEach((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)]; const hd = Math.atan2(b[0] - a[0], b[2] - a[2]);
         const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: .5 })); m.position.set(p[0], p[1], p[2]); m.rotation.y = hd; scene.add(m); RINGS.push({ m, x: p[0], y: p[1], z: p[2], got: false }); }); }
     const leafGeo = new THREE.ShapeGeometry(starShape(0.55, 0.24)); const leafMats = ['#e8590c', '#f03e3e', '#f59f00'].map(c => new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide, emissive: c, emissiveIntensity: .25 }));
@@ -409,7 +421,7 @@ export function createSky(H){
 
   /* ---------- 아기 (바다와 똑같은 아기) · 헬멧 · 날개 ---------- */
   const WING_H = 6.4, BABY_H = 2.0;
-  const skyGearOf = (g, keepCap) => Object.assign({}, g, { mask: 'none', snorkel: 'off', fins: 'none', tube: 'none', board: 'none', vest: 'none', cap: keepCap ? g.cap : 'none' });
+  const skyGearOf = (g, keepCap, keepVest) => Object.assign({}, g, { mask: 'none', snorkel: 'off', fins: 'none', tube: 'none', board: 'none', vest: keepVest ? g.vest : 'none', cap: keepCap ? g.cap : 'none' });
   function headBox(head){ head.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(head.matrixWorld).invert(), box = new THREE.Box3(), tmp = new THREE.Box3(), m = new THREE.Matrix4();
     head.traverse(o => { if (o.isMesh && o.visible){ if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); tmp.copy(o.geometry.boundingBox).applyMatrix4(m.multiplyMatrices(inv, o.matrixWorld)); box.union(tmp); } }); return box; }
   function addHelmet(b, kind, color){
@@ -429,7 +441,7 @@ export function createSky(H){
   /* 바다 아기를 그대로 만들어 하늘 크기(체험판 아기 키)에 맞춘다. w = 바깥 묶음(세계 단위), g = 바다 아기(키 맞춰 늘림) */
   function makeBaby(gear, opt = {}){
     const rig = H.newRig(); const w = new THREE.Group(), g = new THREE.Group(); w.add(g); g.add(rig.root); rig.root.position.set(0, 0, 0); rig.root.rotation.set(0, 0, 0); rig.root.visible = true;
-    H.buildBabyInto(rig, skyGearOf(gear, opt.keepCap)); rig.root.updateMatrixWorld(true);
+    H.buildBabyInto(rig, skyGearOf(gear, opt.keepCap, opt.keepVest)); rig.root.updateMatrixWorld(true);
     const bb = new THREE.Box3().setFromObject(rig.root), h = Math.max(0.3, bb.max.y - Math.min(0, bb.min.y)), sc = BABY_H / h * (opt.scale || 1); g.scale.setScalar(sc); g.position.y = -Math.min(0, bb.min.y) * sc;
     const b = { w, g, rig, sc, scale: opt.scale || 1, st: 'idle', o: {}, harness: null, helmet: null };
     if (opt.helmet) addHelmet(b, opt.helmet, opt.helmetColor);
@@ -476,7 +488,31 @@ export function createSky(H){
   function freeGlider(G0){ if (!G0) return; freeBaby(G0.baby); G0.rig.traverse(o => { if (o.isMesh || o.isLineSegments || o.isSprite){ o.geometry?.dispose?.(); const ms = Array.isArray(o.material) ? o.material : [o.material]; for (const m of ms){ m?.map?.dispose?.(); m?.dispose?.(); } } }); scene.remove(G0.rig); }
 
   /* ---------- AI 패러글라이더 · 마을 사람 · 동네 차 · 튼튼이 (모두 이름표에 AI라고 써요) ---------- */
-  let NPCS = [], VILLAGERS = [], CARS = [], FRIEND = null;
+  let NPCS = [], VILLAGERS = [], CARS = [], FRIEND = null, STAFF = [];
+  /* 정상 안전요원 (AI) 5명: 이륙장 둘레에 서서 응원하고, 어떻게 출발하는지 차례로 말풍선으로 알려 줘요 */
+  const STAFF_SPOTS = [[-8.5, 23], [8.5, 22], [-9.5, 33.5], [9.5, 34], [6.5, 43]];
+  const STAFF_NAMES = ['안전요원 바람이', '안전요원 하늘이', '안전요원 구름이', '안전요원 솔이', '안전요원 단풍이'];
+  const STAFF_TIPS = () => [
+    TOUCH ? '오른쪽 아래 [이륙!] 버튼을 누르면 앞으로 달려서 날아올라요!' : 'Space를 누르면 앞으로 달려서 날아올라요!',
+    '바람은 앞쪽 남한강에서 불어와요. 주황 바람자루를 봐요!',
+    '이륙장 가운데 하얀 줄에 서서 출발하면 똑바로 날아요',
+    TOUCH ? '날 때는 조이스틱 ←→로 방향, 위로 밀면 가속, 아래로 당기면 브레이크!' : '날 때는 A·D로 방향, W는 가속, S는 브레이크!',
+    '하얀 점이 빙글빙글 올라가는 곳에서 원을 그리면 쑥쑥 올라가요',
+    '노란 링 10개를 따라 내려가요. 링 가까이 가면 살짝 링 쪽으로 끌어당겨 줘요',
+    '마지막엔 남한강 착륙장 과녁 쪽으로 살짝 데려다줘요. 가운데에 내릴수록 점수가 커요',
+    TOUCH ? '땅이 가까워지면 [브레이크]를 꾹! 사뿐 착륙해요' : '땅이 가까워지면 S를 꾹! 사뿐 착륙해요',
+    '과녁 한가운데에 내리면 진주를 더 많이 받아요',
+    '헬멧 꼭 쓰고, 출발 전에 앞에 아무도 없는지 봐요'];
+  const STAFF_CHEER = ['화이팅!', '잘 다녀와~', '멋지다! 날았다!', '바람 좋다, 출발!', '하늘에서 손 흔들어 줘!'];
+  const STAFF_WELCOME = ['어서 와! 또 날아 볼까?', '정상까지 왔구나, 대단해!', '숨 고르고 또 출발해요~'];
+  function buildStaff(){
+    STAFF_SPOTS.forEach(([x, z], i) => { const g0 = Object.assign(H.npcGear(4000 + i), { vest: 'vest', vestColor: '#c8f53a', cap: 'none' });
+      const b = makeBaby(g0, { keepVest: true, helmet: 'basic', helmetColor: '#ff7a1a', scale: i === 4 ? 1.25 : 1.15 }); const grp = new THREE.Group(); grp.add(b.w);
+      const tag = makeTag(STAFF_NAMES[i] + ' (AI)', '#ff7a1a', '#fff', 1.7); tag.position.y = 2.75 * b.scale + 0.15; grp.add(tag);
+      grp.position.set(x, groundAt(x, z), z); grp.rotation.y = Math.atan2(PAD.x - x, PAD.z + 6 - z); scene.add(grp); COLL.push({ x, z, r: 0.7 });
+      STAFF.push({ b, grp, tag, x, z, h: grp.rotation.y, bubble: null, bubbleT: 0, waveT: 0 }); });
+    STAFF.tip = 0; STAFF.t = 1.5;
+  }
   const LINES_TOWN = ['안녕, 아기 파일럿!', '오늘 바람 좋다~', '마늘빵 먹어 봤니?', '구경시장 구경 왔구나!', '쏘가리 매운탕 거리는 강변 쪽이야', '하늘에서 우리 집 보였어?', '다리 건너면 착륙장이야'];
   const LINES_VIL = ['착륙 잘했어?', '가게에 킥보드 들어왔대!', '버스는 10명 모여야 출발해', '튼튼이가 업어 준대!', '정상까지 3.5km, 화이팅!', '오픈카 타면 바람이 시원해~'];
   function buildPeople(){
@@ -536,7 +572,7 @@ export function createSky(H){
   function follow(o, route, speed, dt){ let rem = speed * dt; while (rem > 0 && o.idx < route.length){ const t = route[o.idx], dx = t[0] - o.x, dz = t[1] - o.z, d = Math.hypot(dx, dz); if (d <= rem){ o.x = t[0]; o.z = t[1]; rem -= d; o.idx++; } else { o.x += dx / d * rem; o.z += dz / d * rem; rem = 0; } }
     const la = route[Math.min(route.length - 1, o.idx + 2)]; if (la){ const hd = Math.atan2(la[0] - o.x, la[1] - o.z); if (Math.hypot(la[0] - o.x, la[1] - o.z) > 0.5) o.heading = lerpAngle(o.heading, hd, Math.min(1, dt * 4)); } return o.idx >= route.length; }
   function placeVehicle(g, x, z, h, L){ const fx = Math.sin(h), fz = Math.cos(h); const hf = groundAt(x + fx * L, z + fz * L), hb = groundAt(x - fx * L, z - fz * L); g.rotation.order = 'YXZ'; g.rotation.set(-Math.atan2(hf - hb, 2 * L), h, 0); g.position.set(x, (hf + hb) / 2, z); }
-  function finishClimb(via){ const was = P.climb.active, walk = via === '걷기' && !P.climb.rode; P.climb.active = false; const ct = P.climb.t; let nb = false;
+  function finishClimb(via){ staffCheer('back'); const was = P.climb.active, walk = via === '걷기' && !P.climb.rode; P.climb.active = false; const ct = P.climb.t; let nb = false;
     if (was && walk && ct >= 30){ if (!best.climb || ct < best.climb){ best.climb = Math.round(ct * 10) / 10; store.set('best2', best); nb = true; } H.skyRecord({ climb: Math.round(ct * 10) / 10 }); }
     toast(`정상 도착! ${via}${was ? ' · ' + fmtT(ct) : ''}${was && walk ? ' · ' + Math.round(P.climb.steps).toLocaleString() + '걸음' : ''}${nb ? ' · 걸어서 등산 최고 기록!' : ''} · ${TOUCH ? '[이륙!]' : 'Space'}로 다시 날아요`, nb ? 'found' : ''); chime(); }
 
@@ -571,7 +607,7 @@ export function createSky(H){
   function resetToPad(){ dismount(true); P.mode = 'ground'; P.x = PAD.x; P.z = PAD.z - 5; P.y = PH; P.heading = 0; P.vy = P.jv = 0; P.roll = 0; cam.yaw = Math.PI; cam.off = 0; P.climb.active = false; P.bt = 0; P.bgo = false; P.cy = ''; P.carrier = ''; P.pq = null;
     if (me){ me.wing.g.visible = false; me.rig.visible = true; } resetFlightStats(); resetPicks(); }
   function startTakeoff(){ dismount(true); P.mode = 'takeoff'; P.tk = { t: 0, sx: P.x, sz: P.z, ex: PAD.x, ez: PAD.z + 27 }; P.heading = 0; me.wing.g.visible = true; me.wing.lines.visible = false; resetFlightStats(); P.f.maxY = P.y; P.climb.active = false;
-    cam.off = 0; beep(300, 0.5, 0.06, 'triangle', 600); toast('달려! 달려!'); }
+    cam.off = 0; beep(300, 0.5, 0.06, 'triangle', 600); toast('달려! 달려!'); staffCheer('go'); }
   function thermalLift(x, y, z){ let L = 0; for (const t of THERMALS){ const d = Math.hypot(x - t.x, z - t.z); if (d < t.r) L += t.s * (1 - (d / t.r) ** 2) * smooth(t.top + 20, t.top - 50, y); else if (d < t.r * 1.5) L -= 0.3 * (1 - (d - t.r) / (t.r * 0.5)); } return L; }
   function thermalAt(x, z){ for (const t of THERMALS){ const d = Math.hypot(x - t.x, z - t.z); if (d < t.r) return { t, d, k: 1 - d / t.r }; } return null; }
   function ridgeLift(x, z, agl){ if (agl > 45) return 0; const ws = Math.hypot(WIND.x, WIND.z), ux = WIND.x / ws, uz = WIND.z / ws; const sl = (heightAt(x + ux * 8, z + uz * 8) - heightAt(x, z)) / 8; if (sl <= 0) return 0; return Math.min(2.2, ws * sl * 1.6) * (1 - agl / 45); }
@@ -617,18 +653,24 @@ export function createSky(H){
     if (inp.y < -0.4 && agl < 6 && P.flare > 0){ sink *= 0.15; P.flare -= dt * 0.75; P.speed = lerp(P.speed, 5, dt * 2); }
     const lift = thermalLift(P.x, P.y, P.z) + ridgeLift(P.x, P.z, agl); P.vy = lerp(P.vy, -sink + lift, Math.min(1, dt * 2.2));
     const R = Math.hypot(P.x, P.z); if (R > 950){ P.heading = lerpAngle(P.heading, Math.atan2(-P.x, -P.z), dt * 0.7); if (!P.warned){ toast('너무 멀리 왔어요! 착륙장 쪽으로 돌아가요'); P.warned = true; } } else if (R < 850) P.warned = false;
+    /* 링 보조: 앞쪽 가까이 있는 다음 링 쪽으로 방향과 높이를 살짝 맞춰 줘요 (조작을 세게 하면 내 조작이 먼저) */
+    { const nr = RINGS.find(r => !r.got); P.assist = '';
+      if (nr){ const dx = nr.x - P.x, dz = nr.z - P.z, dh = Math.hypot(dx, dz), ang = Math.atan2(dx, dz), off = Math.abs(wrapA(ang - P.heading));
+        if (dh < RING_ASSIST && off < 1.0){ const k = smooth(RING_ASSIST, 20, dh) * (1 - Math.min(1, Math.abs(inp.x) * 1.5)); if (k > 0.02){ P.heading = lerpAngle(P.heading, ang, Math.min(1, dt * 1.6 * k)); P.vy += clamp((nr.y - (P.y + 1.5)) * 0.35, -2.2, 1.6) * k * dt * 2; P.assist = 'ring'; } } }
+      else { const dx = LAND.x - P.x, dz = LAND.z - P.z, dh = Math.hypot(dx, dz);
+        if (dh < LAND_ASSIST && agl < 55){ const k = smooth(LAND_ASSIST, 25, dh) * (1 - Math.min(1, Math.abs(inp.x) * 1.5)); if (k > 0.02){ P.heading = lerpAngle(P.heading, Math.atan2(dx, dz), Math.min(1, dt * 1.3 * k)); P.assist = 'land'; } } } }
     const ti = thermalAt(P.x, P.z); const wsc = ti ? 1 - smooth(0, 0.35, ti.k) : 1;
     if (ti && Math.abs(P.turn) > 0.35 && ti.d > 4){ P.x += (ti.t.x - P.x) / ti.d * 2.2 * dt; P.z += (ti.t.z - P.z) / ti.d * 2.2 * dt; }
     const fx = Math.sin(P.heading), fz = Math.cos(P.heading); P.x += (fx * P.speed + WIND.x * wsc) * dt; P.z += (fz * P.speed + WIND.z * wsc) * dt; P.y = Math.min(P.y + P.vy * dt, 345); P.moving = false;
     F.t += dt; F.maxY = Math.max(F.maxY, P.y);
     for (const s of STARS){ if (!s.got && Math.hypot(P.x - s.x, P.y + 3 - s.m.position.y, P.z - s.z) < 6){ s.got = true; s.m.visible = false; F.stars++; chime(); } }
-    const nr = RINGS.find(r => !r.got); for (const r of RINGS){ if (!r.got && Math.hypot(P.x - r.x, P.y + 1.5 - r.y, P.z - r.z) < 9){ r.got = true; r.m.visible = false; F.rings++; beep(r === nr ? 784 : 620, 0.18, 0.1, 'triangle', r === nr ? 1175 : 880); if (F.rings === RINGS.length) toast('링 10개 모두 통과!', 'found'); } }
+    const nr = RINGS.find(r => !r.got); for (const r of RINGS){ if (!r.got && Math.hypot(P.x - r.x, P.y + 1.5 - r.y, P.z - r.z) < RING_HIT){ r.got = true; r.m.visible = false; F.rings++; beep(r === nr ? 784 : 620, 0.18, 0.1, 'triangle', r === nr ? 1175 : 880); if (F.rings === RINGS.length) toast('링 10개 모두 통과!', 'found'); } }
     const g2 = groundAt(P.x, P.z); if (P.y <= Math.max(g2, WATER - 0.3)){ P.y = g2; touchdown(); }
   }
   function touchdown(){
     const F = P.f, sinkV = Math.max(0, -P.vy), g = heightAt(P.x, P.z), inWater = g < WATER - 0.2 && !onBridge(P.x, P.z), dl = Math.hypot(P.x - LAND.x, P.z - LAND.z);
     const q = inWater ? 'water' : sinkV < 1.0 ? 'soft' : sinkV < 2.2 ? 'ok' : 'hard';
-    const acc = (!inWater && dl < 60) ? Math.max(0, Math.round(150 - dl * 2.5)) : 0; const bonus = { soft: 100, ok: 40, hard: 0, water: 0 }[q];
+    const acc = (!inWater && dl < ACC_RANGE) ? Math.max(0, Math.round(150 - dl * 2)) : 0; const bonus = { soft: 100, ok: 40, hard: 0, water: 0 }[q];
     const tp = Math.min(FLIGHT_TIME_PTS_MAX, Math.round(F.t / 3));
     const score = F.stars * 10 + F.rings * 10 + bonus + acc + tp; const nb = score > (best.score || 0); if (nb){ best.score = score; }
     const accD = (!inWater && dl < 60) ? Math.round(dl * 10) / 10 : null; const nba = accD !== null && (best.acc == null || accD < best.acc); if (nba) best.acc = accD; store.set('best2', best);
@@ -662,6 +704,7 @@ export function createSky(H){
       const nm = H.cleanNick(pr.nk) || '친구'; const wg = WINGS[pr.wg] ? pr.wg : 'rainbow', hm = pr.hm === 'bear' ? 'bear' : 'basic';
       const gk = JSON.stringify([pr.g || {}, wg, hm, nm]); if (gk !== R.gearKey){ R.gearKey = gk; R.name = nm; const vis = R.gl ? R.gl.wing.g.visible : false; if (R.gl) freeGlider(R.gl); R.gl = makeGlider(H.sanitizeGear(pr.g), wg, nm, '#2fa7d8', { helmet: hm }); R.gl.wing.g.visible = vis; }
       if (R.first){ R.gl.rig.position.copy(R.tgt); R.first = false; }
+      if (R.md === 't' && R.prevMd && R.prevMd !== 't' && Math.hypot(R.tgt.x - PAD.x, R.tgt.z - PAD.z) < 40) staffCheer('go', R.name); R.prevMd = R.md;
       if (typeof pr.ls === 'number' && pr.ls !== R.ls){ if (R.ls !== null && pr.sc > 0) toast(`${R.name} 님이 착륙했어요! ${Math.round(clamp(num(pr.sc), 0, 800))}점`); R.ls = pr.ls; }
       if (fresh && started) setTimeout(() => { if (REMOTES.has(p.peer)) toast(`${R.name} 님이 ${MAP.name}에 왔어요`); }, 1200);
     }
@@ -725,6 +768,26 @@ export function createSky(H){
       if (done){ F.state = 'back'; F.backT = 3.5; P.mode = 'ground'; P.x = PAD.x + 4; P.z = PAD.z - 2; P.y = groundAt(P.x, P.z); P.heading = 0; finishClimb('튼튼이 등'); setTimeout(() => toast('튼튼이: 헥헥… 다 왔다!'), 1800); } }
     else if (F.state === 'back'){ F.backT -= dt; setSt(F.b, 'idle', { wave: true }); if (F.backT <= 0){ F.state = 'idle'; F.grp.position.set(FRIEND_HOME.x, groundAt(FRIEND_HOME.x, FRIEND_HOME.z), FRIEND_HOME.z); } }
   }
+  function staySay(s, text, dur = 3.6){ if (!ui) return; const used = new Set(STAFF.filter(q => q !== s && q.bubbleT > 0).map(q => q.slot)), i = s.bubbleT > 0 ? s.slot : [0, 1, 2].find(k => !used.has(k)); if (i === undefined) return;
+    s.slot = i; s.bubble = true; s.bubbleT = dur; const d = $s('skSay' + i); d.querySelector('b').textContent = STAFF_NAMES[STAFF.indexOf(s)]; d.querySelector('span').textContent = text; d.classList.remove('hidden'); s.tag.visible = false; }
+  const onScreen = s => { V3.set(s.x, s.grp.position.y + 2.4, s.z).project(camera); return V3.z < 1 && Math.abs(V3.x) < 0.8 && Math.abs(V3.y) < 0.8; };
+  function staffCheer(kind, who){ if (!STAFF.length) return; const L = kind === 'go' ? STAFF_CHEER : STAFF_WELCOME, n = kind === 'go' ? 3 : 1, start = Math.floor(Math.random() * STAFF.length);
+    const order = STAFF.slice().sort((a, b) => onScreen(b) - onScreen(a)); for (let k = 0; k < n; k++){ const s = order[k % order.length]; staySay(s, (who ? who + ' 님 ' : '') + L[(start + k) % L.length], 2.8); s.waveT = 3; s.b.rig.X = { kind: 'laugh', el: 0, dur: 1.8, t: 0 }; }
+    if (kind === 'go') for (const s of STAFF) s.waveT = Math.max(s.waveT, 2.5); STAFF.t = 4.5; }
+  function updateStaff(dt){ if (!STAFF.length) return;
+    const camD = Math.hypot(camera.position.x - PAD.x, camera.position.z - PAD.z), vis = camD < 230, dP = Math.hypot(P.x - PAD.x, P.z - PAD.z);
+    const listen = started && dP < 38 && (P.mode === 'ground' || P.mode === 'sit') && !P.cy;
+    if (listen){ STAFF.t -= dt; if (STAFF.t <= 0){ const tips = STAFF_TIPS(); let best = null, bd = 1e9; STAFF.forEach((s, i) => { if (s.bubbleT > 0) return; const d = Math.hypot(P.x - s.x, P.z - s.z) + (i === STAFF.last ? 99 : 0); if (d < bd){ bd = d; best = s; } });
+      if (best && !onScreen(best)){ const alt = STAFF.filter(s => s.bubbleT <= 0 && onScreen(s)).sort((a, b) => Math.hypot(P.x - a.x, P.z - a.z) - Math.hypot(P.x - b.x, P.z - b.z))[0]; if (alt) best = alt; }
+      if (best){ STAFF.last = STAFF.indexOf(best); staySay(best, tips[STAFF.tip % tips.length]); STAFF.tip++; if (STAFF.tip % 3 === 0) best.waveT = 1.6; } STAFF.t = 4.2; } }
+    for (const s of STAFF){ s.grp.visible = vis; if (s.bubbleT > 0){ s.bubbleT -= dt; const d = ui && $s('skSay' + s.slot);
+        if (s.bubbleT <= 0){ s.bubble = null; s.tag.visible = true; d?.classList.add('hidden'); }
+        else if (d){ V3.set(s.x, s.grp.position.y + 2.75 * s.b.scale + 0.5, s.z).project(camera); if (!vis || V3.z > 1 || Math.abs(V3.x) > 1.15 || Math.abs(V3.y) > 1.15){ d.style.opacity = '0'; } else { const w = d.offsetWidth || 200, h = d.offsetHeight || 50, sx = (V3.x + 1) / 2 * innerWidth, sy = (1 - V3.y) / 2 * innerHeight, y = clamp(sy - h - 10, 70, innerHeight - h - 120), x = clamp(sx - w / 2, 8, innerWidth - w - (y < 330 && innerWidth > 560 ? 170 : y < 260 ? 130 : 8));
+          d.style.opacity = '1'; d.style.transform = `translate(${Math.round(x)}px,${Math.round(y)}px)`; d.style.setProperty('--tx', clamp(sx - x, 16, w - 16) + 'px'); } } }
+      if (!vis) continue; s.waveT -= dt;
+      const look = dP < 22 && P.mode !== 'flying' ? Math.atan2(P.x - s.x, P.z - s.z) : P.mode === 'flying' || P.mode === 'takeoff' ? Math.atan2(P.x - s.x, P.z - s.z) : Math.atan2(PAD.x - s.x, PAD.z + 6 - s.z);
+      s.h = lerpAngle(s.h, look, Math.min(1, dt * 3)); s.grp.rotation.y = s.h;
+      setSt(s.b, 'idle', { wave: s.waveT > 0 || (P.mode === 'takeoff') }); H.animRig(s.b.rig, dt, s.b.st, s.b.o); } }
   function updateFriendIdle(dt){ const F = FRIEND; if (F.state !== 'idle') return; const d = Math.hypot(P.x - F.grp.position.x, P.z - F.grp.position.z);
     if (d < 14){ F.grp.rotation.y = lerpAngle(F.grp.rotation.y, Math.atan2(P.x - F.grp.position.x, P.z - F.grp.position.z), Math.min(1, dt * 4)); setSt(F.b, 'idle', { wave: true }); } else setSt(F.b, 'idle'); }
   function updateVillagers(dt){
@@ -809,7 +872,7 @@ export function createSky(H){
       n.r.rig.rotation.y = Math.atan2(-Math.sin(n.a), Math.cos(n.a)); n.r.pivot.rotation.z = -0.32; const near = n.r.rig.position.distanceTo(camera.position) < 260; n.r.baby.w.visible = near; if (near){ poseFly(n.r.baby, [0.3, 0.1], NOW + n.ph); H.animRig(n.r.baby.rig, dt, n.r.baby.st, n.r.baby.o); } });
     socks.forEach(s => { s.userData.sock.rotation.z = Math.sin(NOW * 3) * 0.08; });
     PUFFS.forEach(p => { if (!p.m.visible) return; p.t += dt; p.m.position.y += p.vy * dt; p.m.scale.setScalar(1 + p.t * 1.2); p.m.material.opacity = 0.45 * (1 - p.t); if (p.t >= 1) p.m.visible = false; });
-    updateVillagers(dt); updateCars(dt); updateFriendIdle(dt); if (FRIEND.state !== 'carry' && FRIEND.state !== 'back' || true) H.animRig(FRIEND.b.rig, dt, FRIEND.b.st, FRIEND.b.o);
+    updateVillagers(dt); updateCars(dt); updateFriendIdle(dt); updateStaff(dt); if (FRIEND.state !== 'carry' && FRIEND.state !== 'back' || true) H.animRig(FRIEND.b.rig, dt, FRIEND.b.st, FRIEND.b.o);
     updateRemotes(dt);
     const dd = Math.hypot(camera.position.x - VIL.x, camera.position.z - VIL.z); DISPLAY.forEach(o => o.visible = dd < 320);
     tagT -= dt; if (tagT <= 0){ tagT = 0.25; STAGS = STAGS.filter(s => s.parent); for (const s of STAGS){ if (!s.parent || s.parent !== scene) continue; const d = s.position.distanceTo(camera.position); s.visible = d > 9 && d < 420 && (DISPLAY.includes(s) ? dd < 320 : true); } }
@@ -870,6 +933,9 @@ export function createSky(H){
   #skyUi .card .btn{display:block;width:100%;margin-top:8px;padding:11px;border-radius:14px;border:0;font-size:15px;background:#f1ede4}
   #skyUi .card .btn.primary{background:var(--hallabong);color:#fff}
   #skyUi .safe{font-size:11px;opacity:.7;margin:10px 0 0;line-height:1.45}
+  .sksay{position:absolute;left:0;top:0;max-width:min(250px,64vw);background:#fff;color:var(--basalt);border-radius:16px;padding:8px 12px 9px;font-size:14px;line-height:1.35;box-shadow:0 4px 0 rgba(36,36,42,.16);border:2px solid #ffb35c;pointer-events:none;will-change:transform}
+  .sksay::after{content:'';position:absolute;left:var(--tx,50%);bottom:-9px;margin-left:-8px;border:8px solid transparent;border-top-color:#ffb35c;border-bottom:0}
+  .sksay b{display:block;font-family:var(--display);font-weight:normal;font-size:12px;color:#e8601a;margin-bottom:1px}
   #skReq .card{width:min(320px,90vw)}#skReq .row{display:flex;gap:8px}#skReq .row .btn{margin-top:10px;flex:1;width:auto}
   @media (max-width:720px){#skStats{top:74px;min-width:0;max-width:calc(100vw - 150px);font-size:11px}#skStats b{font-size:13px}#skMap{width:104px;height:104px}#skRight{top:64px}#skRight .ib{width:38px;height:38px;font-size:18px}#skPrompt{bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 4px);font-size:11.5px;max-width:58vw;padding:6px 12px;left:auto;right:auto;transform:none;left:50%;transform:translateX(-50%);display:none}}
   `;
@@ -881,7 +947,7 @@ export function createSky(H){
       <div id="skClimb" class="hidden"><div id="skCTxt">등산 0%</div><div id="skClimbBar"><i id="skClimbF" style="display:block"></i></div></div></div>
       <div id="skRight"><canvas id="skMap" width="280" height="280" aria-label="양방산 작은 지도"></canvas><div class="skp" id="skNav"><span id="skNavA">➤</span><span><b id="skNavN">착륙장</b><span id="skNavD">0m</span></span></div>
         <div class="ibs"><button class="ib" id="skShop" type="button" title="탈것 가게" aria-label="탈것 가게">🛒</button><button class="ib dim" id="skRide" type="button" title="탈것 타기/내리기 (R)" aria-label="탈것 타기 또는 내리기">🛴</button><button class="ib" id="skAuto" type="button" title="길 자동 따라가기 (G)" aria-label="길 자동 따라가기">🧭</button></div></div>
-      <div id="skPrompt"></div>
+      <div id="skPrompt"></div><div class="sksay hidden" id="skSay0"><b></b><span></span></div><div class="sksay hidden" id="skSay1"><b></b><span></span></div><div class="sksay hidden" id="skSay2"><b></b><span></span></div>
       <div id="skMob" class="hidden"><button id="skUse" type="button" class="hidden">E</button><button id="skSub" type="button">달리기</button><button id="skMain" type="button">이륙!</button></div>
       <div id="skRes" class="hidden"><div class="card"><h3 id="skRT">사뿐 착륙!</h3><div class="sub" id="skRS">남한강 착륙장</div>
         <div class="grid"><div>비행 시간<b id="skR1">0:00</b></div><div>최고 해발<b id="skR2">0m</b></div><div>모은 별<b id="skR3">0</b></div><div>통과한 링<b id="skR4">0</b></div><div>착륙 정확도<b id="skR5">-</b></div><div>착지 충격<b id="skR6">-</b></div></div>
@@ -946,7 +1012,7 @@ export function createSky(H){
     const vf = $s('skVarioF'); const v = fl ? clamp(P.vy / 4, -1, 1) : 0; vf.style.left = (v >= 0 ? 50 : 50 + v * 50) + '%'; vf.style.width = Math.abs(v * 50) + '%'; vf.style.background = v >= 0 ? '#5bd18b' : '#ff8a7a';
     const ground = P.mode === 'ground' || P.mode === 'bus' || P.mode === 'piggy', showClimb = ground && (P.climb.active || !nearPad()); $s('skClimb').classList.toggle('hidden', !showClimb);
     let tgt, name;
-    if (fl || P.mode === 'takeoff'){ tgt = LAND; name = '착륙장'; }
+    if (fl || P.mode === 'takeoff'){ const nr = RINGS.find(r => !r.got); if (nr && fl){ tgt = nr; name = `다음 링 ${P.f.rings + 1}/${RINGS.length}`; } else { tgt = LAND; name = '착륙장'; } }
     else { const tn = trailNearest(P.x, P.z); const frac = TRAIL.cum[tn.i] / TRAIL.len * (tn.d < 30 ? 1 : 0);
       if (showClimb){ $s('skCTxt').textContent = `등산 ${Math.round(frac * 100)}% · 정상까지 ${((1 - frac) * MAP.trailKm).toFixed(1)}km` + (V ? ` · ${V.icon}` : ` · ${Math.round(P.climb.active ? P.climb.steps : P.steps).toLocaleString()}걸음`) + (P.boost > 0 ? ` · 마늘빵 ${Math.ceil(P.boost)}초` : ''); $s('skClimbF').style.width = (frac * 100) + '%'; }
       if (nearPad()){ tgt = PAD; name = '이륙장'; } else { const at = autoTarget(); tgt = at; name = at.name; } }
@@ -995,13 +1061,13 @@ export function createSky(H){
   function enter(){
     if (built) return; ensureGrid(); seed = 7;
     scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.3, 5000);
-    COLL.length = 0; STAGS = []; HOUSES = []; DISPLAY = []; socks = []; BENCHES = []; TP = []; PUFFS = []; STARS = []; RINGS = []; PICKS = []; NPCS = []; VILLAGERS = []; CARS = []; VOBJ = {}; skates = null; me = null;
-    buildBase(); buildTrees(); buildTown(); buildVillage(); buildPadAndField(); buildSkyStuff(); buildBus(); buildPeople();
+    COLL.length = 0; STAGS = []; STAFF = []; HOUSES = []; DISPLAY = []; socks = []; BENCHES = []; TP = []; PUFFS = []; STARS = []; RINGS = []; PICKS = []; NPCS = []; VILLAGERS = []; CARS = []; VOBJ = {}; skates = null; me = null;
+    buildBase(); buildTrees(); buildTown(); buildVillage(); buildPadAndField(); buildSkyStuff(); buildBus(); buildPeople(); buildStaff();
     shadow = new THREE.Mesh(new THREE.CircleGeometry(0.9, 24), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .3, depthWrite: false })); scene.add(shadow);
     myKey = H.myId(); buildPlayer(); resetToPad(); P.ride = null; P.mode = 'ground'; cam.d = 26; cam.tx = PAD.x; cam.ty = PH; cam.tz = PAD.z;
     buildUi(); resize(); built = true;
   }
-  function exit(){ if (!built) return; audioOff(); clearRemotes(); hideReq(); for (const n of NPCS) freeBaby(n.r.baby); for (const v of VILLAGERS) freeBaby(v.b); if (FRIEND) freeBaby(FRIEND.b); if (me) freeBaby(me.baby);
+  function exit(){ if (!built) return; audioOff(); clearRemotes(); hideReq(); for (const n of NPCS) freeBaby(n.r.baby); for (const v of VILLAGERS) freeBaby(v.b); for (const s of STAFF) freeBaby(s.b); if (FRIEND) freeBaby(FRIEND.b); if (me) freeBaby(me.baby);
     disposeScene(); scene = null; camera = null; built = false; started = false; if (ui){ ui.remove(); ui = null; } me = null; }
   function resize(){ if (!camera) return; const w = innerWidth, h = innerHeight; camera.aspect = w / h; const portrait = w / h < 0.8; camera.fov = portrait ? 72 : 58; if (portrait && !resize.done){ cam.flyDist = 22; cam.walkDist = 10.5; resize.done = true; } camera.updateProjectionMatrix(); }
   function key(code, repeat){ if (!started || H.blocked()) return false; if (code === 'Escape'){ if (resultOpen()){ hideResult(); return true; } if (reqFrom){ hideReq(); return true; } return false; }
@@ -1017,6 +1083,6 @@ export function createSky(H){
     presence, onPeers, clearRemotes, peerCount: () => REMOTES.size, peerNames: () => [...REMOTES.values()].map(R => R.name),
     renderStore, rebuildMe(){ if (built) buildPlayer(); }, hideUi(v){ if (ui) ui.classList.toggle('hidden', v || !started); },
     get best(){ return best; }, get mode(){ return P.mode; }, P, get BUS(){ return BUS; }, get FRIEND(){ return FRIEND; }, get renderInfo(){ return null; }, PAD, LAND, TRAIL, STOP_POS, SHOP_POS, SNACK_POS, FRIEND_HOME, BENCHES: () => BENCHES, RINGS: () => RINGS, STARS: () => STARS, THERMALS, REMOTES, heightAt, groundAt,
-    _test: { startTakeoff, mount, boardBus, cancelBus, startPiggy, toggleAuto, useAction, mainAction, requestPiggy, acceptPiggy: () => acceptPiggy(reqFrom), get reqFrom(){ return reqFrom; }, nearInter, resultOpen, hideResult, cam, vk, touchdown },
+    _test: { get staff(){ return STAFF.map(s => ({ x: s.x, z: s.z, talking: !!s.bubble, wave: s.waveT > 0, vis: s.grp.visible })); }, startTakeoff, mount, boardBus, cancelBus, startPiggy, toggleAuto, useAction, mainAction, requestPiggy, acceptPiggy: () => acceptPiggy(reqFrom), get reqFrom(){ return reqFrom; }, nearInter, resultOpen, hideResult, cam, vk, touchdown },
   };
 }
