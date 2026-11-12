@@ -416,7 +416,16 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
 .mcountry{font-family:var(--display);font-size:15px;fill:#8a7c64;letter-spacing:.08em}
 .mreg{cursor:pointer}.mreg .ring{fill:rgba(255,138,42,.18);stroke:#ff8a2a;stroke-width:2}.mreg .ring.here{fill:rgba(47,211,181,.25);stroke:#127a6e}.mreg .dot{fill:#ff8a2a;stroke:#fff;stroke-width:2}
 .mrn{font-family:var(--display);font-size:16px;fill:#24242a;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}.mrs{font-size:11.5px;fill:#5b5346;paint-order:stroke;stroke:#fff;stroke-width:3px}
-.mreg:hover .ring,.mreg:focus .ring{stroke-width:3.5}.mreg:focus{outline:none}
+.mreg:hover .ring,.mreg:focus .ring{stroke-width:3.5}
+.mreg.sky .ring{fill:rgba(47,167,216,.18);stroke:#2fa7d8}.mreg.sky .dot{fill:#2fa7d8}.mreg.sky .ring.here{fill:rgba(47,167,216,.32);stroke:#1b6f93}
+.mpin.sky .pt{fill:#2fa7d8}.mpin.sky .mtype{fill:#1b6f93}.mpin.soon .pt{fill:#b9c2c9}.mpin.soon .mtype{fill:#7c8789}.mpin.soon .mlabel{fill:#5d666c}
+.mprov{fill:#efe4c6;stroke:#c9b27a;stroke-width:1.2;stroke-dasharray:5 4}.mprov.home{fill:#fbf3e1}.mriver{fill:none;stroke:#6cc3e6;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}
+.bdg .b.pg{background:#2fa7d8;color:#fff}.skythumb{display:grid;place-items:center;font-size:42px;background:linear-gradient(160deg,#bfe6ff,#e9f7d8);aspect-ratio:5/3}
+.skind{display:flex;gap:6px}.skind button{flex:1;border:0;border-radius:14px;padding:8px 12px;background:rgba(255,255,255,.13);color:#fff;font:inherit;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4);display:flex;gap:8px;align-items:baseline;justify-content:center;cursor:pointer}
+.skind button b{font-family:var(--display);font-weight:400;font-size:18px}.skind button small{font-size:12px;opacity:.85}.skind button[aria-pressed="true"]{background:#fff;color:var(--basalt);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.srow.soon{cursor:default;opacity:.6}.srow .tg .sk{background:#2fa7d8;color:#fff}.slist .shd{font-size:12.5px;color:#fff;opacity:.85;margin:6px 4px 0;font-family:var(--display)}
+body.skyw #tags,body.skyw #bChat,body.skyw #bChat2{display:none!important}
+#hSky{display:none}body.skyw #hSky{display:block}body.skyw #help .hbody > div:not(#hSky):not(:has(#hRealT)){display:none}.mreg:focus{outline:none}
 .mpeak{fill:#9cb98a;stroke:#6f8f5c;stroke-width:1.2}.mcity{fill:#b9ad92}.mdeco{font-size:12px;fill:#7d6f58;paint-order:stroke;stroke:#f4ead0;stroke-width:3px}
 .mbridge{stroke:#9a9080;stroke-width:2.4;stroke-linecap:round}
 .mpin{cursor:pointer}.mpin:focus{outline:none}
@@ -553,6 +562,19 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
 <section id="help" class="sheet hidden" aria-label="도움말">
   <header><h2 id="hTitle">바다 안내</h2><button class="x" id="hClose">닫기</button></header>
   <div class="hbody">
+    <div id="hSky"><h3>하늘(패러글라이딩) 조작</h3><ul>
+        <li>PC: <kbd>W A S D</kbd>·방향키 걷기·비행, <kbd>Space</kbd> 이륙장에서 달려서 이륙 · 땅에서 점프, <kbd>S</kbd> 브레이크(착륙 직전 꾹 = 플레어), <kbd>W</kbd> 가속, <kbd>Shift</kbd> 달리기, <kbd>E</kbd> 가게·매점·버스·업히기·벤치, <kbd>R</kbd> 탈것 타기·내리기, <kbd>G</kbd> 길 자동 따라가기, <kbd>M</kbd> 장소 옮기기, <kbd>L</kbd> 순위, 마우스 드래그·휠 시점</li>
+        <li>바다와 다른 키: 하늘에서는 <kbd>G</kbd>가 장비 대신 길 자동 따라가기, <kbd>R</kbd>이 먹기 대신 탈것이에요. 장비는 위쪽 장비 버튼으로 열어요.</li>
+        <li>휴대폰: 왼쪽 화면을 끌어 조이스틱(비행 중 ←→ 방향, ↑ 가속, ↓ 브레이크), 오른쪽 화면을 끌어 시점, 오른쪽 아래 버튼으로 이륙·브레이크·탈것·가게</li>
+      </ul>
+      <h3>날기 · 착륙 · 진주</h3><ul>
+        <li>하얀 점이 빙글빙글 올라가는 곳이 상승기류예요. 그 안에서 원을 그리면 높이 올라가요. 바람을 받는 능선 위에서도 살짝 떠올라요.</li>
+        <li>링 10개를 따라 내려가 남한강 착륙장 과녁 한가운데에 내려요. 땅 6m 위에서 브레이크를 꾹 당기면 사뿐 착륙(+100점)!</li>
+        <li>착륙 점수(별·링·착지·정확도·비행 시간)를 10점마다 진주 1개로 바꿔 줘요. 진주는 바다와 하늘이 같이 써요.</li>
+        <li>진주로 탈것(킥보드·롤러·자전거·배달 오토바이·빨간 오픈카·경운기)을 사서 정상으로 올라가요. 마을버스는 친구 10명이 모이면 바로, 아니면 20초 뒤 AI 친구와 출발해요. 친구에게 "업어 줘"를 부탁할 수도 있어요.</li>
+        <li>하늘 순위: 착륙 점수 최고, 정밀착륙(과녁 중심과 가까운 순), 걸어서 등산 최단 기록</li>
+      </ul>
+      <p class="src">실제 패러글라이딩은 자격 있는 파일럿과 2인승(탠덤)으로만 타요. 실제로는 업체 차량으로 이륙장까지 올라가요.</p></div>
     <div><h3>조작</h3>
       <ul>
         <li>PC: <kbd>W A S D</kbd> 이동, 마우스 드래그로 시점, 휠로 줌, <kbd>Space</kbd> 점프·위로, <kbd>Shift</kbd> 땅에서 달리기·물에서 잠수, <kbd>X</kbd> 물총, <kbd>B</kbd> 뽀글 방귀, <kbd>E</kbd> 앉기·매점·대여소·줍기·모래 파기, <kbd>R</kbd> 먹기·마시기, <kbd>I</kbd> 망사리, <kbd>F</kbd> 1인칭 시점, <kbd>M</kbd> 바다 옮기기, <kbd>L</kbd> 순위</li>
@@ -601,8 +623,8 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
 </section>
 
 <section id="spots" class="sheet hidden" aria-label="바다 옮기기">
-  <header><h2>어느 바다로 갈까요?<small id="spSub"></small></h2><div class="seg"><button type="button" id="spModeMap" aria-pressed="true">지도</button><button type="button" id="spModeList" aria-pressed="false">목록</button></div><button class="x" id="spClose">닫기</button></header>
-  <div class="spmap" id="spMap"><div class="rtabs" id="spTabs"></div><div class="mwrap"><div class="mbox" id="spMapBox"></div><aside class="mcard" id="spCard"></aside></div><p class="mcredit">해안선 Natural Earth</p></div>
+  <header><h2>어디로 갈까요?<small id="spSub"></small></h2><div class="seg"><button type="button" id="spModeMap" aria-pressed="true">지도</button><button type="button" id="spModeList" aria-pressed="false">목록</button></div><button class="x" id="spClose">닫기</button></header>
+  <div class="spmap" id="spMap"><div class="rtabs" id="spTabs"></div><div class="mwrap"><div class="mbox" id="spMapBox"></div><aside class="mcard" id="spCard"></aside></div><p class="mcredit">해안선 · 도 경계 · 남한강 Natural Earth</p></div>
   <div class="sbody hidden" id="spBody"></div>
 </section>
 
@@ -624,7 +646,8 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
 
 <div id="start">
   <div class="sc" aria-label="바다 고르기">
-    <div class="shead"><div class="eyebrow"><i></i><span>아기 스노클링 바다 여행</span></div><h1>어느 바다로 갈까요?</h1></div>
+    <div class="shead"><div class="eyebrow"><i></i><span>아기 스노클링 바다 여행</span></div><h1 id="sH1">어느 바다로 갈까요?</h1></div>
+    <div class="skind" id="sKind" role="group" aria-label="바다 또는 하늘 고르기"></div>
     <div class="sregs" id="sRegs" role="group" aria-label="지역 고르기"></div>
     <div class="slist" id="sList" role="group" aria-label="바다 목록"></div>
     <div class="ssel" id="sSel"><div class="sst"><b id="sName">판포포구</b><span class="addr" id="sAddr"></span></div><p class="lead" id="sLead"></p><div class="facts" id="sFacts"></div></div>
@@ -2400,6 +2423,34 @@ for (const d of SPOTS){ const m = MORE[d.id]; if (!m) continue; d.fish = d.fish.
 
 
 
+/* ============================== 하늘 (패러글라이딩) 장소 ==============================
+   바다 장소(SPOTS)는 150×150 격자라 산 · 강을 나는 하늘 맵(약 2,600×2,600)과 크기가 달라서 kind:'sky'로 따로 둔다. 하늘 월드 코드는 sky.js */
+const SKY_SPOTS = [{ id: 'danyang', kind: 'sky', mr: 'danyang', label: '단양 양방산 활공장', short: '양방산', type: '패러글라이딩', country: '한국', region: '충북 단양', addr: '충북 단양군 단양읍 · 양방산 활공장', ll: [36.96834, 128.38178],
+  lead: '해발 664m 양방산 이륙장에서 달려서 날아올라요. 남한강 S자 물굽이와 단양읍을 내려다보며 상승기류를 타고, 링을 지나 남한강 착륙장 과녁 한가운데에 사뿐히 내려앉아요. 착륙 점수만큼 진주를 받아 탈것을 사서 다시 정상으로 올라가요.',
+  facts: ['이륙장 해발 664m', '착륙장 남한강변 약 140m', '정상까지 오르막 3.52km'],
+  tips: ['단양은 소백산맥이 바람과 비구름을 막아 줘서 1년에 300일 넘게 날 수 있어요.', '단양은 2018 세계 패러글라이딩 정밀착륙대회가 열린 곳이에요.', '양방산 정상까지는 오르막 3.52km(평균 경사 약 14%)예요.', '실제 패러글라이딩은 자격 있는 파일럿과 2인승(탠덤)으로만 타요. 실제로는 업체 차량으로 이륙장까지 올라가요.'] }];
+const SKY_SOON = [{ id: 'geumo', name: '제주 금오름', where: '제주 한림 · 표고 427.5m', note: '판포포구 근처, 바다와 하늘을 잇는 곳' }, { id: 'mungyeong', name: '문경 활공랜드', where: '경북 문경' }, { id: 'yangpyeong', name: '양평 유명산', where: '경기 양평' }, { id: 'yeongwol', name: '영월 봉래산', where: '강원 영월' }, { id: 'boryeong', name: '보령 옥마산', where: '충남 보령 · 서해 바다' }];
+const SKY_WORLD = [{ name: '튀르키예 욀뤼데니즈', where: '바바다그산 · 블루라군' }, { name: '스위스 인터라켄', where: '알프스 호수 마을' }, { name: '네팔 포카라', where: '페와 호수 · 안나푸르나' }, { name: '인도 비르 빌링', where: '히말라야 기슭' }, { name: '일본 아사기리 고원', where: '후지산을 마주 보는 고원' }];
+const isSkyId = id => SKY_SPOTS.some(s => s.id === id);
+const placeById = id => SPOTS.find(s => s.id === id) || SKY_SPOTS.find(s => s.id === id);
+let WORLD = 'sea', SKYSPOT = null, SKYW = null, SKYMOD = null;
+/* sky.js는 하늘에 들어갈 때만 불러온다 (바다는 sky.js 없이도 그대로 돈다) */
+async function loadSky(){ if (!SKYMOD) SKYMOD = await import('./sky.js'); return SKYMOD; }
+const placeId = () => WORLD === 'sky' && SKYSPOT ? SKYSPOT.id : SPOT?.id;
+const TEST = /[?&]test=1(&|$)/.test(location.search);
+const SKY_ID = (crypto.randomUUID && crypto.randomUUID()) || ('s' + Math.random().toString(36).slice(2) + Date.now().toString(36));
+/* 하늘 월드가 바다 쪽에서 빌려 쓰는 것들: 렌더러 · 아기 · 진주 · 매점 · 토스트 · 소리 · 별명 */
+function skyHost(){ return {
+  TOUCH, TEST, keys, JOY, AudioSys, newRig: makeRig, buildBabyInto, animRig, disposeRig, sanitizeGear, cleanNick, el, iconCanvas,
+  npcGear: n => Object.assign(npcGear(mulberry32(n)), { mask: 'none', snorkel: 'off' }), gear: () => G, nick: () => NICK, myId: () => SKY_ID,
+  toast: (m, c) => toast(m, c), pearl: () => PEARL, addPearl: n => addPearl(n),
+  spendPearl: n => { if (PEARL < n) return false; PEARL -= n; saveLS('pp_pearl', PEARL); updatePearlUI(); return true; },
+  owns: (k, v) => OWNED.has(k + ':' + v), giveOwned: (k, v) => { OWNED.add(k + ':' + v); saveLS('pp_owned', [...OWNED]); },
+  openStore: tab => { if (tab === false) openStore(false); else { storeTab = tab || 'veh'; openStore(true, 'sky', '아기 탈것 가게'); } }, refreshStore: () => { if (storeOpen) renderStore(); },
+  blocked: () => gearOpen || dexOpen || helpOpen || chatOpen || spotsOpen || rankOpen || storeOpen || bagOpen || friendsOpen,
+  setState: t => { const e = $('#state'); if (e.textContent !== t) e.textContent = t; }, skyRecord: o => skyRecord(o), onSkyPeers: () => { updateFriendChip(); if (friendsOpen) renderFriends(); },
+}; }
+
 /* 바다 짓기 · 지우기 */
 function disposeGroup(g){ g.traverse(o => { if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose(); const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms){ if (m.userData?.shared) continue; if (m.map) m.map.dispose(); m.dispose(); } }); scene.remove(g); }
 function spotDex(def){ const ids = def.fish.map(f => f[0]); if (def.jelly) ids.push('moon'); if (def.octo) ids.push('octo'); if (def.turtle) ids.push('turtle'); return [...new Set(ids.concat(def.staticIds, (def.crit || []).map(c => c[0])))]; }
@@ -2465,7 +2516,7 @@ function renderSpots(){
   for (const [title, f] of SPOT_GROUPS){
     const g = el('div', 'sgrp'); g.appendChild(el('h3', '', title)); const grid = el('div', 'sgrid'); g.appendChild(grid);
     for (const d of SPOTS.filter(f)){
-      const here = d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size; all += dex.length; got += fd;
+      const here = WORLD === 'sea' && d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size; all += dex.length; got += fd;
       const b = el('button', 'spc' + (here ? ' here' : '')); b.type = 'button'; b.setAttribute('aria-label', `${d.label}${here ? ' (지금 여기)' : ' 으로 옮기기'}`);
       const im = el('img'); im.alt = ''; queueThumb(im, d); b.appendChild(im);
       const bd = el('div', 'bd'); const tt = el('div', 'tt'); tt.append(el('b', '', d.short), el('span', 'ty', d.type)); bd.appendChild(tt);
@@ -2475,33 +2526,62 @@ function renderSpots(){
     }
     body.appendChild(g);
   }
+  { const g = el('div', 'sgrp'); g.appendChild(el('h3', '', '한국 · 하늘 (패러글라이딩)')); const grid = el('div', 'sgrid'); g.appendChild(grid);
+    for (const d of SKY_SPOTS){ const here = placeId() === d.id, b = el('button', 'spc' + (here ? ' here' : '')); b.type = 'button'; b.setAttribute('aria-label', `${d.label}${here ? ' (지금 여기)' : ' 으로 옮기기'}`);
+      const im = el('div', 'skythumb'); im.textContent = '🪂'; b.appendChild(im); const bd = el('div', 'bd'); const tt = el('div', 'tt'); tt.append(el('b', '', d.short), el('span', 'ty', d.type)); bd.appendChild(tt);
+      bd.appendChild(el('p', '', d.lead.split(/(?<=요\.)\s/)[0])); const row = el('div', 'row'); row.append(el('span', '', d.facts[0] + (othersIn(d.id) && !here ? ` · 지금 ${othersIn(d.id)}명` : '')), el('span', 'go', here ? '지금 여기' : '이 하늘로 가기')); bd.appendChild(row);
+      b.appendChild(bd); b.onclick = () => switchSpot(d.id); grid.appendChild(b); }
+    body.appendChild(g); }
   const soon = el('div', 'sgrp soon'); soon.append(el('h3', '', '준비 중인 바다'), el('p', '', NEXT_SPOTS.join(' · '))); body.appendChild(soon);
-  $('#spSub').textContent = `${SPOTS.length}곳 · 전체 도감 ${got}/${all}`;
+  const soon2 = el('div', 'sgrp soon'); soon2.append(el('h3', '', '준비 중인 하늘'), el('p', '', SKY_SOON.map(q => q.name).join(' · ') + ' · 해외: ' + SKY_WORLD.map(q => q.name).join(' · '))); body.appendChild(soon2);
+  $('#spSub').textContent = `${SPOTS.length + SKY_SPOTS.length}곳 · 전체 도감 ${got}/${all}`;
 }
 /* 시작 화면 바다 고르기: ① 지역(제주 · 강원 · 미야코지마) → ② 그 지역의 바다 */
 let pickReg = null;
 const BACK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
-function renderPick(focusFirst){
-  if (!pickReg || !MAP_REGIONS.some(r => r.id === pickReg)) pickReg = SPOT ? SPOT.mr : 'jeju';
+const SEA_REGIONS = () => MAP_REGIONS.filter(r => !r.sky);
+function renderPickKind(){ const k = $('#sKind'); if (!k) return; k.innerHTML = '';
+  for (const [id, l, sub] of [['sea', '바다', `${SPOTS.length}곳`], ['sky', '하늘', `${SKY_SPOTS.length}곳 · 준비 중 ${SKY_SOON.length + SKY_WORLD.length}곳`]]){ const b = el('button'); b.type = 'button'; b.id = 'sk-' + id; b.setAttribute('aria-pressed', pickKind === id);
+    const n = (id === 'sea' ? SPOTS : SKY_SPOTS).reduce((a, d) => a + othersIn(d.id), 0); b.append(el('b', '', l), el('small', '', sub + (n ? ` · ${n}명` : '')));
+    b.onclick = () => { if (pickKind === id) return; pickKind = id; pickReg = id === 'sky' ? 'danyang' : (SPOT ? SPOT.mr : 'jeju'); renderPick(true);
+      if (id === 'sky' && WORLD !== 'sky') switchSpot(SKY_SPOTS[0].id); else if (id === 'sea' && WORLD === 'sky' && SPOT) switchSpot(SPOT.id); }; k.appendChild(b); }
+  $('#sH1').textContent = pickKind === 'sky' ? '어느 하늘로 갈까요?' : '어느 바다로 갈까요?'; }
+function renderPickSky(focusFirst){
   const regs = $('#sRegs'); regs.innerHTML = '';
-  for (const r of MAP_REGIONS){ const ds = spotsIn(r.id), b = el('button'); b.type = 'button'; b.id = 'pr-' + r.id; b.setAttribute('aria-pressed', r.id === pickReg); const rn = ds.reduce((a, d) => a + othersIn(d.id), 0); b.append(el('b', '', r.name), el('small', '', rn ? `${ds.length}곳 · ${rn}명` : `${ds.length}곳`)); b.onclick = () => { if (pickReg !== r.id){ pickReg = r.id; renderPick(true); } }; regs.appendChild(b); }
+  for (const r of MAP_REGIONS.filter(r => r.sky)){ const ds = spotsIn(r.id), b = el('button'); b.type = 'button'; b.id = 'pr-' + r.id; b.setAttribute('aria-pressed', true); const rn = ds.reduce((a, d) => a + othersIn(d.id), 0); b.append(el('b', '', r.name), el('small', '', rn ? `${ds.length}곳 · ${rn}명` : `${ds.length}곳`)); regs.appendChild(b); }
+  const m = el('button', 'mapbtn'); m.type = 'button'; m.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>'; m.append(document.createTextNode('지도')); m.setAttribute('aria-label', '지도에서 하늘 고르기'); m.onclick = () => openSpots(true, 'danyang'); regs.appendChild(m);
+  const list = $('#sList'); list.innerHTML = ''; list.setAttribute('aria-label', '하늘 목록');
+  for (const d of SKY_SPOTS){ const here = WORLD === 'sky' && SKYSPOT?.id === d.id, b = el('button', 'srow'); b.type = 'button'; b.id = 'pk-' + d.id; b.setAttribute('aria-pressed', here);
+    const i = el('i'); i.style.background = '#2fa7d8'; const w = el('span', 'w'); w.append(el('b', '', d.short), el('small', '', `${d.region} · ${d.type}`)); const tg = el('span', 'tg'); const on = othersIn(d.id); if (on) tg.appendChild(el('span', 'pp', `${on}명`)); tg.appendChild(el('span', 'sk', '패러글라이딩'));
+    b.append(i, w, tg); b.onclick = () => { if (!here) switchSpot(d.id); }; list.appendChild(b); }
+  for (const [title, arr] of [['국내 · 준비 중', SKY_SOON], ['해외 · 준비 중', SKY_WORLD]]){ list.appendChild(el('div', 'shd', title));
+    for (const q of arr){ const b = el('div', 'srow soon'); const i = el('i'); i.style.background = '#b9c2c9'; const w = el('span', 'w'); w.append(el('b', '', q.name), el('small', '', q.where + (q.note ? ' · ' + q.note : ''))); const tg = el('span', 'tg'); tg.appendChild(el('span', '', '준비 중')); b.append(i, w, tg); list.appendChild(b); } }
+  const sel = list.querySelector('[aria-pressed="true"]'); if (focusFirst) (sel || list.querySelector('button'))?.focus({ preventScroll: true });
+}
+function renderPick(focusFirst){
+  renderPickKind(); if (pickKind === 'sky'){ renderPickSky(focusFirst); return; }
+  if (!pickReg || !SEA_REGIONS().some(r => r.id === pickReg)) pickReg = SPOT ? SPOT.mr : 'jeju';
+  const regs = $('#sRegs'); regs.innerHTML = '';
+  for (const r of SEA_REGIONS()){ const ds = spotsIn(r.id), b = el('button'); b.type = 'button'; b.id = 'pr-' + r.id; b.setAttribute('aria-pressed', r.id === pickReg); const rn = ds.reduce((a, d) => a + othersIn(d.id), 0); b.append(el('b', '', r.name), el('small', '', rn ? `${ds.length}곳 · ${rn}명` : `${ds.length}곳`)); b.onclick = () => { if (pickReg !== r.id){ pickReg = r.id; renderPick(true); } }; regs.appendChild(b); }
   const m = el('button', 'mapbtn'); m.type = 'button'; m.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>'; m.append(document.createTextNode('지도')); m.setAttribute('aria-label', '지도에서 바다 고르기'); m.onclick = () => openSpots(true, pickReg || 'overview'); regs.appendChild(m);
   const list = $('#sList'); list.innerHTML = ''; list.setAttribute('aria-label', `${MAP_REGIONS.find(r => r.id === pickReg).name} 바다 목록`);
-  for (const d of spotsIn(pickReg)){ const here = SPOT && d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size;
+  for (const d of spotsIn(pickReg)){ const here = WORLD === 'sea' && SPOT && d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size;
     const b = el('button', 'srow'); b.type = 'button'; b.id = 'pk-' + d.id; b.setAttribute('aria-pressed', !!here);
     const i = el('i'); i.style.background = d.surf ? '#ff8a2a' : d.water.shallow; const w = el('span', 'w'); w.append(el('b', '', d.short), el('small', '', `${d.addr.split(' · ')[0]} · ${d.type}`));
     const tg = el('span', 'tg'); const on = othersIn(d.id); if (on) tg.appendChild(el('span', 'pp', `${on}명`)); if (d.surf) tg.appendChild(el('span', 'sf', '서핑')); tg.appendChild(el('span', fd ? '' : 'nw', fd ? `도감 ${fd}/${dex.length}` : `친구 ${dex.length}종`));
-    b.append(i, w, tg); b.onclick = () => { if (!SPOT || d.id !== SPOT.id) switchSpot(d.id); }; list.appendChild(b); }
+    b.append(i, w, tg); b.onclick = () => { if (!here) switchSpot(d.id); }; list.appendChild(b); }
   const sel = list.querySelector('[aria-pressed="true"]'); if (sel) sel.scrollIntoView({ block: 'nearest' });
   if (focusFirst) (sel || list.querySelector('button'))?.focus({ preventScroll: true });
 }
+let pickKind = 'sea';
 const roJ = w => { const c = w.charCodeAt(w.length - 1); if (c < 0xAC00 || c > 0xD7A3) return w + '로'; const jong = (c - 0xAC00) % 28; return w + (jong === 0 || jong === 8 ? '로' : '으로'); };
 function applySpotUI(){
   const d = SPOT;
   $('#spotName').textContent = d.label; canvas.setAttribute('aria-label', d.label + ' 3D 바다');
   $('#sName').textContent = d.short; $('#sAddr').textContent = d.addr.split(' · ').slice(0, 2).join(' · '); $('#sLead').textContent = d.lead; $('#sGo').textContent = `${roJ(d.short)} 들어가기`; if (d.mr !== pickReg && !spotsOpen) pickReg = d.mr;
   const fx = $('#sFacts'); fx.innerHTML = ''; for (const t of [...(d.seaName ? [`물빛 ${d.seaName}`] : []), `바다 친구 ${d.dex.length}종`, ...d.facts, `물멍자리 ${SEATS.length}곳`, '같이 수영하기']) fx.appendChild(el('span', '', t));
-  renderPick(); updateDexCount(); $('#dexT').textContent = `${d.short} 바다 친구 도감`;
+  $('#bSpot .lbl').textContent = '바다 옮기기'; $('#bSpot').title = '바다 옮기기 (M)';
+  pickKind = 'sea'; renderPick(); updateDexCount(); $('#dexT').textContent = `${d.short} 바다 친구 도감`;
   $('#hTitle').textContent = `${d.short} 안내`; $('#hNoSurf p').textContent = `이 바다에는 서핑 파도가 없어요. 서핑은 ${surfNames(d.mr) || surfNames()}에서 할 수 있어요. 위쪽 "바다 옮기기"를 눌러 보세요.`; $('#hSurf').classList.toggle('hidden', !SURF); $('#hNoSurf').classList.toggle('hidden', !!SURF);
   $('#hSeatT').textContent = `물멍자리 ${SEATS.length}곳`; $('#hSeats').textContent = seatSummary(); $('#hRealT').textContent = `실제 ${d.label}에 간다면`;
   const ul = $('#hTips'); ul.innerHTML = ''; for (const t of d.tips) ul.appendChild(el('li', '', t));
@@ -2519,22 +2599,59 @@ function enterSpot(id){
   applySpotUI(); placeAtStart(); joinSpotRoom();
 }
 function switchSpot(id){
+  if (isSkyId(id)) return switchSky(id);
   const def = SPOTS.find(s => s.id === id); if (!def || switching) return;
-  if (def.id === SPOT.id){ openSpots(false); return; }
+  if (def.id === SPOT.id && WORLD === 'sea'){ openSpots(false); return; }
   switching = true; openSpots(false);
   if (P.sit) standUp(); P.surf = null; if (CAM.fp) setFP(false); if (gearOpen) openGear(false); if (dexOpen) openDex(false); if (helpOpen) openHelp(false); if (chatOpen) openChat(false);
   const v = $('#veil'); $('#vName').textContent = def.label; $('#vSub').textContent = `${def.country} · ${def.region}` + (def.seaName ? ` · ${def.seaName} 바다로 옮기는 중` : ` · ${def.type}로 옮기는 중`); v.classList.remove('hidden', 'fade');
   AudioSys.blip(440, 880, 0.25, 'sine', 0.07);
   setTimeout(() => {
-    try { enterSpot(def.id); }
+    try { leaveSky(); enterSpot(def.id); refreshHUD(); }
     catch (e){ console.error(e); toast('바다를 옮기다가 문제가 생겼어요. 새로고침해 주세요'); }
     finally { switching = false; v.classList.add('fade'); setTimeout(() => v.classList.add('hidden'), 400); }
     if (started) setTimeout(() => toast(`${def.short}에 왔어요! ${def.facts[0]}`), 450);
   }, 60);
 }
+/* 하늘 월드로 옮기기: 바다 월드를 지우고(돌아올 때 다시 짓는다) 하늘 월드를 짓는다 */
+function disposeSeaWorld(){ if (SG) disposeGroup(SG); SG = new THREE.Group(); scene.add(SG); for (const n of NPC.list) freeNPC(n); NPC.list = []; NPC.spot = null; }
+async function enterSky(id){
+  const def = SKY_SPOTS.find(s => s.id === id) || SKY_SPOTS[0];
+  if (!SKYW){ const M = await loadSky(); SKYW = M.createSky(skyHost()); }
+  if (P.sit) standUp(); P.surf = null; if (CAM.fp) setFP(false);
+  if (WORLD === 'sky') SKYW.exit();
+  WORLD = 'sky'; SKYSPOT = def; document.body.classList.add('skyw');
+  disposeSeaWorld(); clearPeers();
+  SKYW.enter(); SKYW.setStarted(started);
+  applySkyUI(); joinSpotRoom(); saveLS('pp_spot', def.id); lobbyTell(); refreshHUD();
+}
+function leaveSky(){ if (WORLD !== 'sky') return; clearPeers(); SKYW.exit(); WORLD = 'sea'; SKYSPOT = null; document.body.classList.remove('skyw'); isUnder = null; }
+function switchSky(id){
+  const def = SKY_SPOTS.find(s => s.id === id); if (!def || switching) return;
+  if (WORLD === 'sky' && SKYSPOT?.id === id){ openSpots(false); return; }
+  switching = true; openSpots(false);
+  if (gearOpen) openGear(false); if (dexOpen) openDex(false); if (helpOpen) openHelp(false); if (chatOpen) openChat(false); if (storeOpen) openStore(false);
+  const v = $('#veil'); $('#vName').textContent = def.label; $('#vSub').textContent = `${def.country} · ${def.region} · 하늘로 옮기는 중`; v.classList.remove('hidden', 'fade');
+  AudioSys.blip(440, 880, 0.25, 'sine', 0.07);
+  setTimeout(() => {
+    enterSky(def.id).then(() => { if (started) setTimeout(() => toast(`${def.short}에 왔어요! ${def.facts[0]} · ${TOUCH ? '[이륙!] 버튼' : 'Space'}으로 달려서 이륙해요`), 450); })
+      .catch(e => { console.error(e); if (WORLD !== 'sky') toast('하늘을 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요'); else toast('하늘로 옮기다가 문제가 생겼어요. 새로고침해 주세요'); })
+      .finally(() => { switching = false; v.classList.add('fade'); setTimeout(() => v.classList.add('hidden'), 400); });
+  }, 60);
+}
+function applySkyUI(){
+  const d = SKYSPOT; $('#spotName').textContent = d.label; $('#bSpot .lbl').textContent = '장소 옮기기'; $('#bSpot').title = '장소 옮기기 (M)'; canvas.setAttribute('aria-label', d.label + ' 3D 하늘');
+  $('#sName').textContent = d.short; $('#sAddr').textContent = d.addr; $('#sLead').textContent = d.lead; $('#sGo').textContent = `${roJ(d.short)} 들어가기`;
+  const fx = $('#sFacts'); fx.innerHTML = ''; for (const t of [...d.facts, '같이 날기']) fx.appendChild(el('span', '', t));
+  pickKind = 'sky'; pickReg = d.mr; renderPick();
+  $('#hTitle').textContent = `${d.short} 안내`; $('#hRealT').textContent = `실제 ${d.label}에 간다면`; const ul = $('#hTips'); ul.innerHTML = ''; for (const t of d.tips) ul.appendChild(el('li', '', t));
+  $('#state').textContent = '이륙장';
+  if (spotsOpen) setSpMode(spMode); if (rankOpen) renderRank(); if (friendsOpen) renderFriends();
+}
+
 /* 친구 방: 같은 바다를 고른 사람끼리만 만난다. 옮길 때는 지금 방을 나가고 새 바다 방에 들어간다 */
 const LOBBY = { room: null, counts: {}, total: 0, mine: null, nudged: false };
-function lobbyFeed(peers){ const c = {}; let n = 0; for (const p of peers){ const sid = p.presence?.s; if (typeof sid === 'string' && SPOTS.some(d => d.id === sid)){ c[sid] = (c[sid] || 0) + 1; n++; } }
+function lobbyFeed(peers){ const c = {}; let n = 0; for (const p of peers){ const sid = p.presence?.s; if (typeof sid === 'string' && placeById(sid)){ c[sid] = (c[sid] || 0) + 1; n++; } }
   LOBBY.counts = c; LOBBY.total = n; refreshCounts(); }
 async function joinLobby(){
   try {
@@ -2545,15 +2662,15 @@ async function joinLobby(){
   } catch (e){ LOBBY.room = null; }
   if (LOBBY.room){ LOBBY.room.onAll(lobbyFeed); LOBBY.mine = null; lobbyTell(); }
 }
-function lobbyTell(){ if (!LOBBY.room) return; const sid = started && SPOT ? SPOT.id : ''; if (sid === LOBBY.mine) return; LOBBY.mine = sid; LOBBY.room.presence({ s: sid }); }
+function lobbyTell(){ if (!LOBBY.room) return; const sid = started && SPOT ? placeId() : ''; if (sid === LOBBY.mine) return; LOBBY.mine = sid; LOBBY.room.presence({ s: sid }); }
 const othersIn = id => LOBBY.counts[id] || 0;
 function refreshCounts(){
   if (!started && !$('#start').classList.contains('hidden')) renderPick(false);
   if (spotsOpen) setSpMode(spMode);
   if (friendsOpen) renderFriends();
   /* 내 바다엔 아무도 없는데 다른 바다에 사람이 있으면 한 번 알려 준다 */
-  if (started && !LOBBY.nudged && LOBBY.total > 0 && !othersIn(SPOT.id) && visiblePeers().length === 0){ const best = Object.entries(LOBBY.counts).sort((a, b) => b[1] - a[1])[0];
-    const d = best && SPOTS.find(x => x.id === best[0]); if (d){ LOBBY.nudged = true; toast(`지금 ${d.short}에 ${best[1]}명이 놀고 있어요. 바다 옮기기에서 가 볼 수 있어요`); } }
+  if (started && !LOBBY.nudged && LOBBY.total > 0 && !othersIn(placeId()) && (WORLD === 'sky' ? !SKYW?.peerCount() : visiblePeers().length === 0)){ const best = Object.entries(LOBBY.counts).sort((a, b) => b[1] - a[1])[0];
+    const d = best && placeById(best[0]); if (d){ LOBBY.nudged = true; toast(`지금 ${d.short}에 ${best[1]}명이 놀고 있어요. 바다 옮기기에서 가 볼 수 있어요`); } }
 }
 async function joinSpotRoom(){
   const base = NET.lobby; if (!base) return;
@@ -2561,7 +2678,7 @@ async function joinSpotRoom(){
   NET.room = null; clearPeers(); NET.settled = false; clearTimeout(NET.settledT); NET.settledT = 0;
   if (old && old !== base){ try { old.leave?.(); } catch (e){} }
   setNetStatus('connecting');
-  let r = null; try { r = await base.join('spot-' + SPOT.id); } catch (e){ r = null; }
+  let r = null; try { r = await base.join('spot-' + placeId()); } catch (e){ r = null; }
   if (gen !== NET.gen){ try { r?.leave?.(); } catch (e){} return; }
   if (!r){ setNetStatus('solo'); return; }
   NET.room = r; NET.lastJSON = '';
@@ -2572,25 +2689,34 @@ async function joinSpotRoom(){
 const MAPDATA = {"overview":{"W":360,"H":590,"d":"M93.9 -35.4Q209.4 -35.4 203.3 -32.1Q197.2 -28.8 197.9 -20.6Q198.7 -12.3 197.4 -14.7Q196.1 -17.1 194.3 -15.9Q192.6 -14.8 194.2 -14.2Q195.7 -13.6 194.4 -13.5Q193.1 -13.3 192.7 -11.3Q192.4 -9.4 193.7 -7.9Q195.1 -6.5 200.2 -5.5Q205.3 -4.6 209.6 0.5Q213.8 5.5 219.4 8.7Q224.9 11.9 229.8 23.0Q234.7 34.0 241.7 42.8Q248.8 51.6 254.9 63.7Q261.1 75.7 261.8 82.2Q262.4 88.7 260.9 102.1Q259.3 115.6 260.5 116.6Q261.7 117.5 263.5 115.8Q265.2 114.0 265.7 115.3Q266.3 116.6 264.1 126.4Q261.8 136.2 261.1 137.0Q260.4 137.8 259.7 136.6Q259.1 135.5 258.9 139.0Q258.7 142.4 254.8 147.4Q250.8 152.3 248.8 153.4Q246.7 154.5 246.0 152.7Q245.3 151.0 242.0 152.1Q238.7 153.2 236.0 150.6Q233.4 147.9 234.2 150.9Q235.1 153.9 232.7 153.0Q230.4 152.2 228.2 153.5Q226.1 154.9 228.0 155.2Q229.9 155.5 228.6 156.2Q227.3 157.0 228.2 158.8Q229.1 160.6 228.1 161.6Q227.0 162.6 225.8 160.5Q224.5 158.4 222.4 159.5Q220.2 160.6 217.7 159.8Q215.2 158.9 215.4 156.0Q215.6 153.1 212.6 155.7Q209.6 158.4 206.8 157.5Q204.0 156.7 203.0 158.3Q202.1 159.9 200.7 159.4Q199.3 158.9 200.4 161.2Q201.5 163.5 203.6 162.8Q205.8 162.2 205.3 164.6Q204.7 167.0 202.7 167.6Q200.8 168.1 201.1 169.7Q201.4 171.2 200.0 170.4Q198.7 169.5 197.9 165.0Q197.2 160.5 194.6 161.8Q192.1 163.2 194.5 167.7Q196.8 172.3 194.2 172.4Q191.6 172.5 193.1 173.4Q194.6 174.3 193.0 176.1Q191.4 177.9 189.4 176.0Q187.4 174.0 185.8 174.1Q184.2 174.3 185.4 172.5Q186.6 170.7 186.5 171.8Q186.5 172.9 187.6 172.4Q188.8 171.9 188.9 169.8Q189.1 167.8 189.8 168.8Q190.4 169.9 191.2 169.0Q191.9 168.1 190.1 166.8Q188.3 165.4 184.3 168.4Q180.4 171.4 178.5 175.2Q176.6 179.1 175.1 178.4Q173.6 177.7 173.1 175.1Q172.6 172.5 171.7 175.5Q170.9 178.5 167.5 181.2Q164.0 183.9 163.1 180.4Q162.2 176.9 163.4 175.1Q164.6 173.4 162.2 174.0Q159.7 174.5 158.1 173.4Q156.5 172.3 156.4 169.3Q156.2 166.3 159.2 169.4Q162.1 172.5 160.7 170.1Q159.2 167.6 163.3 169.2Q167.4 170.8 163.1 168.4Q158.8 166.1 163.8 164.9Q168.8 163.8 167.3 163.5Q165.8 163.2 165.7 161.7Q165.6 160.1 164.7 162.5Q163.8 164.8 161.5 164.7Q159.1 164.5 160.1 160.8Q161.2 157.0 159.2 157.9Q157.2 158.7 158.0 156.8Q158.9 154.8 157.0 153.1Q155.2 151.5 156.6 150.8Q158.0 150.2 159.4 152.8Q160.8 155.5 161.3 153.9Q161.8 152.3 159.4 149.8Q157.0 147.2 158.6 144.5Q160.3 141.9 161.2 142.3Q162.0 142.8 161.3 141.8Q160.6 140.9 161.8 138.3Q163.1 135.8 166.4 135.6Q169.8 135.4 166.0 133.3Q162.2 131.3 165.5 128.3Q168.7 125.3 170.7 126.0Q172.7 126.6 171.4 124.9Q170.2 123.1 172.4 122.3Q174.6 121.4 170.8 121.5Q167.0 121.5 165.5 120.0Q164.0 118.4 169.9 116.6Q175.7 114.8 172.7 116.0Q169.8 117.2 168.1 114.7Q166.3 112.1 164.7 112.1Q163.1 112.1 164.9 111.3Q166.8 110.5 165.3 107.6Q163.8 104.6 164.9 104.1Q166.1 103.5 164.7 102.1Q163.3 100.8 165.3 99.8Q167.3 98.7 165.2 99.2Q163.2 99.7 162.9 93.9Q162.6 88.0 161.7 90.8Q160.8 93.5 159.4 90.9Q158.0 88.3 157.3 91.4Q156.5 94.5 156.1 91.8Q155.8 89.1 154.2 90.0Q152.6 90.9 153.2 89.9Q153.7 88.8 152.8 88.1Q151.9 87.5 151.5 88.6Q151.1 89.7 151.0 88.6Q151.0 87.5 152.7 86.6Q154.4 85.8 153.8 84.2Q153.1 82.6 154.5 82.8Q155.9 83.1 156.4 81.3Q157.0 79.4 156.5 82.5Q156.0 85.5 157.3 85.9Q158.5 86.4 158.0 85.2Q157.6 84.1 159.1 82.6Q160.7 81.2 159.5 79.6Q158.4 78.1 160.0 78.1Q161.5 78.0 162.2 81.2Q162.8 84.3 163.4 82.2Q163.9 80.2 165.0 81.2Q166.1 82.1 164.7 79.1Q163.3 76.0 165.4 77.2Q167.5 78.3 167.6 80.0Q167.6 81.6 168.5 80.0Q169.3 78.4 171.2 79.1Q173.2 79.9 174.1 83.8Q175.0 87.8 175.1 85.5Q175.3 83.3 178.4 80.8Q181.4 78.4 179.3 79.6Q177.1 80.9 175.6 79.5Q174.1 78.1 175.6 77.8Q177.0 77.6 176.7 76.0Q176.4 74.4 175.7 75.5Q175.0 76.7 173.3 76.0Q171.7 75.4 173.7 73.3Q175.7 71.3 172.3 71.6Q169.0 71.9 169.0 69.9Q169.1 67.9 170.9 68.7Q172.7 69.5 174.2 68.6Q175.7 67.7 172.7 66.4Q169.7 65.1 170.1 64.1Q170.5 63.1 168.8 63.2Q167.2 63.3 167.6 60.9Q168.1 58.5 166.3 53.5Q164.4 48.6 166.3 48.4Q168.2 48.2 168.5 50.0Q168.7 51.9 170.3 52.6Q171.8 53.2 170.6 52.3Q169.3 51.3 169.6 48.4Q169.8 45.5 168.1 46.7Q166.4 47.9 162.8 45.7Q159.2 43.4 155.6 44.6Q151.9 45.7 151.1 47.5Q150.4 49.2 149.5 46.7Q148.6 44.1 146.9 43.3Q145.3 42.5 145.7 44.2Q146.2 46.0 145.1 45.6Q144.0 45.1 142.0 42.2Q139.9 39.3 136.6 38.6Q133.2 37.8 135.6 39.9Q138.0 42.0 136.2 42.0Q134.4 42.0 134.2 45.1Q134.0 48.2 132.5 47.6Q130.9 47.0 127.9 49.4Q124.9 51.7 125.2 50.1Q125.4 48.4 126.8 48.2Q128.2 47.9 127.3 47.5Q126.4 47.0 128.6 46.1Q130.9 45.2 129.5 43.7Q128.2 42.2 127.1 42.7Q126.1 43.3 127.1 44.2Q128.2 45.2 124.7 45.6Q121.3 46.0 122.3 44.6Q123.4 43.2 118.0 42.6Q112.7 42.0 115.7 41.2Q118.8 40.5 117.8 39.1Q116.9 37.7 119.2 38.0Q121.6 38.3 121.9 37.1Q122.2 36.0 112.2 35.1Q102.2 34.2 107.6 32.2Q113.0 30.2 111.1 29.6Q109.1 29.0 109.2 27.3Q109.3 25.6 111.6 22.6Q113.9 19.6 113.3 17.8Q112.8 16.0 115.2 16.2Q117.6 16.4 117.5 14.7Q117.5 13.1 123.1 12.2Q128.8 11.4 132.0 12.9Q135.2 14.4 131.8 11.5Q128.3 8.7 125.5 10.2Q122.6 11.6 122.0 9.8Q121.3 8.1 120.5 9.1Q119.6 10.2 118.7 8.9Q117.8 7.7 118.9 4.1Q120.0 0.5 122.2 -1.4Q124.4 -3.2 123.7 -4.6Q122.9 -5.9 125.0 -7.2Q127.1 -8.4 127.9 -11.7Q128.6 -15.0 126.7 -16.5Q124.8 -17.9 126.5 -20.4Q128.2 -22.8 125.5 -21.6Q122.9 -20.4 121.9 -21.7Q120.8 -23.1 119.0 -22.6Q117.2 -22.1 111.1 -26.4Q104.9 -30.6 104.8 -27.9Q104.8 -25.2 103.0 -24.1Q101.3 -23.1 100.0 -27.4Q98.8 -31.8 95.0 -33.6Q91.2 -35.4 85.4 -33.5Q79.6 -31.7 75.1 -32.1Q70.7 -32.5 69.2 -33.9Q67.8 -35.4 66.6 -32.7Q65.4 -30.0 63.2 -29.2Q61.0 -28.4 60.8 -30.3Q60.6 -32.2 57.8 -32.1Q55.1 -31.9 54.3 -30.3Q53.5 -28.7 54.5 -28.0Q55.6 -27.4 51.2 -27.0Q46.9 -26.6 46.2 -25.2Q45.5 -23.9 43.6 -24.0Q41.6 -24.1 34.1 -20.1Q26.5 -16.0 21.8 -11.9Q17.2 -7.8 17.9 -6.8Q18.7 -5.7 16.7 -4.0Q14.8 -2.3 11.2 -1.9Q7.6 -1.4 8.1 0.4Q8.6 2.2 6.7 0.4Q4.8 -1.3 3.0 -0.6Q1.2 0.2 0.4 1.3Q-0.5 2.3 1.4 3.8Q3.2 5.3 -4.4 6.6Q-12.1 7.9 -13.1 9.4Q-14.0 10.9 -15.1 6.5Q-16.1 2.2 -6.8 -0.6Q2.5 -3.4 1.1 -6.9Q-0.4 -10.3 5.5 -13.0Q11.4 -15.6 4.4 -14.9Q-2.5 -14.2 -4.3 -17.2Q-6.0 -20.2 -9.3 -20.4Q-12.6 -20.6 -7.4 -22.5Q-2.3 -24.3 -3.3 -28.0Q-4.3 -31.7 -1.2 -33.5Q1.8 -35.4 -9.9 -35.4Q-21.6 -35.4 -21.6 6.4Q-21.6 48.3 -18.5 49.5Q-15.4 50.7 -14.8 53.2Q-14.3 55.6 -10.6 54.7Q-6.8 53.8 -7.1 54.9Q-7.3 56.0 -4.1 58.7Q-1.0 61.4 0.8 61.2Q2.5 61.0 1.0 60.7Q-0.5 60.4 0.4 59.9Q1.2 59.3 7.1 60.4Q13.0 61.5 15.2 58.8Q17.4 56.2 18.4 59.0Q19.4 61.8 27.8 62.0Q36.2 62.2 34.0 63.9Q31.7 65.7 33.0 68.1Q34.3 70.6 31.7 72.2Q29.0 73.8 28.7 73.0Q28.4 72.1 27.6 74.7Q26.8 77.3 29.0 77.2Q31.3 77.1 31.0 79.5Q30.6 81.9 28.7 81.6Q26.9 81.2 27.3 82.3Q27.7 83.5 25.9 84.3Q24.0 85.0 21.8 84.5Q19.6 84.0 20.9 83.1Q22.2 82.1 20.5 79.9Q18.8 77.6 16.6 79.9Q14.4 82.1 14.7 80.5Q15.0 78.9 13.0 78.6Q10.9 78.4 11.3 79.5Q11.6 80.6 6.4 82.6Q1.2 84.7 1.0 86.5Q0.8 88.3 -1.3 87.6Q-3.5 87.0 -1.6 85.6Q0.2 84.2 -2.2 84.5Q-4.7 84.9 -5.6 87.1Q-6.6 89.4 -14.1 91.7Q-21.6 94.1 -21.6 172.0Q-21.6 250.0 -14.3 254.2Q-7.1 258.4 -6.5 261.1Q-6.0 263.7 -7.0 264.1Q-7.9 264.4 -6.6 266.8Q-5.3 269.1 1.1 272.2Q7.4 275.4 9.2 279.8Q11.0 284.2 6.8 284.2Q2.5 284.3 -4.0 281.0Q-10.4 277.8 -13.3 279.6Q-16.2 281.5 -18.9 280.9Q-21.6 280.3 -21.6 281.7Q-21.6 283.0 -8.7 292.3Q4.2 301.6 8.4 308.7Q12.6 315.9 3.1 318.8Q-6.4 321.6 -13.6 326.0Q-20.8 330.4 -21.2 337.3Q-21.6 344.2 -17.7 341.3Q-13.8 338.5 -10.6 338.7Q-7.4 338.9 -1.7 346.1Q4.1 353.2 11.0 354.7Q17.9 356.2 13.7 358.6Q9.5 361.0 6.2 364.9Q2.9 368.8 -1.2 369.5Q-5.3 370.3 -4.6 372.9Q-3.8 375.5 -0.1 372.6Q3.7 369.7 5.4 370.6Q7.1 371.6 7.5 370.6Q7.9 369.5 6.4 369.5Q4.8 369.5 5.6 368.4Q6.5 367.2 8.5 366.5Q10.6 365.7 11.5 366.6Q12.4 367.6 11.3 368.9Q10.3 370.2 11.3 371.9Q12.4 373.6 11.2 376.3Q10.0 379.0 11.5 379.9Q13.1 380.7 12.2 381.9Q11.4 383.1 8.8 383.6Q6.1 384.2 7.1 381.2Q8.0 378.3 7.1 377.2Q6.2 376.1 5.2 379.8Q4.1 383.6 2.9 383.6Q1.8 383.6 1.6 381.2Q1.3 378.8 1.1 381.1Q1.0 383.4 0.1 381.1Q-0.8 378.8 -2.0 381.3Q-3.2 383.7 -4.8 384.1Q-6.4 384.5 -6.5 385.5Q-6.6 386.6 -2.9 386.4Q0.7 386.3 -0.8 388.1Q-2.3 389.9 0.4 390.0Q3.0 390.1 2.9 392.1Q2.8 394.1 -0.4 393.8Q-3.6 393.6 -0.7 395.6Q2.3 397.6 1.5 399.3Q0.7 401.1 -3.8 401.5Q-8.3 402.0 -11.8 399.4Q-15.2 396.7 -12.7 399.1Q-10.1 401.5 -10.7 402.5Q-11.4 403.5 -7.2 403.8Q-3.0 404.1 -1.8 407.1Q-0.6 410.1 -1.8 410.4Q-3.0 410.7 -1.4 410.9Q0.2 411.2 1.1 413.9Q1.9 416.5 1.1 417.9Q0.2 419.2 -3.1 418.6Q-6.4 417.9 -7.7 421.0Q-9.0 424.0 -10.7 422.3Q-12.5 420.5 -11.8 418.0Q-11.2 415.5 -12.8 415.1Q-14.4 414.7 -15.1 416.3Q-15.7 417.8 -17.5 417.9Q-19.2 417.9 -17.5 419.3Q-15.8 420.6 -18.7 425.5Q-21.6 430.4 -21.6 197.5Q-21.6 -35.4 93.9 -35.4ZM336.6 254.6Q335.3 254.9 330.0 276.5Q324.6 298.0 322.5 296.4Q320.4 294.8 318.1 294.9Q315.7 295.0 314.8 296.7Q313.8 298.4 315.8 300.0Q317.8 301.7 309.9 307.1Q301.9 312.5 304.3 306.2Q306.6 299.9 304.9 295.6Q303.1 291.2 301.4 290.5Q299.7 289.7 301.3 289.1Q302.9 288.4 304.1 289.5Q305.3 290.6 305.6 287.7Q305.9 284.8 303.7 284.7Q301.5 284.6 299.5 288.6Q297.6 292.6 298.2 296.0Q298.8 299.5 300.4 300.8Q302.1 302.0 300.8 304.3Q299.5 306.5 297.3 304.7Q295.1 302.8 291.3 302.9Q287.4 303.0 285.7 299.8Q283.9 296.6 285.8 297.2Q287.7 297.7 289.4 294.2Q291.1 290.6 288.4 286.2Q285.7 281.7 286.8 281.1Q287.9 280.5 286.9 275.2Q286.0 269.9 288.3 269.4Q290.7 268.9 293.9 264.6Q297.1 260.3 299.7 254.2Q302.3 248.1 298.6 248.7Q295.0 249.2 297.9 247.6Q300.9 246.0 300.7 244.5Q300.5 243.0 297.6 240.2Q294.7 237.4 294.4 234.2Q294.0 231.0 291.0 229.0Q288.0 227.1 286.2 228.4Q284.3 229.7 285.9 232.6Q287.4 235.4 285.5 237.4Q283.6 239.3 287.5 239.7Q291.4 240.0 291.7 243.3Q292.0 246.6 288.7 248.5Q285.5 250.3 284.9 248.5Q284.3 246.8 285.6 245.4Q286.9 244.1 285.0 243.3Q283.1 242.5 280.7 243.2Q278.3 243.9 274.8 247.6Q271.3 251.3 273.3 248.2Q275.3 245.2 271.6 241.3Q268.0 237.3 268.3 235.1Q268.7 232.9 269.0 231.9Q269.4 230.8 270.4 232.8Q271.3 234.8 272.5 234.7Q273.7 234.6 274.3 237.7Q274.8 240.8 277.4 240.6Q280.1 240.5 279.1 237.2Q278.2 233.8 274.9 232.8Q271.6 231.9 271.0 230.0Q270.4 228.1 269.6 229.3Q268.9 230.5 268.6 228.6Q268.2 226.7 266.8 226.4Q265.4 226.2 265.7 223.1Q266.0 220.0 267.5 219.4Q269.0 218.9 272.0 221.2Q275.0 223.5 275.3 221.2Q275.6 218.9 274.3 217.8Q272.9 216.7 274.3 216.9Q275.8 217.1 275.4 215.0Q275.0 212.8 277.8 214.9Q280.6 217.0 283.1 215.3Q285.6 213.6 284.4 212.8Q283.1 212.1 285.0 210.2Q286.9 208.4 288.3 210.2Q289.7 212.0 291.4 211.4Q293.1 210.8 293.2 209.5Q293.3 208.3 291.5 208.1Q289.7 207.8 292.3 207.1Q294.9 206.4 295.6 203.7Q296.3 201.0 300.7 199.3Q305.2 197.5 307.8 198.6Q310.5 199.6 312.0 198.1Q313.6 196.7 312.8 199.6Q312.0 202.6 314.4 206.3Q316.8 210.1 321.2 211.0Q325.6 212.0 328.2 210.0Q330.7 208.0 333.1 208.2Q335.5 208.4 336.7 211.9Q337.9 215.5 335.6 218.1Q333.3 220.8 331.8 220.5Q330.3 220.2 330.3 222.0Q330.4 223.7 336.9 223.9Q343.5 224.1 341.9 226.8Q340.3 229.5 343.5 230.2Q346.6 230.9 345.0 233.0Q343.5 235.1 346.4 235.9Q349.3 236.7 343.2 243.6Q337.0 250.6 337.5 252.4Q337.9 254.3 336.6 254.6ZM381.6 158.3Q381.6 182.5 373.4 185.2Q365.2 187.8 364.6 184.7Q364.0 181.6 361.1 181.6Q358.2 181.7 356.2 183.9Q354.1 186.1 353.1 193.8Q352.1 201.6 350.3 202.8Q348.5 204.1 349.4 202.4Q350.3 200.7 346.0 198.1Q341.8 195.4 340.6 196.0Q339.4 196.6 340.1 195.4Q340.8 194.3 339.4 193.7Q338.1 193.2 333.1 194.7Q328.1 196.2 327.2 195.0Q326.3 193.8 324.1 196.1Q322.0 198.3 318.3 195.9Q314.5 193.5 312.3 195.9Q310.0 198.3 309.5 191.4Q309.0 184.5 309.5 183.0Q310.0 181.5 312.2 181.0Q314.4 180.5 312.8 180.2Q311.2 179.9 311.8 179.1Q312.5 178.2 315.8 179.6Q319.1 181.0 319.1 179.8Q319.1 178.6 320.9 179.0Q322.7 179.4 321.5 180.2Q320.3 180.9 323.7 179.9Q327.1 178.8 330.2 174.2Q333.3 169.6 337.6 168.5Q341.9 167.5 354.9 156.1Q367.9 144.8 367.9 141.9Q367.8 139.1 374.7 136.6Q381.6 134.0 381.6 158.3ZM18.5 339.8Q21.2 339.4 20.6 340.8Q20.0 342.2 17.9 341.2Q15.7 340.3 18.5 339.8ZM233.9 451.8Q236.6 451.1 234.3 453.1Q232.0 455.2 231.6 453.9Q231.2 452.5 233.9 451.8ZM184.7 176.9Q185.8 176.5 186.9 177.2Q188.0 177.9 186.5 178.5Q185.0 179.0 184.4 178.1Q183.7 177.2 184.7 176.9ZM2.7 296.9Q5.4 298.0 5.5 299.0Q5.5 300.1 2.8 298.0Q0.0 295.8 2.7 296.9ZM159.4 96.4Q160.2 99.3 160.6 100.3Q161.0 101.3 159.9 101.2Q158.8 101.1 158.1 98.4Q157.4 95.6 158.0 94.5Q158.6 93.4 159.4 96.4ZM71.8 572.2Q73.8 570.8 75.8 571.3Q77.8 571.8 76.7 573.9Q75.7 576.0 72.7 574.8Q69.7 573.6 71.8 572.2ZM88.9 566.1Q91.0 563.3 89.0 568.1Q87.0 573.0 85.1 570.9Q83.2 568.9 85.0 568.9Q86.8 568.8 88.9 566.1ZM124.4 554.1Q126.2 555.5 127.2 556.4Q128.2 557.3 125.0 557.4Q121.9 557.5 122.2 555.0Q122.5 552.6 124.4 554.1ZM245.6 435.2Q246.2 437.2 246.3 439.2Q246.4 441.3 245.2 441.1Q244.0 440.9 243.5 437.5Q243.1 434.1 244.0 433.6Q244.9 433.2 245.6 435.2ZM20.2 348.3Q24.2 350.7 23.7 352.5Q23.2 354.2 17.9 351.9Q12.6 349.6 12.4 347.8Q12.1 346.1 14.2 346.0Q16.2 345.9 20.2 348.3ZM299.6 335.2Q302.5 337.0 301.3 339.4Q300.1 341.8 298.2 342.3Q296.2 342.8 294.4 340.1Q292.7 337.4 294.7 335.4Q296.7 333.4 299.6 335.2ZM311.7 326.2Q315.0 318.8 315.1 323.3Q315.3 327.8 313.7 332.4Q312.1 337.1 310.9 337.4Q309.7 337.7 309.0 335.7Q308.3 333.7 311.7 326.2ZM290.5 255.3Q293.7 253.5 294.6 253.5Q295.6 253.5 293.8 256.2Q292.1 258.8 292.0 257.9Q291.9 256.9 289.6 257.0Q287.4 257.1 290.5 255.3ZM282.7 252.4Q285.4 252.2 286.1 256.2Q286.8 260.3 283.6 263.2Q280.5 266.1 280.2 264.3Q279.8 262.5 281.0 262.0Q282.1 261.5 280.6 260.6Q279.1 259.6 279.6 256.2Q280.1 252.7 282.7 252.4ZM241.4 244.7Q242.6 247.2 241.0 247.7Q239.3 248.2 239.2 249.7Q239.0 251.2 236.8 249.8Q234.5 248.3 234.9 245.6Q235.3 242.9 237.8 242.6Q240.2 242.3 241.4 244.7ZM250.1 231.4Q250.0 234.9 251.3 235.0Q252.7 235.0 250.8 238.3Q248.9 241.5 247.4 238.8Q246.0 236.0 247.7 234.8Q249.5 233.5 249.9 230.7Q250.3 228.0 250.1 231.4ZM263.3 219.6Q265.2 218.4 263.4 222.5Q261.6 226.7 260.0 226.4Q258.4 226.1 259.2 226.6Q260.0 227.2 260.7 224.0Q261.4 220.8 263.3 219.6ZM271.1 202.3Q272.5 204.2 271.6 205.7Q270.7 207.2 269.7 205.5Q268.7 203.8 269.2 202.1Q269.6 200.4 271.1 202.3ZM356.8 201.0Q354.5 200.5 354.4 198.9Q354.3 197.2 355.9 198.3Q357.5 199.4 359.7 198.8Q361.9 198.2 360.6 199.9Q359.2 201.6 356.8 201.0ZM255.3 183.5Q257.0 184.4 255.4 187.9Q253.7 191.5 253.6 187.0Q253.6 182.5 255.3 183.5ZM157.1 174.4Q159.4 175.9 158.8 177.6Q158.2 179.4 155.9 180.4Q153.6 181.4 151.9 180.5Q150.1 179.7 151.3 178.4Q152.4 177.2 153.7 175.1Q154.9 172.9 157.1 174.4ZM262.0 169.6Q261.7 171.2 260.2 175.6Q258.6 180.1 259.3 181.1Q260.0 182.2 258.8 182.8Q257.5 183.5 257.9 182.5Q258.2 181.4 257.0 181.1Q255.7 180.7 256.6 175.4Q257.4 170.0 259.8 169.0Q262.2 168.0 262.0 169.6ZM213.1 163.1Q215.6 163.5 215.4 165.8Q215.2 168.1 211.9 167.2Q208.7 166.2 208.1 163.8Q207.6 161.4 208.9 160.0Q210.1 158.6 210.4 160.7Q210.6 162.7 213.1 163.1ZM163.7 51.5Q163.6 54.8 161.3 54.2Q159.0 53.5 159.2 50.2Q159.5 46.9 161.7 47.5Q163.9 48.2 163.7 51.5ZM151.3 152.5Q150.4 154.3 149.5 154.1Q148.6 153.9 149.3 152.7Q150.1 151.6 151.1 151.2Q152.2 150.7 151.3 152.5ZM254.6 423.8Q256.6 425.2 257.5 425.8Q258.4 426.4 256.7 426.2Q255.0 425.9 253.9 424.1Q252.7 422.4 254.6 423.8ZM17.5 361.0Q18.1 362.1 18.4 363.6Q18.7 365.1 16.9 363.9Q15.1 362.8 16.0 361.3Q16.9 359.8 17.5 361.0ZM26.7 354.9Q26.5 356.2 26.2 357.1Q25.9 357.9 25.0 356.2Q24.1 354.5 25.5 354.0Q26.9 353.5 26.7 354.9ZM237.5 158.2Q238.3 161.4 237.1 164.2Q235.9 167.1 234.4 167.4Q232.8 167.8 233.2 165.2Q233.5 162.7 232.3 163.2Q231.0 163.8 230.4 162.4Q229.8 161.0 232.3 160.8Q234.8 160.6 234.2 159.3Q233.6 158.1 235.2 156.5Q236.8 155.0 237.5 158.2ZM170.8 181.5Q172.1 183.3 170.4 183.0Q168.7 182.7 169.1 181.2Q169.6 179.7 170.8 181.5ZM223.2 475.1Q224.5 476.8 221.2 481.6Q217.9 486.3 212.9 488.8Q208.0 491.3 209.3 493.6Q210.6 495.8 209.1 495.7Q207.6 495.6 206.7 499.4Q205.8 503.2 203.8 503.9Q201.7 504.7 201.5 502.1Q201.2 499.6 202.8 498.1Q204.4 496.6 204.4 493.7Q204.4 490.7 208.2 488.3Q212.0 485.9 210.7 483.4Q209.3 480.8 212.3 481.8Q215.3 482.8 218.6 478.0Q221.9 473.3 223.2 475.1ZM269.6 410.8Q270.2 411.8 265.9 415.1Q261.6 418.4 260.4 421.8Q259.2 425.2 257.0 423.3Q254.8 421.4 253.1 420.6Q251.5 419.8 253.6 419.8Q255.7 419.8 255.0 418.9Q254.3 417.9 256.0 416.8Q257.6 415.6 262.6 413.3Q267.5 410.9 267.6 411.9Q267.7 412.8 268.4 411.3Q269.0 409.9 269.6 410.8ZM-1.5 284.3Q8.2 288.9 10.5 290.9Q12.8 292.9 10.6 294.2Q8.4 295.5 -1.0 290.3Q-10.4 285.1 -12.3 283.5Q-14.2 281.9 -12.7 280.8Q-11.2 279.8 -1.5 284.3ZM175.6 214.1Q178.2 215.8 176.5 219.1Q174.7 222.3 165.2 224.5Q155.6 226.7 153.8 224.7Q152.0 222.7 154.5 219.5Q157.0 216.3 165.0 214.3Q173.0 212.4 175.6 214.1ZM11.9 548.0Q10.2 549.0 8.5 552.3Q6.8 555.7 8.1 559.2Q9.4 562.7 4.8 572.9Q0.2 583.1 -3.2 601.3Q-6.7 619.5 -8.2 622.4Q-9.6 625.4 -15.6 625.4Q-21.6 625.4 -21.6 588.0Q-21.6 550.6 -19.8 547.8Q-18.0 545.1 -11.6 543.4Q-5.3 541.7 -6.0 540.6Q-6.7 539.5 -4.4 537.7Q-2.0 535.8 4.1 539.3Q10.2 542.9 10.4 544.5Q10.7 546.2 12.1 546.6Q13.6 547.0 11.9 548.0ZM381.6 213.9Q381.6 233.0 380.0 236.6Q378.5 240.2 379.7 242.8Q380.9 245.4 379.0 244.3Q377.2 243.1 372.4 243.6Q367.6 244.1 369.0 241.1Q370.3 238.0 366.9 238.3Q363.5 238.6 363.0 235.7Q362.4 232.8 360.9 233.3Q359.4 233.7 361.2 231.5Q363.0 229.3 361.4 227.9Q359.8 226.5 361.6 226.6Q363.4 226.7 363.8 224.4Q364.2 222.2 361.8 222.1Q359.3 222.0 359.4 219.1Q359.4 216.2 353.2 218.5Q347.1 220.8 358.2 213.6Q369.3 206.4 370.8 201.0Q372.4 195.5 375.3 192.7Q378.1 189.8 379.9 192.3Q381.6 194.8 381.6 213.9Z"},"jeju":{"W":600,"H":413,"d":"M551.8 110.2Q552.9 108.3 555.2 113.4Q557.5 118.6 556.4 119.9Q555.2 121.2 551.8 122.5Q548.3 123.8 546.0 126.3Q543.7 128.9 543.7 130.9Q543.7 132.8 546.0 136.7Q548.3 140.5 548.3 142.5Q548.3 144.4 544.9 150.2Q541.4 156.0 534.6 163.8Q527.7 171.5 517.3 179.9Q507.0 188.3 503.5 196.0Q500.1 203.8 495.5 212.2Q490.9 220.5 489.7 223.8Q488.6 227.0 487.4 232.2Q486.3 237.3 478.3 238.0Q470.2 238.6 466.8 239.9Q463.3 241.2 455.3 240.5Q447.2 239.9 434.6 249.6Q422.0 259.2 389.8 265.7Q357.6 272.2 347.3 281.2Q336.9 290.2 323.1 292.8Q309.4 295.4 295.6 294.1Q281.8 292.8 265.7 296.0Q249.6 299.2 235.8 295.4Q222.0 291.5 192.2 291.5Q162.3 291.5 153.1 296.0Q143.9 300.5 138.2 310.9Q132.4 321.2 126.7 321.8Q120.9 322.5 116.3 319.9Q111.7 317.3 103.7 305.7Q95.7 294.1 86.5 290.9Q77.3 287.6 68.1 278.0Q58.9 268.3 55.4 256.0Q52.0 243.8 57.7 228.3Q63.5 212.8 71.5 199.9Q79.6 187.0 91.1 180.5Q102.6 174.1 111.7 157.3Q120.9 140.5 130.1 138.6Q139.3 136.7 142.8 127.6Q146.2 118.6 161.1 113.4Q176.1 108.3 209.4 99.3Q242.7 90.2 250.8 83.1Q258.8 76.0 289.8 72.8Q320.9 69.6 341.5 60.5Q362.2 51.5 368.0 52.8Q373.7 54.1 399.0 49.6Q424.3 45.1 439.2 43.8Q454.1 42.5 464.5 44.4Q474.8 46.4 478.3 52.2Q481.7 58.0 486.3 61.2Q490.9 64.4 507.0 70.9Q523.1 77.3 527.7 81.8Q532.3 86.3 534.6 98.0Q536.9 109.6 540.3 114.1Q543.7 118.6 544.9 116.7Q546.0 114.7 548.3 113.4Q550.6 112.2 551.8 110.2Z"},"gangwon":{"W":420,"H":602,"d":"M-126.0 300.9Q-126.0 -180.5 -126.0 -166.8Q-126.0 -153.1 -121.8 -149.1Q-117.6 -145.2 -117.1 -142.4Q-116.5 -139.6 -115.9 -138.9Q-115.3 -138.2 -113.0 -140.3Q-110.7 -142.4 -109.5 -141.7Q-108.3 -141.0 -106.6 -134.8Q-104.8 -128.6 -103.7 -127.5Q-102.5 -126.5 -97.9 -124.1Q-93.2 -121.7 -88.0 -113.0Q-82.7 -104.4 -79.3 -100.9Q-75.8 -97.5 -63.6 -94.4Q-51.3 -91.2 -32.2 -67.7Q-13.0 -44.2 -1.3 -49.8Q10.3 -55.3 15.5 -47.7Q20.8 -40.1 21.9 -38.7Q23.1 -37.3 26.0 -35.6Q28.9 -33.9 32.4 -29.0Q35.9 -24.2 35.9 -16.6Q35.9 -9.0 36.5 -5.5Q37.1 -2.1 49.3 22.5Q61.5 47.0 66.7 63.2Q71.9 79.5 86.5 107.5Q101.0 135.5 112.1 164.9Q123.1 194.2 124.9 197.7Q126.6 201.1 132.4 208.1Q138.2 215.0 140.6 221.2Q142.9 227.4 180.1 281.0Q217.3 334.5 231.9 350.1Q246.4 365.7 254.5 375.3Q262.7 385.0 263.3 389.2Q263.9 393.3 263.9 398.5Q263.9 403.7 265.0 407.8Q266.2 412.0 272.0 415.4Q277.8 418.9 279.6 422.3Q281.3 425.8 286.0 441.0Q290.6 456.2 292.3 460.0Q294.1 463.8 297.0 465.2Q299.9 466.6 301.7 468.6Q303.4 470.7 311.0 485.6Q318.5 500.4 322.6 506.0Q326.7 511.5 328.4 514.6Q330.1 517.7 330.7 520.8Q331.3 523.9 332.5 527.1Q333.6 530.2 341.2 538.8Q348.8 547.4 351.7 554.7Q354.6 562.0 356.9 577.5Q359.2 593.1 362.1 601.4Q365.0 609.7 373.2 621.4Q381.3 633.2 381.9 635.6Q382.5 638.0 379.0 644.9Q375.5 651.8 375.5 653.9Q375.5 656.0 376.7 662.2Q377.8 668.4 380.7 695.4Q383.7 722.3 388.9 739.3Q394.1 756.2 394.7 764.8Q395.3 773.5 394.3 777.9Q393.4 782.3 133.7 782.3Q-126.0 782.3 -126.0 300.9Z"},"miyako":{"W":600,"H":574,"d":"M405.2 328.3Q422.3 326.8 436.5 329.7Q450.7 332.7 467.8 341.5Q484.8 350.3 499.0 360.6Q513.2 370.9 518.9 381.1Q524.6 391.4 518.9 398.8Q513.2 406.1 496.2 410.5Q479.1 414.9 447.9 419.3Q416.6 423.7 351.2 423.7Q285.9 423.7 251.8 417.9Q217.7 412.0 217.7 395.8Q217.7 379.7 220.5 369.4Q223.3 359.1 231.9 310.7Q240.4 262.2 243.2 229.9Q246.1 197.6 243.2 187.3Q240.4 177.0 231.9 162.3Q223.3 147.6 234.7 150.6Q246.1 153.5 254.6 157.9Q263.1 162.3 268.8 168.2Q274.5 174.1 280.2 184.4Q285.9 194.6 297.2 219.6Q308.6 244.6 317.1 260.7Q325.7 276.9 351.2 301.8Q376.8 326.8 382.5 328.3Q388.2 329.7 405.2 328.3ZM123.9 212.3Q132.4 215.2 138.1 224.0Q143.8 232.8 149.5 250.4Q155.1 268.1 143.8 276.9Q132.4 285.7 104.0 290.1Q75.6 294.5 61.3 291.6Q47.1 288.6 38.6 278.3Q30.1 268.1 32.9 256.3Q35.8 244.6 41.4 241.6Q47.1 238.7 52.8 237.2Q58.5 235.8 64.2 218.1Q69.9 200.5 81.2 199.0Q92.6 197.6 104.0 203.4Q115.3 209.3 123.9 212.3Z"}};
 const MAPPINS = {"jeju":{"panpo":{"coast":[75.6,193.4]},"geumneung":{"coast":[99.1,176]},"iho":{"coast":[237.5,91.6]},"jungmun":{"coast":[211.7,291.5]},"munseom":{"coast":[310.3,295.2]}},"gangwon":{"baekseom":{"coast":[69.3,71.2]},"cheonjin":{"coast":[104.4,144.5]},"sokcho":{"coast":[115.9,174.9]},"surfyy":{"coast":[151.9,240.4]},"hajodae":{"coast":[153.8,243.1]},"jukdo":{"coast":[168,263.5]},"jangho":{"coast":[345.8,544.1]},"galnam":{"coast":[349.7,549.8]}},"miyako":{"aragusuku":{"coast":[510.2,368.7]},"yoshino":{"coast":[521,384.9]},"nakanoshima":{"coast":[45,239.8]},"sunayama":{"coast":[241.7,247.8]},"maehama":{"coast":[226.7,413.5]}}};
 const MAPLABELS = {"overview":{"jeju":[165,219.6],"gangwon":[238.3,39.1],"miyako":[124,555.6],"kr":[210,93.8],"jp":[313.3,222.7],"oki":[210,492.3]},"jeju":{"halla":[286.7,197.4],"jejusi":[287.2,91.7],"seogwipo":[306.4,280.4]},"gangwon":{"seorak":[69.7,204.9],"goseong":[71.1,98.2],"sokchoC":[110.5,169.1],"yangyang":[119.5,223.1],"gangneung":[210,356.1],"donghae":[277.8,450.3],"samcheok":[297.2,478.9]},"miyako":{"hirara":[260.5,287],"irabu":[110.5,226.1],"cape":[549.5,431.4],"br0":[224.2,302.7],"br1":[161.1,266.1],"kurima":[205.3,434.9]}};
+/* 충북 단양: 내륙이라 해안선 대신 도 경계(Natural Earth admin-1)와 남한강(Natural Earth rivers)을 그린다 */
+MAPDATA.danyang = {"W":420,"H":493,"d":"M210.0 -147.8Q546.0 -147.8 546.0 246.3Q546.0 640.3 210.0 640.3Q-126.0 640.3 -126.0 246.3Q-126.0 -147.8 210.0 -147.8Z","prov":[{"n":"강원도","k":"Gangwon","d":"M238.4 -147.8Q546.0 -147.8 546.0 10.6Q546.0 169.0 544.7 168.8Q543.3 168.6 539.9 170.0Q536.4 171.4 533.5 171.0Q530.6 170.7 528.4 167.7Q526.2 164.7 523.0 163.4Q519.8 162.1 512.3 167.9Q504.9 173.7 497.0 176.8Q489.1 179.9 488.5 174.1Q487.9 168.4 488.6 162.7Q489.2 156.9 484.7 154.7Q480.1 152.4 475.0 151.3Q470.0 150.1 466.3 143.6Q462.6 137.1 455.4 136.6Q448.3 136.0 441.1 139.4Q434.0 142.7 429.2 148.5Q424.5 154.3 426.2 162.4Q427.9 170.5 427.1 178.0Q426.2 185.6 424.7 192.6Q423.1 199.6 416.4 199.0Q409.7 198.4 401.9 196.7Q394.1 195.0 387.6 192.3Q381.1 189.5 369.1 182.6Q357.1 175.6 351.8 173.3Q346.5 171.0 333.0 168.9Q319.5 166.7 306.3 157.5Q293.1 148.3 286.9 148.4Q280.6 148.4 274.3 150.4Q268.0 152.4 257.5 153.8Q247.1 155.2 245.2 150.8Q243.3 146.5 238.1 141.1Q232.9 135.7 233.4 131.0Q233.8 126.3 231.2 123.5Q228.6 120.6 216.1 122.0Q203.6 123.5 193.2 127.2Q182.9 131.0 180.6 131.0Q178.2 130.9 174.5 128.9Q170.8 126.8 167.9 123.6Q165.0 120.3 169.5 113.4Q174.0 106.4 181.6 101.0Q189.2 95.6 192.2 88.7Q195.3 81.8 190.5 80.4Q185.8 79.0 170.8 76.6Q155.9 74.3 141.2 69.0Q126.6 63.8 120.5 68.5Q114.4 73.2 109.2 75.9Q104.0 78.6 97.8 77.3Q91.5 76.0 86.2 80.1Q81.0 84.1 72.3 88.9Q63.6 93.8 54.9 95.9Q46.2 98.0 42.9 93.4Q39.7 88.9 39.7 81.8Q39.7 74.8 29.7 64.2Q19.7 53.7 6.3 58.2Q-7.0 62.7 -12.0 68.8Q-17.0 74.9 -15.5 90.8Q-14.1 106.8 -19.4 110.4Q-24.7 114.0 -28.5 118.0Q-32.3 121.9 -36.8 119.5Q-41.3 117.0 -49.3 116.5Q-57.3 115.9 -65.3 117.8Q-73.3 119.7 -71.0 103.8Q-68.8 88.0 -97.4 92.0Q-126.0 96.0 -126.0 46.1Q-126.0 -3.8 -111.0 -35.8Q-95.9 -67.7 -93.9 -75.1Q-91.9 -82.5 -93.4 -89.8Q-94.9 -97.2 -91.5 -103.2Q-88.0 -109.2 -83.2 -115.1Q-78.3 -120.9 -73.1 -123.1Q-67.9 -125.2 -65.2 -131.1Q-62.4 -136.9 -65.9 -142.3Q-69.3 -147.8 238.4 -147.8Z"},{"n":"경기도","k":"Gyeonggi","d":"M-126.0 -75.8Q-126.0 -147.8 -97.6 -147.8Q-69.3 -147.8 -65.9 -142.3Q-62.4 -136.9 -65.2 -131.1Q-67.9 -125.2 -73.1 -123.1Q-78.3 -120.9 -83.2 -115.1Q-88.0 -109.2 -91.5 -103.2Q-94.9 -97.2 -93.4 -89.8Q-91.9 -82.5 -93.9 -75.1Q-95.9 -67.7 -111.0 -35.8Q-126.0 -3.8 -126.0 -75.8Z"},{"n":"경상북도","k":"North Gyeongsang","d":"M546.0 404.7Q546.0 640.3 250.4 640.3Q-45.2 640.3 -44.3 638.4Q-43.4 636.6 -46.3 631.4Q-49.2 626.2 -50.8 620.5Q-52.5 614.9 -50.9 607.0Q-49.4 599.1 -48.3 581.2Q-47.2 563.3 -44.6 555.8Q-42.0 548.3 -37.3 543.6Q-32.5 538.9 -45.3 520.1Q-58.2 501.3 -68.5 499.6Q-78.8 497.8 -81.7 490.3Q-84.7 482.8 -80.8 481.0Q-76.9 479.2 -73.1 478.5Q-69.2 477.8 -65.4 473.7Q-61.6 469.6 -55.7 461.6Q-49.8 453.6 -48.3 450.3Q-46.9 446.9 -47.0 443.8Q-47.2 440.8 -46.5 436.9Q-45.8 433.0 -37.7 427.4Q-29.5 421.8 -20.3 417.5Q-11.2 413.1 -5.5 404.5Q0.2 396.0 10.3 400.4Q20.3 404.7 38.9 407.7Q57.5 410.7 53.7 403.3Q49.8 395.9 44.8 389.4Q39.8 382.9 41.6 376.2Q43.3 369.4 46.6 362.3Q49.9 355.1 53.1 349.7Q56.2 344.3 60.4 347.1Q64.7 349.9 69.9 349.4Q75.1 349.0 79.4 343.1Q83.8 337.3 88.2 334.4Q92.7 331.5 96.9 334.3Q101.2 337.0 109.3 339.9Q117.4 342.7 125.0 343.3Q132.5 343.9 135.7 333.4Q138.8 322.9 141.6 318.5Q144.3 314.2 147.7 310.8Q151.1 307.4 154.6 311.3Q158.0 315.1 168.5 323.6Q179.1 332.1 183.0 340.0Q186.9 348.0 196.3 351.0Q205.6 354.1 227.6 344.9Q249.6 335.6 253.4 322.7Q257.3 309.8 253.9 306.6Q250.4 303.4 248.5 300.2Q246.7 297.0 252.8 284.7Q258.8 272.4 264.6 264.1Q270.4 255.8 278.5 250.1Q286.6 244.3 288.9 240.1Q291.2 235.9 294.5 233.2Q297.8 230.5 303.2 228.8Q308.6 227.1 319.6 217.3Q330.7 207.5 336.7 201.0Q342.8 194.6 345.3 193.0Q347.9 191.4 351.0 192.6Q354.1 193.8 357.7 191.7Q361.2 189.7 364.4 186.0Q367.6 182.4 380.9 188.7Q394.1 195.0 401.9 196.7Q409.7 198.4 416.4 199.0Q423.1 199.6 424.7 192.6Q426.2 185.6 427.1 178.0Q427.9 170.5 426.2 162.4Q424.5 154.3 429.2 148.5Q434.0 142.7 441.1 139.4Q448.3 136.0 455.4 136.6Q462.6 137.1 466.3 143.6Q470.0 150.1 475.0 151.3Q480.1 152.4 484.7 154.7Q489.2 156.9 488.6 162.7Q487.9 168.4 488.5 174.1Q489.1 179.9 497.0 176.8Q504.9 173.7 512.3 167.9Q519.8 162.1 523.0 163.4Q526.2 164.7 528.4 167.7Q530.6 170.7 533.5 171.0Q536.4 171.4 539.9 170.0Q543.3 168.6 544.7 168.8Q546.0 169.0 546.0 404.7Z"},{"n":"충청북도","k":"North Chungcheong","d":"M-85.6 640.3Q-126.0 640.3 -126.0 368.1Q-126.0 96.0 -97.4 92.0Q-68.8 88.0 -71.0 103.8Q-73.3 119.7 -65.3 117.8Q-57.3 115.9 -49.3 116.5Q-41.3 117.0 -36.8 119.5Q-32.3 121.9 -28.5 118.0Q-24.7 114.0 -19.4 110.4Q-14.1 106.8 -15.5 90.8Q-17.0 74.9 -12.0 68.8Q-7.0 62.7 6.3 58.2Q19.7 53.7 29.7 64.2Q39.7 74.8 39.7 81.8Q39.7 88.9 42.9 93.4Q46.2 98.0 54.9 95.9Q63.6 93.8 72.3 88.9Q81.0 84.1 86.2 80.1Q91.5 76.0 97.8 77.3Q104.0 78.6 109.2 75.9Q114.4 73.2 120.5 68.5Q126.6 63.8 141.2 69.0Q155.9 74.3 170.8 76.6Q185.8 79.0 190.5 80.4Q195.3 81.8 192.2 88.7Q189.2 95.6 181.6 101.0Q174.0 106.4 169.5 113.4Q165.0 120.3 167.9 123.6Q170.8 126.8 174.5 128.9Q178.2 130.9 180.6 131.0Q182.9 131.0 193.2 127.2Q203.6 123.5 216.1 122.0Q228.6 120.6 231.2 123.5Q233.8 126.3 233.4 131.0Q232.9 135.7 238.1 141.1Q243.3 146.5 245.2 150.8Q247.1 155.2 257.5 153.8Q268.0 152.4 274.3 150.4Q280.6 148.4 286.9 148.4Q293.1 148.3 306.3 157.5Q319.5 166.7 333.0 168.9Q346.5 171.0 351.8 173.3Q357.1 175.6 362.4 179.0Q367.6 182.4 364.4 186.0Q361.2 189.7 357.7 191.7Q354.1 193.8 351.0 192.6Q347.9 191.4 345.3 193.0Q342.8 194.6 336.7 201.0Q330.7 207.5 324.0 213.0Q317.3 218.6 313.0 222.9Q308.6 227.1 303.2 228.8Q297.8 230.5 294.5 233.2Q291.2 235.9 288.9 240.1Q286.6 244.3 278.5 250.1Q270.4 255.8 264.6 264.1Q258.8 272.4 252.8 284.7Q246.7 297.0 248.5 300.2Q250.4 303.4 253.9 306.6Q257.3 309.8 253.4 322.7Q249.6 335.6 227.6 344.9Q205.6 354.1 196.3 351.0Q186.9 348.0 183.0 340.0Q179.1 332.1 168.5 323.6Q158.0 315.1 154.6 311.3Q151.1 307.4 147.7 310.8Q144.3 314.2 141.6 318.5Q138.8 322.9 135.7 333.4Q132.5 343.9 125.0 343.3Q117.4 342.7 109.3 339.9Q101.2 337.0 96.9 334.3Q92.7 331.5 88.2 334.4Q83.8 337.3 79.4 343.1Q75.1 349.0 69.9 349.4Q64.7 349.9 60.4 347.1Q56.2 344.3 53.1 349.7Q49.9 355.1 46.6 362.3Q43.3 369.4 41.6 376.2Q39.8 382.9 44.8 389.4Q49.8 395.9 53.7 403.3Q57.5 410.7 38.9 407.7Q20.3 404.7 10.3 400.4Q0.2 396.0 -5.5 404.5Q-11.2 413.1 -20.3 417.5Q-29.5 421.8 -37.7 427.4Q-45.8 433.0 -46.5 436.9Q-47.2 440.8 -47.0 443.8Q-46.9 446.9 -48.3 450.3Q-49.8 453.6 -55.7 461.6Q-61.6 469.6 -65.4 473.7Q-69.2 477.8 -73.1 478.5Q-76.9 479.2 -80.8 481.0Q-84.7 482.8 -81.7 490.3Q-78.8 497.8 -68.5 499.6Q-58.2 501.3 -45.3 520.1Q-32.5 538.9 -37.3 543.6Q-42.0 548.3 -44.6 555.8Q-47.2 563.3 -48.3 581.2Q-49.4 599.1 -50.9 607.0Q-52.5 614.9 -50.8 620.5Q-49.2 626.2 -46.3 631.4Q-43.4 636.6 -44.3 638.4Q-45.2 640.3 -85.6 640.3Z"}],"river":"M343.9 -27.5L350.5 -11.9L358.4 -7.5L355.6 -2.2L347.8 3.9L338.7 21.4L327.5 19.8L323.4 21.0L318.7 26.3L317.6 13.6L311.3 8.1L304.2 9.9L300.8 19.3L304.9 37.1L302.8 39.7L288.6 46.3L286.9 50.9L291.1 56.8L290.4 62.2L273.6 83.9L276.1 89.1L294.0 102.9L300.5 112.2L304.2 122.4L302.3 130.6L291.7 134.0L287.7 138.2L278.3 156.7L270.0 160.9L253.3 159.5L247.5 162.9L239.4 173.9L227.7 193.7L220.1 199.8L210.9 197.1L212.9 208.8L196.7 217.0L150.8 225.9L144.6 225.2L138.7 222.2L132.5 214.0L119.5 192.2L111.4 187.8L98.0 190.1L88.6 196.1L73.8 214.7L51.1 228.1L33.3 214.8L16.9 193.5L-1.4 182.9L-12.3 188.6L-20.7 199.0"};
+MAPPINS.danyang = { danyang: { coast: [226.7, 217.8] } };
+MAPLABELS.danyang = {"yangbang":[226.7,217.8],"mungyeong":[91.9,364.5],"yeongwol":[281.8,66.7],"danyangeup":[218.1,207.2],"sobaek":[281,224.9],"jecheon":[126.5,109.9],"yeongwolC":[268.6,76.4],"mungyeongC":[124.3,468.4],"chungju_lake":[94.5,210.2]};
+MAPLABELS.overview.danyang = [226.1, 79.4]; MAPLABELS.overview.kr = [198.3, 111.4];
+const MAP_SOON = { jeju: [{ id: 'geumo', name: '금오름', at: [144, 201.8] }], danyang: [{ id: 'mungyeong', name: '문경 활공랜드', at: [91.9, 364.5] }, { id: 'yeongwol', name: '영월 봉래산', at: [281.8, 66.7] }] };
+const soonById = id => SKY_SOON.find(q => q.id === id);
+const curPlace = () => WORLD === 'sky' && SKYSPOT ? SKYSPOT : SPOT;
 /* ============================== 지도에서 바다 고르기 ==============================
    해안선: Natural Earth(퍼블릭 도메인) 1:10m 데이터를 지역별로 잘라 단순화한 것. 핀은 실제 좌표를 가장 가까운 해안선에 붙였다. */
-const MAP_REGIONS = [{ id: 'jeju', name: '제주', sub: '제주도' }, { id: 'gangwon', name: '강원 동해안', sub: '고성 · 속초 · 양양 · 삼척' }, { id: 'miyako', name: '미야코지마', sub: '일본 오키나와' }];
-const LABEL_DIR = { panpo: [-1, 0.2], geumneung: [-0.7, -0.7], iho: [0, -1], jungmun: [0, 1], munseom: [0.3, 1], baekseom: [1, 0], cheonjin: [1, 0], sokcho: [1, 0], surfyy: [1, 0], hajodae: [1, 0], jukdo: [1, 0], jangho: [1, 0], galnam: [1, 0], aragusuku: [1, -0.3], yoshino: [1, 0.3], sunayama: [-1, 0], nakanoshima: [-1, 0.2], maehama: [-1, -0.25], kurima: [0, 1] };
+const MAP_REGIONS = [{ id: 'jeju', name: '제주', sub: '제주도' }, { id: 'gangwon', name: '강원 동해안', sub: '고성 · 속초 · 양양 · 삼척' }, { id: 'miyako', name: '미야코지마', sub: '일본 오키나와' }, { id: 'danyang', name: '충북 단양', sub: '남한강 · 소백산맥', sky: true }];
+const LABEL_DIR = { danyang: [1, 0.35], panpo: [-1, 0.2], geumneung: [-0.7, -0.7], iho: [0, -1], jungmun: [0, 1], munseom: [0.3, 1], baekseom: [1, 0], cheonjin: [1, 0], sokcho: [1, 0], surfyy: [1, 0], hajodae: [1, 0], jukdo: [1, 0], jangho: [1, 0], galnam: [1, 0], aragusuku: [1, -0.3], yoshino: [1, 0.3], sunayama: [-1, 0], nakanoshima: [-1, 0.2], maehama: [-1, -0.25], kurima: [0, 1] };
 const MAP_DECO = {
   jeju: [['peak', 'halla', '한라산'], ['city', 'jejusi', '제주시'], ['city', 'seogwipo', '서귀포']],
   gangwon: [['peak', 'seorak', '설악산'], ['city', 'goseong', '고성'], ['city', 'sokchoC', '속초'], ['city', 'yangyang', '양양'], ['city', 'gangneung', '강릉'], ['city', 'donghae', '동해'], ['city', 'samcheok', '삼척']],
+  danyang: [['city', 'danyangeup', '단양읍'], ['peak', 'sobaek', '소백산'], ['city', 'jecheon', '제천'], ['city', 'yeongwolC', '영월'], ['city', 'mungyeongC', '문경'], ['name', 'chungju_lake', '충주호 쪽']],
   miyako: [['city', 'hirara', '히라라'], ['name', 'irabu', '이라부섬 · 시모지섬'], ['name', 'cape', '히가시헨나자키'], ['bridge', 'br0', 'br1', '이라부대교'], ['isle', 'kurima', '구리마섬']],
 };
 let mapView = 'overview', mapSel = null, spMode = 'map';
-const spotsIn = mr => SPOTS.filter(s => s.mr === mr);
+const spotsIn = mr => SPOTS.concat(SKY_SPOTS).filter(s => s.mr === mr);
 const surfNames = mr => { const l = SPOTS.filter(s => s.surf && (!mr || s.mr === mr)).map(s => s.short); return l.join(' · '); };
 const NS = 'http://www.w3.org/2000/svg';
 function svgEl(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
 function setSpMode(m){ spMode = m; $('#spMap').classList.toggle('hidden', m !== 'map'); $('#spBody').classList.toggle('hidden', m !== 'list'); $('#spModeMap').setAttribute('aria-pressed', m === 'map'); $('#spModeList').setAttribute('aria-pressed', m === 'list'); if (m === 'map') renderMap(); else renderSpots(); }
-function openSpots(v, view){ spotsOpen = v; $('#spots').classList.toggle('hidden', !v); if (v){ if (view) mapView = view; else if (SPOT) mapView = SPOT.mr; mapSel = mapSel && SPOTS.find(s => s.id === mapSel)?.mr === mapView ? mapSel : (SPOT && SPOT.mr === mapView ? SPOT.id : null); setSpMode(spMode); if (CAM.fp) setFP(false); for (const k in keys) keys[k] = false; JOY.x = JOY.y = 0; } refreshHUD(); }
+function openSpots(v, view){ spotsOpen = v; $('#spots').classList.toggle('hidden', !v); if (v){ if (view) mapView = view; else if (SPOT) mapView = curPlace().mr; mapSel = mapSel && (placeById(mapSel)?.mr === mapView || MAP_SOON[mapView]?.some(q => q.id === mapSel)) ? mapSel : (SPOT && curPlace().mr === mapView ? curPlace().id : null); setSpMode(spMode); if (CAM.fp) setFP(false); for (const k in keys) keys[k] = false; JOY.x = JOY.y = 0; } refreshHUD(); }
 function renderMapTabs(){
   const t = $('#spTabs'); t.innerHTML = '';
-  const add = (id, label, n) => { const b = el('button', 'rt'); b.type = 'button'; b.setAttribute('aria-pressed', mapView === id); b.append(document.createTextNode(label)); if (n) b.append(el('small', '', n + '곳')); b.onclick = () => { mapView = id; mapSel = id !== 'overview' && SPOT.mr === id ? SPOT.id : null; renderMap(); }; t.appendChild(b); };
+  const add = (id, label, n) => { const b = el('button', 'rt'); b.type = 'button'; b.setAttribute('aria-pressed', mapView === id); b.append(document.createTextNode(label)); if (n) b.append(el('small', '', n + '곳')); b.onclick = () => { mapView = id; mapSel = id !== 'overview' && curPlace().mr === id ? curPlace().id : null; renderMap(); }; t.appendChild(b); };
   add('overview', '전체'); for (const r of MAP_REGIONS) add(r.id, r.name, spotsIn(r.id).length);
 }
 function renderMap(){
@@ -2601,13 +2727,14 @@ function renderMap(){
   svgEl('rect', { x: 0, y: 0, width: R.W, height: R.H, fill: 'url(#mSea)' }, svg);
   for (let k = 1; k < 5; k++) svgEl('path', { d: `M0 ${R.H * k / 5} Q ${R.W / 4} ${R.H * k / 5 - 6} ${R.W / 2} ${R.H * k / 5} T ${R.W} ${R.H * k / 5}`, fill: 'none', stroke: '#ffffff', 'stroke-opacity': 0.25, 'stroke-width': 1.2 }, svg);
   svgEl('path', { d: R.d, fill: '#f4ead0', stroke: '#c9b27a', 'stroke-width': mapView === 'overview' ? 0.8 : 1.4, 'stroke-linejoin': 'round' }, svg);
+  if (R.prov){ for (const pv of R.prov) svgEl('path', { d: pv.d, class: 'mprov' + (pv.k === 'North Chungcheong' ? ' home' : '') }, svg); svgEl('path', { d: R.river, class: 'mriver' }, svg); }
   const LB = MAPLABELS[mapView] || {};
   if (mapView === 'overview'){
     for (const [k, t] of [['kr', '대한민국'], ['jp', '일본'], ['oki', '오키나와']]) { const p = LB[k]; svgEl('text', { x: p[0], y: p[1], class: 'mcountry' }, svg).textContent = t; }
-    for (const r of MAP_REGIONS){ const p = LB[r.id], g = svgEl('g', { class: 'mreg', tabindex: 0, role: 'button', 'aria-label': `${r.name} ${spotsIn(r.id).length}곳 보기` }, svg); const here = SPOT && SPOT.mr === r.id;
+    for (const r of MAP_REGIONS){ const p = LB[r.id], g = svgEl('g', { class: 'mreg' + (r.sky ? ' sky' : ''), tabindex: 0, role: 'button', 'aria-label': `${r.name} ${spotsIn(r.id).length}곳 보기` }, svg); const here = SPOT && curPlace().mr === r.id;
       svgEl('circle', { cx: p[0], cy: p[1], r: 13, class: here ? 'ring here' : 'ring' }, g); svgEl('circle', { cx: p[0], cy: p[1], r: 6.5, class: 'dot' }, g);
       const tx = p[0] + (r.id === 'gangwon' ? -18 : 18), anchor = r.id === 'gangwon' ? 'end' : 'start'; svgEl('text', { x: tx, y: p[1] - 1, class: 'mrn', 'text-anchor': anchor }, g).textContent = r.name; svgEl('text', { x: tx, y: p[1] + 15, class: 'mrs', 'text-anchor': anchor }, g).textContent = `${spotsIn(r.id).length}곳 · ${r.sub}`;
-      const go = () => { mapView = r.id; mapSel = SPOT.mr === r.id ? SPOT.id : null; renderMap(); }; g.addEventListener('click', go); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } }); }
+      const go = () => { mapView = r.id; mapSel = curPlace().mr === r.id ? curPlace().id : null; renderMap(); }; g.addEventListener('click', go); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } }); }
     renderMapCard(null); return;
   }
   for (const [kind, a, b, c] of MAP_DECO[mapView] || []){
@@ -2622,23 +2749,32 @@ function renderMap(){
   for (let it = 0; it < 40; it++) for (let i = 0; i < pins.length; i++) for (let j = i + 1; j < pins.length; j++){ const a = pins[i], b = pins[j]; if (Math.abs(a.lx - b.lx) < 110 && Math.abs(a.ly - b.ly) < 30){ const push = (30 - Math.abs(a.ly - b.ly)) / 2 + 0.5, s = a.ly <= b.ly ? -1 : 1; a.ly += s * push; b.ly -= s * push; } }
   for (const p of pins){ const an = p.dir[0] > 0.3 ? 1 : p.dir[0] < -0.3 ? -1 : 0, tw = p.s.short.length * 15 + 8; p.lx = an > 0 ? clamp(p.lx, 6, R.W - tw) : an < 0 ? clamp(p.lx, tw, R.W - 6) : clamp(p.lx, tw / 2, R.W - tw / 2); p.ly = clamp(p.ly, 14, R.H - 22); }
   const layer = svgEl('g', {}, svg);
-  for (const p of pins){ const sel = mapSel === p.s.id, here = SPOT && SPOT.id === p.s.id, g = svgEl('g', { class: 'mpin' + (sel ? ' sel' : '') + (here ? ' here' : '') + (p.s.surf ? ' surf' : ''), tabindex: 0, role: 'button', 'aria-label': `${p.s.label} · ${p.s.type}` }, layer);
+  for (const p of pins){ const sel = mapSel === p.s.id, here = placeId() === p.s.id, g = svgEl('g', { class: 'mpin' + (sel ? ' sel' : '') + (here ? ' here' : '') + (p.s.surf ? ' surf' : '') + (p.s.kind === 'sky' ? ' sky' : ''), tabindex: 0, role: 'button', 'aria-label': `${p.s.label} · ${p.s.type}` }, layer);
     svgEl('line', { x1: p.x, y1: p.y, x2: p.lx, y2: p.ly, class: 'mlead' }, g);
     if (here) svgEl('circle', { cx: p.x, cy: p.y, r: 13, class: 'pulse' }, g);
     svgEl('circle', { cx: p.x, cy: p.y, r: sel ? 9 : 7.5, class: 'pt' }, g);
     if (p.s.surf) svgEl('path', { d: `M${p.x - 3.5} ${p.y + 3.5} L${p.x + 3.5} ${p.y - 3.5}`, class: 'pticon' }, g); else svgEl('circle', { cx: p.x, cy: p.y, r: 2.4, class: 'ptdot' }, g);
     const anchor = p.dir[0] > 0.3 ? 'start' : p.dir[0] < -0.3 ? 'end' : 'middle', tx = p.lx + (anchor === 'start' ? 4 : anchor === 'end' ? -4 : 0);
     svgEl('text', { x: tx, y: p.ly + 4, class: 'mlabel', 'text-anchor': anchor }, g).textContent = p.s.short;
-    svgEl('text', { x: tx, y: p.ly + 17, class: 'mtype', 'text-anchor': anchor }, g).textContent = p.s.surf ? '서핑' : '스노클링';
+    svgEl('text', { x: tx, y: p.ly + 17, class: 'mtype', 'text-anchor': anchor }, g).textContent = p.s.kind === 'sky' ? '패러글라이딩' : p.s.surf ? '서핑' : '스노클링';
     const pick = () => { mapSel = p.s.id; renderMap(); }; g.addEventListener('click', pick); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(); } }); }
+  for (const q of MAP_SOON[mapView] || []){ const sel = mapSel === q.id, g = svgEl('g', { class: 'mpin soon' + (sel ? ' sel' : ''), tabindex: 0, role: 'button', 'aria-label': `${q.name} · 패러글라이딩 준비 중` }, layer);
+    svgEl('circle', { cx: q.at[0], cy: q.at[1], r: sel ? 8 : 6.5, class: 'pt' }, g); svgEl('text', { x: q.at[0] + 10, y: q.at[1] + 4, class: 'mlabel' }, g).textContent = q.name; svgEl('text', { x: q.at[0] + 10, y: q.at[1] + 17, class: 'mtype' }, g).textContent = '패러글라이딩 · 준비 중';
+    const pick = () => { mapSel = q.id; renderMap(); }; g.addEventListener('click', pick); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(); } }); }
   { const n = svgEl('g', { class: 'mnorth' }, svg); svgEl('path', { d: `M${R.W - 22} 34 L${R.W - 16} 18 L${R.W - 10} 34 L${R.W - 16} 30 Z` }, n); svgEl('text', { x: R.W - 16, y: 14, 'text-anchor': 'middle' }, n).textContent = 'N'; }
-  renderMapCard(mapSel ? SPOTS.find(s => s.id === mapSel) : null);
+  renderMapCard(mapSel ? (placeById(mapSel) || soonById(mapSel)) : null);
 }
 function renderMapCard(d){
   const c = $('#spCard'); c.innerHTML = '';
-  if (!d){ const r = MAP_REGIONS.find(r => r.id === mapView); c.appendChild(el('b', 'ct', r ? r.name : '어디로 갈까요?')); c.appendChild(el('p', '', r ? '지도에서 바다 핀을 눌러 보세요. 초록 핀은 스노클링, 주황 핀은 서핑 해변이에요.' : '제주, 강원 동해안, 미야코지마 중에서 지역을 골라 보세요.'));
+  if (!d){ const r = MAP_REGIONS.find(r => r.id === mapView); c.appendChild(el('b', 'ct', r ? r.name : '어디로 갈까요?')); c.appendChild(el('p', '', r ? (r.sky ? '하늘색 핀을 눌러 보세요. 회색 핀은 준비 중인 활공장이에요.' : '지도에서 핀을 눌러 보세요. 초록 핀은 스노클링, 주황 핀은 서핑, 하늘색 핀은 패러글라이딩이에요. 회색 핀은 준비 중이에요.') : '제주, 강원 동해안, 미야코지마, 충북 단양 중에서 지역을 골라 보세요. 초록 핀은 스노클링, 주황 핀은 서핑, 하늘색 핀은 패러글라이딩이에요.'));
     const sn = surfNames(r ? r.id : null); if (sn) c.appendChild(el('p', 'cs', '서핑할 수 있는 곳: ' + sn)); return; }
-  const here = d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size;
+  if (d.kind === 'sky' || !d.region){ const sky = d.kind === 'sky', here = sky && placeId() === d.id;
+    const tt = el('div', 'tt'); tt.append(el('b', '', sky ? d.short : d.name), el('span', 'ty', sky ? `${d.region} · ${d.type}` : d.where)); c.appendChild(tt);
+    const bd = el('div', 'bdg'); bd.appendChild(el('span', 'b pg', '패러글라이딩')); if (!sky) bd.appendChild(el('span', 'b dx', '준비 중')); if (sky && othersIn(d.id) && !here) bd.appendChild(el('span', 'b pp', `지금 ${othersIn(d.id)}명`)); c.appendChild(bd);
+    c.appendChild(el('p', '', sky ? d.lead : (d.note ? d.note + '. ' : '') + '아직 준비 중인 하늘이에요. 곧 열려요!'));
+    if (sky){ const go = el('button', 'btn primary', here ? '지금 여기에 있어요' : '이 하늘로 가기'); go.type = 'button'; go.disabled = here; go.onclick = () => switchSpot(d.id); c.appendChild(go); }
+    return; }
+  const here = WORLD === 'sea' && d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size;
   const im = el('img'); im.alt = `${d.short} 작은 지도`; im.src = spotMap(d); c.appendChild(im);
   const tt = el('div', 'tt'); tt.append(el('b', '', d.short), el('span', 'ty', `${d.region} · ${d.type}`)); c.appendChild(tt);
   const bd = el('div', 'bdg'); bd.appendChild(el('span', 'b sn', '스노클링')); if (d.surf) bd.appendChild(el('span', 'b sf', '서핑')); bd.appendChild(el('span', 'b dx', `도감 ${fd}/${dex.length}`)); if (othersIn(d.id) && !(SPOT && d.id === SPOT.id)) bd.appendChild(el('span', 'b pp', `지금 ${othersIn(d.id)}명`)); c.appendChild(bd);
@@ -2677,7 +2813,7 @@ function updateFX(dt){
 }
 
 /* ============================== 베이비 캐릭터 ============================== */
-const DEFAULT_GEAR = { skin: '#ffd9bf', hair: '#3b2a20', suit: '#ffb8cc', suitPat: 'plain', shorts: '#ffffff', mask: 'classic', maskColor: '#ff4f8b', snorkel: 'on', snorkelColor: '#ffd23a', fins: 'short', finColor: '#2fd3b5', vest: 'none', vestColor: '#ff8a1f', tube: 'none', tubeColor: '#ffd23a', cap: 'none', capColor: '#ffffff', board: 'none', boardColor: '#2fd3b5', face: 't1' };
+const DEFAULT_GEAR = { skin: '#ffd9bf', hair: '#3b2a20', suit: '#ffb8cc', suitPat: 'plain', shorts: '#ffffff', mask: 'classic', maskColor: '#ff4f8b', snorkel: 'on', snorkelColor: '#ffd23a', fins: 'short', finColor: '#2fd3b5', vest: 'none', vestColor: '#ff8a1f', tube: 'none', tubeColor: '#ffd23a', cap: 'none', capColor: '#ffffff', board: 'none', boardColor: '#2fd3b5', face: 't1', wing: 'rainbow', helmet: 'basic' };
 let G = Object.assign({}, DEFAULT_GEAR, loadLS('pp_gear', {}));
 const PAL = ['#ff4f8b', '#ff8a1f', '#ffd23a', '#2fd3b5', '#3aa0ff', '#7a5cff', '#ffffff', '#24242a'];
 const SKINS = ['#ffe6d4', '#ffd9bf', '#f1c09a', '#d9a074', '#b47a52', '#8a5636'];
@@ -3305,6 +3441,7 @@ function animRig(rig, dt, st, o){
     T.aLz = 1.35 + Math.sin(t * 0.8) * 0.12; T.aRz = -(1.35 + Math.sin(t * 0.8 + 1.1) * 0.12); T.aLx = T.aRx = 0.15; T.lLz = 0.38 + Math.sin(t * 0.6) * 0.06; T.lRz = -T.lLz; T.lLx = Math.sin(t * 1.3) * 0.08; T.lRx = -T.lLx;
     if (cup){ T.aRx = -1.1; T.aRz = -0.2; } }
   else if (st === 'sit'){ T.pitch = -0.12; T.lLx = T.lRx = -1.45; T.aLz = 0.25; T.aRz = -0.25; if (cup){ T.aRx = -0.95; T.aRz = 0.15; } }
+  else if (st === 'pose' && o.T) Object.assign(T, o.T); /* 하늘 월드(sky.js)가 자세를 직접 정할 때 */
   if (rig.foodObj && !o.eat && (st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet')){ T.aLx = T.aLx * 0.3 - 0.75; T.aLz = 0.1; }
   if (cup && !o.sip && !o.shoot && (st === 'idle' || st === 'walk' || st === 'run')){ T.aRx = T.aRx * 0.3 - 0.75; T.aRz = -0.1; }
   if (o.sip && cup){ T.aRx = -2.25; T.aRz = 0.55; }
@@ -3564,6 +3701,7 @@ const GEAR_UI = [
   { tab: '튜브', items: [{ key: 'tube', label: '종류', options: [['none', '없음'], ['donut', '도넛 튜브'], ['duck', '오리 튜브'], ['flamingo', '플라밍고'], ['unicorn', '유니콘']] }, { key: 'tubeColor', label: '색', colors: PAL }], note: '튜브를 끼면 둥실둥실 떠 있어서 잠수는 못 해요.' },
   { tab: '모자', items: [{ key: 'cap', label: '종류', options: [['none', '없음'], ['swim', '수영모'], ['bucket', '벙거지'], ['straw', '밀짚모자'], ['flower', '꽃핀'], ['shark', '상어 모자'], ['crown', '바다 왕관'], ['captain', '선장 모자'], ['explorer', '탐험가 모자']] }, { key: 'capColor', label: '색', colors: PAL }] },
   { tab: '서핑보드', items: [{ key: 'board', label: '종류', options: [['none', '안 들기'], ['long', '롱보드'], ['short', '숏보드']] }, { key: 'boardColor', label: '색', colors: PAL }], note: '롱보드는 파도 잡기가 쉽고, 숏보드는 방향 전환이 빨라요. 보드를 들면 튜브는 빠지고, 물에서는 보드에 엎드려 패들해요.' },
+  { tab: '하늘 장비', items: [{ key: 'wing', label: '날개 색', options: [['rainbow', '무지개'], ['berry', '딸기'], ['sky', '하늘'], ['lemon', '레몬'], ['mint', '민트'], ['starlight', '별빛 (특별)']] }, { key: 'helmet', label: '헬멧', options: [['basic', '기본 헬멧'], ['bear', '곰돌이 귀 헬멧 + 고글']] }], note: '패러글라이딩 할 때만 보여요. 헬멧은 날개 색에 맞춰 칠해져요.' },
   { tab: '진주 상점', shop: true },
 ];
 let gearTab = 0;
@@ -3581,8 +3719,8 @@ function renderGear(){
     grp.appendChild(opts); body.appendChild(grp); }
   if (g.note){ const n = document.createElement('p'); n.className = 'note'; n.textContent = g.note; body.appendChild(n); }
 }
-function setGear(k, v){ if (!owns(k, v)) return; G[k] = v; if (k === 'face'){ const pal = BABY_STYLES[v]?.pal || {}; if (pal.suit) G.suit = pal.suit; if (pal.shorts) G.shorts = pal.shorts; if (pal.suitPat && owns('suitPat', pal.suitPat)) G.suitPat = pal.suitPat; } if (k === 'board' && v !== 'none') G.tube = 'none'; if (k === 'tube' && v !== 'none') G.board = 'none'; if (!hasBoard(G) && P.surf) P.surf = null; saveLS('pp_gear', G); buildBaby(); renderGear(); AudioSys.blip(660, 880, 0.08, 'sine', 0.06); }
-function randomGear(){ const pick = a => a[(Math.random() * a.length) | 0]; G = Object.assign({}, G, { face: pick(FACE_IDS), skin: pick(SKINS), hair: pick(HAIRS), suit: pick(PAL), shorts: pick(PAL), mask: pick(['classic', 'classic', 'full']), maskColor: pick(PAL), snorkelColor: pick(PAL), fins: pick(['short', 'long', 'none']), finColor: pick(PAL), vestColor: pick(PAL), tube: pick(['none', 'none', 'donut', 'duck']), tubeColor: pick(PAL), cap: pick(['none', 'swim', 'bucket', 'straw']), capColor: pick(PAL), boardColor: pick(PAL) }); if (G.tube !== 'none') G.board = 'none'; saveLS('pp_gear', G); buildBaby(); renderGear(); }
+function setGear(k, v){ if (!owns(k, v)) return; G[k] = v; if (k === 'face'){ const pal = BABY_STYLES[v]?.pal || {}; if (pal.suit) G.suit = pal.suit; if (pal.shorts) G.shorts = pal.shorts; if (pal.suitPat && owns('suitPat', pal.suitPat)) G.suitPat = pal.suitPat; } if (k === 'board' && v !== 'none') G.tube = 'none'; if (k === 'tube' && v !== 'none') G.board = 'none'; if (!hasBoard(G) && P.surf) P.surf = null; saveLS('pp_gear', G); buildBaby(); SKYW?.rebuildMe(); renderGear(); AudioSys.blip(660, 880, 0.08, 'sine', 0.06); }
+function randomGear(){ const pick = a => a[(Math.random() * a.length) | 0]; G = Object.assign({}, G, { face: pick(FACE_IDS), skin: pick(SKINS), hair: pick(HAIRS), suit: pick(PAL), shorts: pick(PAL), mask: pick(['classic', 'classic', 'full']), maskColor: pick(PAL), snorkelColor: pick(PAL), fins: pick(['short', 'long', 'none']), finColor: pick(PAL), vestColor: pick(PAL), tube: pick(['none', 'none', 'donut', 'duck']), tubeColor: pick(PAL), cap: pick(['none', 'swim', 'bucket', 'straw']), capColor: pick(PAL), boardColor: pick(PAL) }); if (G.tube !== 'none') G.board = 'none'; saveLS('pp_gear', G); buildBaby(); SKYW?.rebuildMe(); renderGear(); }
 function openGear(v){ gearOpen = v; gearBuy = null; $('#gear').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); CAM.gearYaw = P.yaw; CAM.prevYaw = CAM.yaw; renderGear(); if (CAM.fp) setFP(false); hintOnce('gearspin', TOUCH ? '아이를 옆으로 밀면 빙글 돌려 볼 수 있어요' : '아이를 드래그하면 빙글 돌려 볼 수 있어요'); } else if (CAM.gearYaw !== undefined){ P.yaw = CAM.gearYaw; CAM.yaw = CAM.prevYaw ?? P.yaw; } refreshHUD(); }
 function openDex(v){ dexOpen = v; if (v){ dexSeen = FOUND.size; updateMenuDot(); } $('#dex').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); renderDex(); } refreshHUD(); }
 function openHelp(v){ helpOpen = v; $('#help').classList.toggle('hidden', !v); refreshHUD(); }
@@ -3652,7 +3790,7 @@ function interact(){ if (P.sit?.kind === 'float'){ standUp(); return; } const it
 const NET = { room: null, user: null, status: 'connecting', peers: new Map(), names: {}, colors: {}, num: 0, settled: false, sendT: 0, lastJSON: '', mid: 0, msg: '', eid: 0, emo: '', rid: 0, rd: 0, fd: '', myName: '', myColor: '#ff8a2a', lobby: null, gen: 0 };
 const EMOTES = ['👋', '😆', '❤️', '🐠', '🏄', '🥤'];
 const QUICK = ['안녕!', '여기 물고기 많아!', '파도 타러 가자', '같이 물멍하자', '거북이 봤어?', '따라와!', '노을 예쁘다'];
-const ENUMS = { face: Object.keys(BABY_STYLES), mask: ['classic', 'full', 'heart', 'cat', 'wangnun', 'none'], snorkel: ['on', 'off'], fins: ['short', 'long', 'mermaid', 'none'], vest: ['none', 'vest'], tube: ['none', 'donut', 'duck', 'flamingo', 'unicorn'], cap: ['none', 'swim', 'bucket', 'straw', 'flower', 'shark', 'crown', 'captain', 'explorer'], board: ['none', 'long', 'short'], suitPat: ['plain', 'stripe', 'dots', 'wave', 'fish', 'star', 'sunset', 'mermaid', 'rainbow', 'treasure'] };
+const ENUMS = { face: Object.keys(BABY_STYLES), mask: ['classic', 'full', 'heart', 'cat', 'wangnun', 'none'], snorkel: ['on', 'off'], fins: ['short', 'long', 'mermaid', 'none'], vest: ['none', 'vest'], tube: ['none', 'donut', 'duck', 'flamingo', 'unicorn'], cap: ['none', 'swim', 'bucket', 'straw', 'flower', 'shark', 'crown', 'captain', 'explorer'], board: ['none', 'long', 'short'], suitPat: ['plain', 'stripe', 'dots', 'wave', 'fish', 'star', 'sunset', 'mermaid', 'rainbow', 'treasure'], wing: ['rainbow', 'berry', 'sky', 'lemon', 'mint', 'starlight'], helmet: ['basic', 'bear'] };
 const COLORK = ['skin', 'hair', 'suit', 'shorts', 'maskColor', 'snorkelColor', 'finColor', 'vestColor', 'tubeColor', 'capColor', 'boardColor'];
 function sanitizeGear(g){ const o = Object.assign({}, DEFAULT_GEAR); if (g && typeof g === 'object'){ for (const k in ENUMS) if (ENUMS[k].includes(g[k])) o[k] = g[k]; for (const k of COLORK) if (typeof g[k] === 'string' && /^#[0-9a-fA-F]{6}$/.test(g[k])) o[k] = g[k]; } return o; }
 const num = (v, d = 0) => (typeof v === 'number' && isFinite(v)) ? v : d;
@@ -3691,7 +3829,7 @@ const myTag = makeTag(); myTag.el.classList.add('me');
 function nameOf(Rm){ const n = Rm.nk || (Rm.by && NET.names[Rm.by]) || `친구 ${Rm.num}`; return Rm.isMe ? n + ' (다른 창)' : n; }
 function setNetStatus(s){ NET.status = s; updateFriendChip(); if (friendsOpen) renderFriends(); }
 function visiblePeers(){ return [...NET.peers.values()].filter(Rm => Rm.visible); }
-function updateFriendChip(){ const n = visiblePeers().length; $('#frLbl').textContent = NET.status === 'on' ? '친구' : NET.status === 'solo' ? '혼자 놀기' : '연결 중'; const nn = $('#frN'); nn.textContent = n; nn.classList.toggle('hidden', NET.status !== 'on'); }
+function updateFriendChip(){ const n = WORLD === 'sky' && SKYW?.active ? SKYW.peerCount() : visiblePeers().length; $('#frLbl').textContent = NET.status === 'on' ? '친구' : NET.status === 'solo' ? '혼자 놀기' : '연결 중'; const nn = $('#frN'); nn.textContent = n; nn.classList.toggle('hidden', NET.status !== 'on'); }
 async function resolveNames(){
   if (!NET.user) return; const ids = [...new Set([...NET.peers.values()].map(Rm => Rm.by).filter(Boolean))]; if (!ids.length) return;
   try { const ps = await NET.user.profiles(ids); for (const id of ids){ NET.names[id] = ps[id]?.name || ''; NET.colors[id] = ps[id]?.color || ''; } } catch (e){}
@@ -3731,11 +3869,12 @@ function upsertPeer(p){
 }
 function onPeersChange(ch){
   for (const p of ch.left) removePeer(p.peer);
-  for (const p of ch.peers){ if (p.kind !== 'viewer' || p.sameTab) continue; upsertPeer(p); }
+  if (WORLD === 'sky') SKYW?.onPeers({ peers: ch.peers.filter(p => p.kind === 'viewer' && !p.sameTab), left: ch.left });
+  else for (const p of ch.peers){ if (p.kind !== 'viewer' || p.sameTab) continue; upsertPeer(p); }
   if (!NET.settledT){ NET.settledT = setTimeout(() => { NET.settled = true; }, 2500); }
   updateFriendChip(); resolveNames();
 }
-function clearPeers(){ for (const k of [...NET.peers.keys()]) removePeer(k); updateFriendChip(); }
+function clearPeers(){ for (const k of [...NET.peers.keys()]) removePeer(k); if (SKYW?.active) SKYW.clearRemotes(); updateFriendChip(); }
 async function initNet(){
   const C = window.claude; if (!C || typeof C.use !== 'function'){ const sb = await sbClient(); if (sb){ NET.mode = 'sb'; NET.lobby = sbLobby(sb); initRank(); await joinSpotRoom(); joinLobby(); return; } setNetStatus('solo'); return; }
   let room = null, user = null;
@@ -3749,6 +3888,7 @@ async function initNet(){
 }
 function sendPresence(dt){
   if (!NET.room || !started) return; NET.sendT -= dt; if (NET.sendT > 0) return; NET.sendT = 0.1;
+  if (WORLD === 'sky'){ if (!SKYW?.active) return; const sp = SKYW.presence(), sj = JSON.stringify(sp); if (sj === NET.lastJSON) return; NET.lastJSON = sj; NET.room.presence(sp).catch(() => {}); return; }
   const r2 = v => Math.round(v * 100) / 100;
   const pr = { v: 1, x: r2(charRoot.position.x), y: r2(charRoot.position.y), z: r2(charRoot.position.z), yaw: r2(P.yaw), st: P.st, vy: Math.round(P.vy * 10) / 10, mv: P.moving ? 1 : 0, ln: r2(P.lean), sl: r2(P.slope),
     sit: P.sit ? SEATS.indexOf(P.sit) : -1, cup: P.cup?.id || '', sip: P.sipT > 0 ? 1 : 0, wv: time < P.waveUntil ? 1 : 0, g: G, fc: FOUND.size, fd: NET.fd, dv: DIVE.on ? Math.floor(DIVE.t) : 0, bs: REC.best, sb: SREC.best, rc: NET.rc || 0, rs: NET.rs || 0, mid: NET.mid, msg: NET.msg, eid: NET.eid, emo: NET.emo, rid: NET.rid, rd: NET.rd, ws: FUN.shoot ? 1 : 0, food: P.food?.id || '', fl: P.food?.left || 0, eat: P.biteT > 0 ? 1 : 0, jid: NET.jid || 0, jd: NET.jd || 0, jp: NET.jp || 0, ffid: NET.ffid || 0, bg: BAG.length, tid: NET.tid || 0, tr: NET.tr || '', nk: NICK };
@@ -3841,7 +3981,20 @@ function goToPeer(Rm){
   P.yaw = Math.atan2(t.x - P.x, t.z - P.z); CAM.yaw = P.yaw; openFriends(false); toast(`${nameOf(Rm)} 님 옆으로 왔어요`);
 }
 function openFriends(v){ friendsOpen = v; $('#friends').classList.toggle('hidden', !v); if (v){ $('#nkIn').value = NICK; renderFriends(); } }
+function renderFriendsSky(){
+  const list = $('#fList'); list.innerHTML = ''; const names = SKYW?.peerNames() || [];
+  $('#frSub').textContent = NET.status === 'on' ? `이 하늘 ${names.length + 1}명` + (LOBBY.total ? ` · 전체 ${LOBBY.total + 1}명` : '') : '';
+  { const w = $('#fWhere') || (() => { const e = document.createElement('div'); e.id = 'fWhere'; e.className = 'fwhere'; list.parentNode.insertBefore(e, list); return e; })(); w.innerHTML = '';
+    w.appendChild(el('div', 'npcrow', 'AI 패러글라이더 · 마을 사람 · 튼튼이는 이름표에 AI라고 써 있어요. 접속한 사람 수에는 세지 않아요.'));
+    const elsewhere = Object.entries(LOBBY.counts).filter(([id]) => id !== placeId()).sort((a, b) => b[1] - a[1]);
+    if (elsewhere.length){ w.appendChild(el('b', '', '다른 곳에서 노는 친구')); for (const [id, n] of elsewhere){ const d = placeById(id); if (!d) continue; const b = el('button', 'btn'); b.type = 'button'; b.textContent = `${d.short} ${n}명 · 가기`; b.onclick = () => { openFriends(false); switchSpot(id); }; w.appendChild(b); } } }
+  $('#fNote').textContent = NET.status !== 'on' ? '지금은 혼자 날기예요. 인터넷이 연결되면 같은 하늘에 있는 친구가 보여요.' : names.length ? `지금 ${SKYSPOT.short}에 함께 있는 친구들이에요. 날개와 탈것이 서로 보이고, 마을버스를 같이 타거나 "업어 줘"를 부탁할 수 있어요.` : `아직 ${SKYSPOT.short}에는 아무도 없어요. 친구에게 같은 하늘을 골라 달라고 해 보세요.`;
+  const row = (color, name, status) => { const r = document.createElement('div'); r.className = 'fr'; const d = document.createElement('i'); d.className = 'dot'; d.style.background = color; const w = document.createElement('div'); w.className = 'who'; const b = document.createElement('b'); b.textContent = name; const sm = document.createElement('small'); sm.textContent = status; w.append(b, sm); r.append(d, w); list.appendChild(r); };
+  row(NET.myColor, myName() ? `나 (${myName()})` : '나', $('#state').textContent + (SKYREC.best ? ` · 착륙 최고 ${SKYREC.best}점` : ''));
+  for (const n of names) row('#2fa7d8', n, '같은 하늘');
+}
 function renderFriends(){
+  if (WORLD === 'sky'){ renderFriendsSky(); return; }
   const list = $('#fList'); list.innerHTML = ''; const peers = visiblePeers();
   $('#frSub').textContent = NET.status === 'on' ? `이 바다 ${peers.length + 1}명` + (LOBBY.total ? ` · 전체 ${LOBBY.total + 1}명` : '') : '';
   { const w = $('#fWhere') || (() => { const e = document.createElement('div'); e.id = 'fWhere'; e.className = 'fwhere'; list.parentNode.insertBefore(e, list); return e; })(); w.innerHTML = '';
@@ -4072,11 +4225,40 @@ function rankColor(e){ if (e.me) return NET.myColor; return RANK.colors[e.id] ||
 const surfSpots = () => SPOTS.filter(d => d.surf);
 
 function openRank(v){ rankOpen = v; $('#rank').classList.toggle('hidden', !v);
-  if (v){ if (gearOpen) openGear(false); if (dexOpen) openDex(false); if (!rankReg) rankReg = SPOT.mr; if (hasBoard(G) && SURF) rankKind = 'surf'; renderRank(); if (RANK.status === 'on') resolveRankNames(); if (RANK.sb) sbLoadRanks(); }
+  if (v){ if (gearOpen) openGear(false); if (dexOpen) openDex(false); if (!rankReg) rankReg = SPOT.mr; if (WORLD === 'sky') rankKind = 'sky'; else if (rankKind === 'sky') rankKind = 'dive'; if (WORLD !== 'sky' && hasBoard(G) && SURF) rankKind = 'surf'; if (rankKind === 'sky' && Date.now() - SKYRANK.t > 30000) loadSkyRanks(); renderRank(); if (RANK.status === 'on') resolveRankNames(); if (RANK.sb) sbLoadRanks(); }
   refreshHUD(); }
+const RANK_KINDS = [['dive', '잠수'], ['surf', '서핑'], ['sky', '하늘']];
+let skyMetric = 'sc', skyTab = 'spot';
+const SKY_MET = { sc: { name: '착륙 점수', hi: true, fmt: v => `${Math.round(v)}점`, all: r => r.pg_best || 0, part: 'sc', mine: () => SKYREC.best || 0, mineM: () => SKYREC.sc },
+  ac: { name: '정밀착륙', hi: false, fmt: v => `${(+v).toFixed(1)}m`, all: r => r.pg_acc, part: 'ac', mine: () => SKYREC.acc, mineM: () => SKYREC.ac },
+  cl: { name: '걸어서 등산', hi: false, fmt: v => fmtClock(v), all: r => r.pg_climb, part: 'cl', mine: () => SKYREC.climb || null, mineM: () => SKYREC.cl } };
+const fmtClock = s => { s = Math.round(s); return `${Math.floor(s / 60)}분 ${String(s % 60).padStart(2, '0')}초`; };
+function skyRankList(scope, met){ const M = SKY_MET[met], sid = (SKYSPOT || SKY_SPOTS[0]).id, rg = skyRegOf(sid), out = [];
+  const val = r => scope === 'all' ? M.all(r) : scope === 'reg' ? r.pg?.[M.part]?.r?.[rg] : r.pg?.[M.part]?.s?.[sid];
+  for (const r of SKYRANK.rows){ if (r.id === SB.id) continue; const v = val(r); if (typeof v === 'number' && (M.hi ? v > 0 : v >= 0)) out.push({ v, nick: cleanNick(r.nick) || '하늘 친구', color: /^#[0-9a-fA-F]{6}$/.test(r.color || '') ? r.color : '#7c8789', me: false }); }
+  const mv = scope === 'all' ? M.mine() : (M.mineM()[scope === 'reg' ? sid : sid] ?? null); if (typeof mv === 'number' && (M.hi ? mv > 0 : mv >= 0)) out.push({ v: mv, nick: myName() ? `나 · ${myName()}` : '나', color: NET.myColor, me: true });
+  out.sort((a, b) => M.hi ? b.v - a.v : a.v - b.v); return out; }
+function renderRankSky(){
+  const tabs = $('#rkTabs'); tabs.innerHTML = '';
+  const seg = el('div', 'seg kind'); for (const [k, l] of RANK_KINDS){ const b = el('button'); b.type = 'button'; b.id = 'rkk-' + k; b.textContent = l; b.setAttribute('aria-pressed', rankKind === k); b.onclick = () => { rankKind = k; renderRank(); }; seg.appendChild(b); } tabs.appendChild(seg);
+  for (const [id, label] of [['spot', '장소별'], ['reg', '지역'], ['all', '전체'], ['me', '내 기록']]){ const b = el('button', 'tab'); b.type = 'button'; b.role = 'tab'; b.id = 'rks-' + id; b.setAttribute('aria-selected', skyTab === id); b.textContent = label; b.onclick = () => { skyTab = id; renderRank(); }; tabs.appendChild(b); }
+  $('#rkT').textContent = '하늘 순위'; $('#rank').setAttribute('aria-label', '하늘 순위'); $('#rkSub').textContent = SKYREC.best ? `내 착륙 최고 ${SKYREC.best}점` : '아직 하늘 기록이 없어요';
+  const body = $('#rkBody'); body.innerHTML = ''; const d0 = SKYSPOT || SKY_SPOTS[0];
+  const note = () => body.appendChild(el('p', 'rnote', SKYRANK.status === 'on' ? '친구들의 하늘 기록이 함께 보여요. 내 기록은 최고 기록이 오를 때마다 올라가요.' : SKYRANK.status === 'soon' ? '온라인 하늘 순위는 곧 열려요. 지금은 내 기록만 보여요. 기록은 이 기기에 저장되고, 순위가 열리면 저절로 올라가요.' : '지금은 내 기록만 보여요. 기록은 이 기기에 저장돼요.'));
+  if (skyTab === 'me'){ statGrid(body, 'rstats', [['착륙 점수 최고', SKYREC.best ? `${SKYREC.best}점` : '-'], ['정밀착륙', SKYREC.acc != null ? `중심에서 ${SKYREC.acc.toFixed(1)}m` : '-'], ['걸어서 등산', SKYREC.climb ? fmtClock(SKYREC.climb) : '-'], ['비행 횟수', `${SKYREC.n}번`], ['진주', null]]);
+    body.appendChild(el('p', 'rnote', `진주는 착륙 점수 ${SKYW?.PEARL_PER_SCORE || 10}점마다 1개씩 받아요. 걸어서 등산 기록은 착륙장 쪽에서 출발해 탈것·버스·업히기 없이 정상까지 걸어 올라갔을 때만 쳐요.`)); note(); return; }
+  const pills = el('div', 'rpills'); for (const [k, M] of Object.entries(SKY_MET)){ const b = el('button', 'opt'); b.type = 'button'; b.id = 'rsm-' + k; b.textContent = M.name; b.setAttribute('aria-pressed', skyMetric === k); b.onclick = () => { skyMetric = k; renderRank(); }; pills.appendChild(b); } body.appendChild(pills);
+  const M = SKY_MET[skyMetric], list = skyRankList(skyTab, skyMetric), scopeName = skyTab === 'spot' ? d0.short : skyTab === 'reg' ? (MAP_REGIONS.find(r => r.id === d0.mr)?.name || '') : '모든 하늘';
+  const h = el('div', 'rhead'); h.appendChild(el('b', '', `${scopeName} ${M.name} 순위`)); h.appendChild(el('small', '', M.hi ? '높을수록 위예요' : skyMetric === 'ac' ? '과녁 중심과 가까울수록 위예요' : '빨리 올라갈수록 위예요')); body.appendChild(h);
+  if (!list.length){ body.appendChild(el('p', 'rempty', `아직 ${M.name} 기록이 없어요. ${skyMetric === 'cl' ? '착륙한 뒤 등산로를 따라 정상까지 걸어 올라가 보세요.' : '양방산에서 날아서 남한강 착륙장에 내려 보세요.'}`)); note(); return; }
+  const box = el('div', 'rlist'); list.slice(0, 30).forEach((e, i) => { const r = el('div', 'rrow' + (e.me ? ' me' : '') + (i < 3 ? ' m' + (i + 1) : '')); r.appendChild(el('b', 'rn', String(i + 1))); const dt = el('i', 'dot'); dt.style.background = e.color; r.appendChild(dt); r.appendChild(el('span', 'nm', e.nick)); r.appendChild(el('b', 'sec', M.fmt(e.v))); box.appendChild(r); });
+  const mi = list.findIndex(e => e.me); if (mi >= 30){ box.appendChild(el('div', 'rgap', '···')); const e = list[mi], r = el('div', 'rrow me'); r.appendChild(el('b', 'rn', String(mi + 1))); const dt = el('i', 'dot'); dt.style.background = e.color; r.appendChild(dt); r.appendChild(el('span', 'nm', e.nick)); r.appendChild(el('b', 'sec', M.fmt(e.v))); box.appendChild(r); }
+  body.appendChild(box); note();
+}
 function renderRank(){
+  if (rankKind === 'sky'){ renderRankSky(); return; }
   const K = RK[rankKind], R0 = K.rec(), surf = rankKind === 'surf', tabs = $('#rkTabs'); tabs.innerHTML = '';
-  const seg = el('div', 'seg kind'); for (const [k, l] of [['dive', '잠수'], ['surf', '서핑']]){ const b = el('button'); b.type = 'button'; b.id = 'rkk-' + k; b.textContent = l; b.setAttribute('aria-pressed', rankKind === k); b.onclick = () => { rankKind = k; renderRank(); }; seg.appendChild(b); }
+  const seg = el('div', 'seg kind'); for (const [k, l] of RANK_KINDS){ const b = el('button'); b.type = 'button'; b.id = 'rkk-' + k; b.textContent = l; b.setAttribute('aria-pressed', rankKind === k); b.onclick = () => { rankKind = k; renderRank(); }; seg.appendChild(b); }
   tabs.appendChild(seg);
   const unlocked = R0.best >= K.unlock;
   for (const [id, label] of [['spot', '이 바다'], ['reg', '지역'], ['all', '전체'], ['me', '내 기록']]){
@@ -4205,12 +4387,18 @@ const SHOP = [
   { k: 'cap', v: 'flower', name: '히비스커스 꽃핀', price: 40 },
   { k: 'cap', v: 'shark', name: '상어 모자', price: 70, req: { sec: 10 } },
   { k: 'cap', v: 'crown', name: '바다 왕관', price: 300, req: { sec: 20, rank: 'all', top: 10 } },
+  { k: 'wing', v: 'berry', name: '딸기 날개', price: 15 },
+  { k: 'wing', v: 'sky', name: '하늘 날개', price: 15 },
+  { k: 'wing', v: 'lemon', name: '레몬 날개', price: 20 },
+  { k: 'wing', v: 'mint', name: '민트 날개', price: 20 },
+  { k: 'wing', v: 'starlight', name: '별빛 특별 날개', price: 120, req: { pg: 300 } },
+  { k: 'helmet', v: 'bear', name: '곰돌이 귀 헬멧 + 고글', price: 40 },
   { k: 'mask', v: 'wangnun', name: '해녀 왕눈 물안경', price: 0, ex: "제주 바닷속 유적의 '옛 해녀 왕눈 물안경'을 매점에 가져와 바꿔요" },
   { k: 'cap', v: 'captain', name: '선장 모자', price: 0, ex: "강원 난파선의 '선장의 나침반'을 매점에 가져와 바꿔요" },
   { k: 'cap', v: 'explorer', name: '탐험가 모자', price: 0, ex: "미야코 산호 성벽의 '황금 거북 장식'을 매점에 가져와 바꿔요" },
   { k: 'suitPat', v: 'treasure', name: '보물 지도 래시가드', price: 0, ex: '바닷속 유물 15가지를 모두 매점에 가져오면 받아요' },
 ];
-const SHOP_CAT = { suitPat: '래시가드', mask: '마스크', fins: '오리발', tube: '튜브', cap: '모자' };
+const SHOP_CAT = { suitPat: '래시가드', mask: '마스크', fins: '오리발', tube: '튜브', cap: '모자', wing: '날개', helmet: '헬멧' };
 const shopItem = (k, v) => SHOP.find(s => s.k === k && s.v === v);
 const owns = (k, v) => !shopItem(k, v) || OWNED.has(k + ':' + v);
 let gearBuy = null;
@@ -4219,6 +4407,7 @@ function reqState(it){
   const r = it.req || {}, out = [];
   if (r.sec) out.push({ ok: REC.best >= r.sec, txt: `한 번에 ${r.sec}초 잠수 (${TIERS[tierOf(r.sec)].name})`, now: `지금 최고 ${fmtS(REC.best)}` });
   if (r.dex){ const n = foundAll().size; out.push({ ok: n >= r.dex, txt: `도감 ${r.dex}종 모으기`, now: `지금 ${n}종` }); }
+  if (r.pg) out.push({ ok: SKYREC.best >= r.pg, txt: `패러글라이딩 착륙 ${r.pg}점`, now: `지금 최고 ${SKYREC.best}점` });
   if (r.rank){ const nm = r.rank === 'reg' ? '지역' : '전체';
     if (!rankLive()) out.push({ ok: REC.best >= (r.top <= 3 ? 30 : 25), txt: `${nm} 순위 ${r.top}위 안 (혼자 놀기에서는 ${r.top <= 3 ? 30 : 25}초 잠수)`, now: `지금 최고 ${fmtS(REC.best)}` });
     else { const rk = REC.best >= RANK_MIN ? (r.rank === 'reg' ? bestRegRank() : myRank('all')) : null; out.push({ ok: rk !== null && rk <= r.top, txt: `${nm} 순위 ${r.top}위 안에 들기`, now: rk ? `지금 ${rk}위` : '아직 순위에 없어요' }); } }
@@ -4249,7 +4438,7 @@ function renderShop(body){
   const grid = el('div', 'shop');
   for (const it of SHOP){ const own = owns(it.k, it.v), wearing = G[it.k] === it.v, rq = reqState(it), can = rq.every(q => q.ok);
     const c = el('div', 'sh' + (own ? ' own' : can ? '' : ' lock')); c.id = `sh-${it.k}-${it.v}`;
-    const pv = el('div', 'pv'); if (it.k === 'suitPat'){ pv.style.backgroundImage = `url(${suitPatURL(G.suit, it.v)})`; } else { pv.classList.add('pv-' + it.k); pv.textContent = SHOP_CAT[it.k]; } c.appendChild(pv);
+    const pv = el('div', 'pv'); if (it.k === 'suitPat'){ pv.style.backgroundImage = `url(${suitPatURL(G.suit, it.v)})`; } else { pv.classList.add('pv-' + it.k); pv.textContent = SHOP_CAT[it.k]; if (it.k === 'wing' && SKYMOD?.WINGS[it.v]) pv.style.background = `linear-gradient(90deg,${SKYMOD.WINGS[it.v].cols.join(',')})`; } c.appendChild(pv);
     const w = el('div', 'shw'); w.appendChild(el('b', '', it.name)); w.appendChild(el('small', '', own ? (wearing ? '입는 중' : '내 장비') : rq.length ? rq.map(q => (q.ok ? '✓ ' : '') + q.txt).join(' · ') : '누구나 살 수 있어요')); c.appendChild(w);
     const b = el('button', 'btn' + (own ? '' : ' buyb')); b.type = 'button';
     if (own){ b.textContent = wearing ? '입는 중' : '입기'; b.disabled = wearing; b.onclick = () => setGear(it.k, it.v); }
@@ -4621,13 +4810,15 @@ function biteDone(){
 /* 매점 · 대여소 화면 */
 function openStore(v, mode, title){
   storeOpen = v; $('#store').classList.toggle('hidden', !v);
-  if (v){ storeMode = mode || storeMode; storeTitle = title || (storeMode === 'rental' ? '대여소' : '매점'); if (storeMode === 'rental') storeTab = 'rent'; else if (BAG.length) storeTab = 'trade'; else if (storeTab === 'rent' || storeTab === 'trade') storeTab = 'food';
+  if (v){ storeMode = mode || storeMode; storeTitle = title || (storeMode === 'rental' ? '대여소' : '매점'); if (storeMode === 'sky'){ if (storeTab !== 'veh' && storeTab !== 'ticket') storeTab = 'veh'; } else if (storeMode === 'rental') storeTab = 'rent'; else if (BAG.length) storeTab = 'trade'; else if (storeTab === 'rent' || storeTab === 'trade') storeTab = 'food';
     if (gearOpen) openGear(false); if (dexOpen) openDex(false); if (rankOpen) openRank(false); if (CAM.fp) setFP(false); for (const k in keys) keys[k] = false; JOY.x = JOY.y = 0; renderStore(); }
   refreshHUD();
 }
 function renderStore(){
   $('#stT').textContent = storeTitle; $('#store').setAttribute('aria-label', storeTitle); updatePearlUI();
   const tabs = $('#stTabs'); tabs.innerHTML = ''; tabs.classList.toggle('hidden', storeMode === 'rental');
+  if (storeMode === 'sky'){ for (const [id, l] of [['veh', '탈것'], ['ticket', '이용권']]){ const b = el('button', 'tab'); b.type = 'button'; b.role = 'tab'; b.id = 'stt-' + id; b.textContent = l; b.setAttribute('aria-selected', storeTab === id); b.onclick = () => { storeTab = id; renderStore(); }; tabs.appendChild(b); }
+    const sb = $('#stBody'); sb.innerHTML = ''; if (SKYW?.active) SKYW.renderStore(storeTab, sb, $('#stSub')); return; }
   if (storeMode === 'kiosk') for (const [id, l] of [['food', '먹을거리'], ['drink', '마실거리'], ['trade', BAG.length ? `망사리 바꾸기 ${BAG.length}` : '망사리 바꾸기']]){ const b = el('button', 'tab'); b.type = 'button'; b.role = 'tab'; b.id = 'stt-' + id; b.textContent = l; b.setAttribute('aria-selected', storeTab === id); b.onclick = () => { storeTab = id; renderStore(); }; tabs.appendChild(b); }
   const body = $('#stBody'); body.innerHTML = '';
   if (storeMode === 'rental'){
@@ -4732,12 +4923,13 @@ addEventListener('keydown', e => {
   if (e.code === 'Escape' && bagOpen){ openBag(false); return; }
   if (!started) return;
   if (e.target && e.target.tagName === 'INPUT'){ if (e.code === 'Escape') openChat(false); return; }
-  if ((e.code === 'KeyT' || (e.code === 'Enter' && e.target?.tagName !== 'BUTTON')) && !gearOpen && !dexOpen && !helpOpen && !spotsOpen && !rankOpen && !storeOpen && !bagOpen){ e.preventDefault(); openChat(true); return; }
-  if (e.code === 'Tab'){ e.preventDefault(); openDex(!dexOpen); return; }
-  if (e.code === 'Escape'){ if (spotsOpen) openSpots(false); else if (gearOpen) openGear(false); else if (dexOpen) openDex(false); else if (helpOpen) openHelp(false); else if (friendsOpen) openFriends(false); else if (CAM.fp) setFP(false); return; }
+  if (WORLD !== 'sky' && (e.code === 'KeyT' || (e.code === 'Enter' && e.target?.tagName !== 'BUTTON')) && !gearOpen && !dexOpen && !helpOpen && !spotsOpen && !rankOpen && !storeOpen && !bagOpen){ e.preventDefault(); openChat(true); return; }
+  if (e.code === 'Tab'){ e.preventDefault(); if (WORLD !== 'sky') openDex(!dexOpen); return; }
+  if (e.code === 'Escape'){ if (WORLD === 'sky' && SKYW?.key('Escape')) return; if (spotsOpen) openSpots(false); else if (gearOpen) openGear(false); else if (dexOpen) openDex(false); else if (helpOpen) openHelp(false); else if (friendsOpen) openFriends(false); else if (CAM.fp) setFP(false); return; }
   if (e.target && e.target.tagName === 'BUTTON'){ if (e.code === 'Enter') return; if (e.code === 'Space'){ e.preventDefault(); e.target.blur(); } }
   keys[e.code] = true;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+  if (WORLD === 'sky'){ if (SKYW?.key(e.code, e.repeat) || e.repeat) return; if (e.code === 'KeyM') openSpots(!spotsOpen); if (e.code === 'KeyL') openRank(!rankOpen); return; }
   if (e.repeat) return;
   if (e.code === 'KeyM') openSpots(!spotsOpen); if (e.code === 'KeyE') interact(); if (e.code === 'KeyF') setFP(!CAM.fp); if (e.code === 'KeyG') openGear(!gearOpen);
   if (e.code === 'KeyR'){ if (P.food) bite(); else if (P.cup) sip(); }
@@ -4759,15 +4951,16 @@ canvas.addEventListener('pointermove', e => {
   const p = ptr.get(e.pointerId); if (!p) return;
   if (p.joy){ let dx = (e.clientX - JOY.ox) / 50, dy = (e.clientY - JOY.oy) / 50; const l = Math.hypot(dx, dy); if (l > 1){ dx /= l; dy /= l; } JOY.x = dx; JOY.y = -dy; $('#joy b').style.transform = `translate(${dx * 34}px,${dy * 34}px)`; return; }
   const looks = [...ptr.values()].filter(q => !q.joy);
-  if (looks.length >= 2){ const [a, b] = looks; const d0 = Math.hypot(a.x - b.x, a.y - b.y); p.x = e.clientX; p.y = e.clientY; const d1 = Math.hypot(a.x - b.x, a.y - b.y); CAM.dist = clamp(CAM.dist * (d0 / Math.max(d1, 1)), 2.2, 10); return; }
+  if (looks.length >= 2){ const [a, b] = looks; const d0 = Math.hypot(a.x - b.x, a.y - b.y); p.x = e.clientX; p.y = e.clientY; const d1 = Math.hypot(a.x - b.x, a.y - b.y); if (WORLD === 'sky') SKYW?.zoom(d0 / Math.max(d1, 1)); else CAM.dist = clamp(CAM.dist * (d0 / Math.max(d1, 1)), 2.2, 10); return; }
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  if (WORLD === 'sky'){ if (!gearOpen) SKYW?.drag(dx, dy); return; }
   if (gearOpen){ P.yaw -= dx * 0.01; return; }
   CAM.yaw -= dx * 0.0055; CAM.dragT = time;
   if (CAM.sky && P.sit?.kind === 'float') CAM.skyPitch = clamp(CAM.skyPitch - dy * 0.004, -0.5, 1.5); else if (CAM.fp) CAM.fpPitch = clamp(CAM.fpPitch - dy * 0.004, -1.45, 1.45); else CAM.pitch = clamp(CAM.pitch + dy * 0.004, -0.4, 1.25);
 });
 const endPtr = e => { const p = ptr.get(e.pointerId); if (p?.joy){ JOY.id = null; JOY.x = JOY.y = 0; $('#joy b').style.transform = ''; resetJoy(); } ptr.delete(e.pointerId); };
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
-canvas.addEventListener('wheel', e => { e.preventDefault(); CAM.dist = clamp(CAM.dist * (1 + Math.sign(e.deltaY) * 0.1), 2.2, 10); }, { passive: false });
+canvas.addEventListener('wheel', e => { e.preventDefault(); if (WORLD === 'sky'){ SKYW?.zoom(Math.exp(e.deltaY * 0.0012)); return; } CAM.dist = clamp(CAM.dist * (1 + Math.sign(e.deltaY) * 0.1), 2.2, 10); }, { passive: false });
 function hold(id, key){ const el = $(id); const on = e => { e.preventDefault(); BTN[key] = true; el.classList.add('press'); AudioSys.ctx?.resume?.(); }, off = () => { BTN[key] = false; el.classList.remove('press'); }; el.addEventListener('pointerdown', on); el.addEventListener('pointerup', off); el.addEventListener('pointercancel', off); el.addEventListener('pointerleave', off); }
 hold('#bUp', 'up'); hold('#bDown', 'down'); hold('#bGun', 'shoot');
 let playT = 0;
@@ -4791,10 +4984,11 @@ $('#mSip').onclick = sip; $('#mBite').onclick = bite; $('#bEat').onclick = () =>
 $('#nextList').textContent = NEXT_SPOTS.join(' · ');
 $('#sNext').innerHTML = '<b>준비 중인 바다</b> · ' + NEXT_SPOTS.map(s => s.replace(/[<>&]/g, '')).join(' · ');
 function resetJoy(){ const j = $('#joy'); j.style.left = '96px'; j.style.top = (innerHeight - 120) + 'px'; }
-addEventListener('resize', () => { if (JOY.id === null) resetJoy(); });
+addEventListener('resize', () => { if (JOY.id === null) resetJoy(); SKYW?.resize(); });
 function startGame(withGear){
   if (started) return; started = true; AudioSys.init(); $('#start').classList.add('hidden');
   resetJoy();
+  if (WORLD === 'sky' && SKYW?.active){ SKYW.setStarted(true); refreshHUD(); lobbyTell(); if (withGear){ gearTab = GEAR_UI.findIndex(g => g.tab === '하늘 장비'); openGear(true); } else setTimeout(() => toast(TOUCH ? '[이륙!] 버튼을 누르면 달려서 이륙해요. 왼쪽 화면을 끌면 걸어요' : 'Space를 누르면 달려서 이륙해요. W A S D로 걸어요'), 600); return; }
   CAM.yaw = P.yaw; camera.position.set(P.x - Math.sin(P.yaw) * 5, P.feet + 3, P.z - Math.cos(P.yaw) * 5);
   refreshHUD(); updateDexCount();
   if (withGear) openGear(true); else setTimeout(() => toast(SPOT.id === 'munseom' ? (TOUCH ? '보트 끝으로 걸어가서 바다로 퐁당 들어가 보세요' : 'W 키로 보트 끝까지 걸어가 바다로 퐁당 들어가 보세요') : (TOUCH ? '왼쪽 화면을 끌어서 바다로 걸어가 보세요' : 'W 키로 바다 쪽으로 걸어가 보세요')), 600);
@@ -5316,6 +5510,25 @@ async function initRankSB(){
   return true;
 }
 
+/* ============================== 하늘 기록 · 하늘 순위 ==============================
+   장소별(s) · 지역별(r) 최고 기록을 이 기기에 저장하고, 순위 표에는 snorkel_submit_sky 함수로만 올린다 (서버가 값 범위를 다시 검사) */
+const SKYREC = (() => { const d = loadLS('pp_sky', {}) || {}; const mapN = m => { const o = {}; if (m && typeof m === 'object') for (const k in m){ const v = m[k]; if (typeof v === 'number' && v >= 0 && /^[a-z0-9_]{1,24}$/.test(k)) o[k] = v; } return o; };
+  return { best: Math.max(0, num(d.best)), acc: typeof d.acc === 'number' ? d.acc : null, climb: Math.max(0, num(d.climb)), n: Math.max(0, Math.round(num(d.n))), sc: mapN(d.sc), ac: mapN(d.ac), cl: mapN(d.cl) }; })();
+const skyRegOf = sid => (SKY_SPOTS.find(s => s.id === sid) || {}).mr || 'danyang';
+function skyRegMap(m, better){ const r = {}; for (const [sid, v] of Object.entries(m)){ const g = skyRegOf(sid); if (r[g] == null || better(v, r[g])) r[g] = v; } return r; }
+function skyRecord(o){ const sid = SKYSPOT?.id || 'danyang'; let up = false;
+  if (o.score > 0){ if (o.score > (SKYREC.sc[sid] || 0)){ SKYREC.sc[sid] = o.score; up = true; } SKYREC.best = Math.max(SKYREC.best, o.score); }
+  if (typeof o.acc === 'number' && o.acc >= 0){ if (SKYREC.ac[sid] == null || o.acc < SKYREC.ac[sid]){ SKYREC.ac[sid] = o.acc; up = true; } SKYREC.acc = Math.min(...Object.values(SKYREC.ac)); }
+  if (o.climb > 0){ if (!SKYREC.cl[sid] || o.climb < SKYREC.cl[sid]){ SKYREC.cl[sid] = o.climb; up = true; } SKYREC.climb = Math.min(...Object.values(SKYREC.cl)); }
+  if (o.n) SKYREC.n = o.n; saveLS('pp_sky', SKYREC); if (up) submitSky(); if (rankOpen && rankKind === 'sky') renderRank(); }
+const SKYRANK = { status: 'off', rows: [], t: 0 }; let skySubT = 0;
+function submitSky(){ clearTimeout(skySubT); skySubT = setTimeout(async () => { const sb = SB.client; if (!sb || !SB.id) return;
+  const rec = { nick: NICK, color: NET.myColor, n: SKYREC.n, sc: { r: skyRegMap(SKYREC.sc, (a, b) => a > b), s: SKYREC.sc }, ac: { r: skyRegMap(SKYREC.ac, (a, b) => a < b), s: SKYREC.ac }, cl: { r: skyRegMap(SKYREC.cl, (a, b) => a < b), s: SKYREC.cl } };
+  try { const { data, error } = await sb.rpc('snorkel_submit_sky', { p_id: SB.id, p_secret: SB.secret, p_rec: rec }); if (error) throw error; if (data === 'slow'){ skySubT = setTimeout(submitSky, 2500); return; } loadSkyRanks(); } catch (e){ SKYRANK.status = SKYRANK.status === 'on' ? 'on' : 'soon'; } }, 500); }
+async function loadSkyRanks(){ const sb = SB.client; if (!sb){ SKYRANK.status = 'off'; if (rankOpen && rankKind === 'sky') renderRank(); return; }
+  try { const { data, error } = await sb.from('snorkel_records').select('id,nick,color,pg,pg_best,pg_acc,pg_climb').or('pg_best.gt.0,pg_acc.not.is.null,pg_climb.not.is.null').limit(400); if (error) throw error; SKYRANK.rows = data || []; SKYRANK.status = 'on'; SKYRANK.t = Date.now(); }
+  catch (e){ SKYRANK.status = 'soon'; } if (rankOpen && rankKind === 'sky') renderRank(); }
+
 /* ============================== 메인 루프 ============================== */
 const clock = new THREE.Clock(); let time = 0;
 function updateProps(dt){
@@ -5325,6 +5538,7 @@ function updateProps(dt){
 function frame(){
   requestAnimationFrame(frame);
   const dt = Math.min(clock.getDelta(), 0.05); time += dt; U.time.value = time;
+  if (WORLD === 'sky' && SKYW?.active){ SKYW.frame(dt); sendPresence(dt); if (started){ lobbyTell(); updateZen(dt); } renderer.render(SKYW.scene, SKYW.camera); return; }
   updateTOD(dt); SKYCLOUDS.rotation.y = time * 0.004; skyPhotoUpdate(dt);
   updateSurfZone();
   if (started) updatePlayer(dt);
@@ -5340,6 +5554,7 @@ function snapshot(){ return { gear: G, spot: SPOT?.id, found: [...FOUND], x: P.x
 function pickInitialSpot(data){ const h = (location.hash || '').replace('#', ''); for (const c of [h, data.spot, loadLS('pp_spot', ''), 'panpo']) if (c && SPOTS.some(s => s.id === c)) return c; return 'panpo'; }
 function boot(data){
   data = data || {};
+  const skyStart = (() => { const h = (location.hash || '').replace('#', ''); if (isSkyId(h)) return h; const sv = loadLS('pp_spot', ''); return !h && isSkyId(sv) ? sv : null; })();
   if (data.gear) G = Object.assign({}, DEFAULT_GEAR, data.gear);
   const sid = pickInitialSpot(data);
   buildSpot(sid);
@@ -5348,12 +5563,13 @@ function boot(data){
   applySpotUI(); placeAtStart();
   buildBaby(); placeChar(); updateDexCount(); updatePearlUI(); AudioSys.updateIcon();
   if (data.started){ if (data.spot === sid && typeof data.x === 'number'){ P.x = data.x; P.z = data.z; const gh = groundH(P.x, P.z); if (gh < -0.6){ P.mode = 'swim'; P.bed = false; P.body = -0.3; } else { P.mode = 'land'; P.feet = gh; } } started = true; $('#start').classList.add('hidden'); resetJoy(); refreshHUD(); }
+  if (skyStart) enterSky(skyStart).catch(e => { console.error(e); leaveSky(); });
   frame(); initNet();
 }
 try { window.claude?.hot?.snapshot?.(snapshot); } catch (e){}
 const hot = window.claude?.hot;
 if (hot?.ready) hot.ready(boot); else boot(hot?.data ?? {});
-window.__pp = { P, CAM, BABY_STYLES, get G(){ return G; }, get NICK(){ return NICK; }, setNick, nickCheck, nameOf, rankName, TR, TITEMS, get BAG(){ return BAG; }, set BAG(v){ BAG = v; saveBag(); }, openBag, tradeItem, tradeAll, treasureInteract, interact, nearestInteract, get bagOpen(){ return bagOpen; }, get storeTab(){ return storeTab; }, renderDex, get dexMode(){ return dexMode; }, set dexMode(v){ dexMode = v; }, get FOUND(){ return FOUND; }, get SPOT(){ return SPOT; }, SPOTS, switchSpot, openSpots, renderSpots, spotMap, get FISH(){ return FISH; }, get turtle(){ return turtle; }, STATICS: () => STATICS, get CRITS(){ return CRITS; }, get REC(){ return REC; }, get SREC(){ return SREC; }, ME, openStore, buyFood, bite, FOODS, RENTALS, applyGear, SEATS: () => SEATS, POIS: () => POIS, FUN, fart, trip, DROPS, BTN, NET, get time(){ return time; }, DBG, recordSurf, SFX, get rankKind(){ return rankKind; }, get PEARL(){ return PEARL; }, addPearl, RANK, DIVE, recordDive, openRank, renderRank, SHOP, OWNED, buyItem, SPEC, SPECIES, foundAll, startGame, setFP, setTOD, openGear, openDex, sitDown, SEATS, groundH, keys, BTN, NET, onPeersChange, WAVES, catchable, startSurf, setGear, say, emote, openFriends };
+window.__pp = { get renderer(){ return renderer; }, get SKYW(){ return SKYW; }, get WORLD(){ return WORLD; }, SKYREC, get SKYRANK(){ return SKYRANK; }, get PEARL(){ return PEARL; }, OWNED, openStore, get storeOpen(){ return storeOpen; }, openRank, get rankKind(){ return rankKind; }, set rankKind(v){ rankKind = v; }, renderRank, get LOBBY(){ return LOBBY; }, P, CAM, BABY_STYLES, get G(){ return G; }, get NICK(){ return NICK; }, setNick, nickCheck, nameOf, rankName, TR, TITEMS, get BAG(){ return BAG; }, set BAG(v){ BAG = v; saveBag(); }, openBag, tradeItem, tradeAll, treasureInteract, interact, nearestInteract, get bagOpen(){ return bagOpen; }, get storeTab(){ return storeTab; }, renderDex, get dexMode(){ return dexMode; }, set dexMode(v){ dexMode = v; }, get FOUND(){ return FOUND; }, get SPOT(){ return SPOT; }, SPOTS, switchSpot, openSpots, renderSpots, spotMap, get FISH(){ return FISH; }, get turtle(){ return turtle; }, STATICS: () => STATICS, get CRITS(){ return CRITS; }, get REC(){ return REC; }, get SREC(){ return SREC; }, ME, openStore, buyFood, bite, FOODS, RENTALS, applyGear, SEATS: () => SEATS, POIS: () => POIS, FUN, fart, trip, DROPS, BTN, NET, get time(){ return time; }, DBG, recordSurf, SFX, get rankKind(){ return rankKind; }, get PEARL(){ return PEARL; }, addPearl, RANK, DIVE, recordDive, openRank, renderRank, SHOP, OWNED, buyItem, SPEC, SPECIES, foundAll, startGame, setFP, setTOD, openGear, openDex, sitDown, SEATS, groundH, keys, BTN, NET, onPeersChange, WAVES, catchable, startSurf, setGear, say, emote, openFriends };
 </script>
 </body>
 </html>
