@@ -451,7 +451,7 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
   <button class="chip" id="bGear" title="장비 꾸미기 (G)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><ellipse cx="12" cy="11" rx="9" ry="6"/><path d="M12 15v3M9 18h6"/><circle cx="8.5" cy="11" r="2.2"/><circle cx="15.5" cy="11" r="2.2"/></svg><span class="lbl">장비</span></button>
   <button class="chip" id="bDex" title="물고기 도감 (Tab)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 12c3-5 9-6 13-2l5-3v10l-5-3c-4 4-10 3-13-2z"/><circle cx="8" cy="11" r="1" fill="currentColor"/></svg><span class="lbl">도감</span><span class="n" id="dexN">0/19</span></button>
   <button class="chip" id="bRank" title="잠수·서핑 순위 (L)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/></svg><span class="lbl">순위</span><span class="n" id="rankN">도전</span></button>
-  <button class="chip" id="bView" title="마스크 시점 (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2.5" y="6" width="19" height="11" rx="5"/><path d="M12 17v-2"/></svg><span class="lbl">마스크 시점</span></button>
+  <button class="chip" id="bView" title="1인칭 시점 (F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2.5" y="6" width="19" height="11" rx="5"/><path d="M12 17v-2"/></svg><span class="lbl">1인칭 시점</span></button>
   <button class="chip" id="bTod" title="낮/노을"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 17h16M7 17a5 5 0 0 1 10 0M12 6v3M5.5 9.5l2 2M18.5 9.5l-2 2"/></svg><span class="lbl" id="todLbl">노을 보기</span></button>
   <button class="chip" id="bSnd" title="소리 켜기/끄기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4h4l5 4V6L8 10z"/><path id="sndWave" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="lbl" id="sndLbl">소리</span></button>
   <button class="chip" id="bFriends" title="같이 노는 친구"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"/><circle cx="16.5" cy="10" r="2.6"/><path d="M3.5 19c.8-3.2 3-4.8 5.5-4.8s4.7 1.6 5.5 4.8M14.5 15.2c.6-.3 1.3-.4 2-.4 2.1 0 3.8 1.4 4.4 4.2"/></svg><span class="lbl" id="frLbl">연결 중</span><span class="n hidden" id="frN">0</span></button>
@@ -459,10 +459,10 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
   <button class="chip" id="bHelp" title="도움말"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.6v.4M12 17.2v.1"/></svg><span class="lbl">도움말</span></button>
 </div>
 
-<div id="keys" class="hud hidden"><b>WASD</b> 이동 · <b>드래그</b> 시점 · <b>휠</b> 줌 · <b>Space</b> 점프/위로 · <b>Shift</b> 달리기(땅)·잠수(물) · <b>X</b> 물총 · <b>B</b> 뽀글 · <b>E</b> 앉기 · <b>F</b> 마스크 시점 · <b>M</b> 바다 옮기기 · <b>L</b> 순위</div>
+<div id="keys" class="hud hidden"><b>WASD</b> 이동 · <b>드래그</b> 시점 · <b>휠</b> 줌 · <b>Space</b> 점프/위로 · <b>Shift</b> 달리기(땅)·잠수(물) · <b>X</b> 물총 · <b>B</b> 뽀글 · <b>E</b> 앉기 · <b>F</b> 1인칭 시점 · <b>M</b> 바다 옮기기 · <b>L</b> 순위</div>
 <div id="actions" class="hud hidden">
   <button class="rb" id="bUp" aria-label="위로 / 점프">위로</button>
-  <button class="rb" id="bFp" aria-label="마스크 시점">마스크<br>시점</button>
+  <button class="rb" id="bFp" aria-label="1인칭 시점">1인칭<br>시점</button>
   <button class="rb" id="bDown" aria-label="잠수">잠수</button>
   <button class="rb" id="bChat2" aria-label="말하기">말하기</button>
   <button class="rb gun" id="bGun" aria-label="물총 쏘기">물총</button>
@@ -507,7 +507,7 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
   <div class="hbody">
     <div><h3>조작</h3>
       <ul>
-        <li>PC: <kbd>W A S D</kbd> 이동, 마우스 드래그로 시점, 휠로 줌, <kbd>Space</kbd> 점프·위로, <kbd>Shift</kbd> 땅에서 달리기·물에서 잠수, <kbd>X</kbd> 물총, <kbd>B</kbd> 뽀글 방귀, <kbd>E</kbd> 앉기·매점·대여소·줍기·모래 파기, <kbd>R</kbd> 먹기·마시기, <kbd>I</kbd> 망사리, <kbd>F</kbd> 마스크 시점, <kbd>M</kbd> 바다 옮기기, <kbd>L</kbd> 순위</li>
+        <li>PC: <kbd>W A S D</kbd> 이동, 마우스 드래그로 시점, 휠로 줌, <kbd>Space</kbd> 점프·위로, <kbd>Shift</kbd> 땅에서 달리기·물에서 잠수, <kbd>X</kbd> 물총, <kbd>B</kbd> 뽀글 방귀, <kbd>E</kbd> 앉기·매점·대여소·줍기·모래 파기, <kbd>R</kbd> 먹기·마시기, <kbd>I</kbd> 망사리, <kbd>F</kbd> 1인칭 시점, <kbd>M</kbd> 바다 옮기기, <kbd>L</kbd> 순위</li>
         <li>휴대폰: 왼쪽 화면을 끌어 이동, 오른쪽 화면을 끌어 시점, 두 손가락으로 줌</li>
         <li>별명: 시작 화면이나 친구 창(사람 모양 버튼)에서 8자까지 지을 수 있어요. 친구들 이름표와 순위표에 보여요.</li>
       </ul></div>
@@ -3453,7 +3453,7 @@ function randomGear(){ const pick = a => a[(Math.random() * a.length) | 0]; G = 
 function openGear(v){ gearOpen = v; gearBuy = null; $('#gear').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); CAM.gearYaw = P.yaw; CAM.prevYaw = CAM.yaw; renderGear(); if (CAM.fp) setFP(false); hintOnce('gearspin', TOUCH ? '아이를 옆으로 밀면 빙글 돌려 볼 수 있어요' : '아이를 드래그하면 빙글 돌려 볼 수 있어요'); } else if (CAM.gearYaw !== undefined){ P.yaw = CAM.gearYaw; CAM.yaw = CAM.prevYaw ?? P.yaw; } refreshHUD(); }
 function openDex(v){ dexOpen = v; $('#dex').classList.toggle('hidden', !v); if (v){ if (rankOpen) openRank(false); renderDex(); } refreshHUD(); }
 function openHelp(v){ helpOpen = v; $('#help').classList.toggle('hidden', !v); refreshHUD(); }
-function setFP(v){ if (P.sit?.kind === 'float'){ setSky(!CAM.sky); return; } CAM.fp = v; $('#mask').classList.toggle('hidden', !v || G.mask === 'none'); $('#bView').classList.toggle('on', v); $('#bFp').classList.toggle('on', v); charRoot.visible = !v; blob.visible = !v; if (v){ CAM.yaw = P.yaw; CAM.fpPitch = P.mode === 'swim' ? -0.6 : -0.1; hintOnce('fp', P.mode === 'swim' ? '마스크 너머로 물속이 보여요. 드래그하면 둘러볼 수 있어요' : '물에 들어가면 마스크 너머로 물속이 보여요'); } }
+function setFP(v){ if (P.sit?.kind === 'float'){ setSky(!CAM.sky); return; } CAM.fp = v; $('#mask').classList.add('hidden'); $('#bView').classList.toggle('on', v); $('#bFp').classList.toggle('on', v); charRoot.visible = !v; blob.visible = !v; if (v){ CAM.yaw = P.yaw; CAM.fpPitch = P.mode === 'swim' ? -0.6 : -0.1; hintOnce('fp', P.mode === 'swim' ? '아기 눈으로 물속을 봐요. 드래그하면 둘러볼 수 있어요' : '아기 눈으로 봐요. 드래그하면 하늘까지 올려다볼 수 있어요'); } }
 function showMung(v){ $('#mung').classList.toggle('hidden', !v); if (!v) CAM.sky = false; if (v){ const fl = P.sit.kind === 'float'; $('#mView').classList.toggle('hidden', !fl); $('#mUp').textContent = fl ? '다시 헤엄치기' : '일어나기'; $('#mTitle').textContent = P.sit.title || '물멍 중'; $('#mTime').textContent = '00:00'; renderDrinks(); if (CAM.fp) setFP(false); } refreshHUD(); }
 function renderDrinks(){ const box = $('#mDrinks'); box.innerHTML = '';
   if (P.food){ const f = FOOD[P.food.id], c = el('div', 'held'); c.appendChild(iconCanvas(x => drawFoodIcon(x, f))); c.appendChild(document.createTextNode(f.name)); c.appendChild(el('small', '', `${P.food.left}입 남음`)); box.appendChild(c); }
@@ -4554,7 +4554,7 @@ canvas.addEventListener('pointermove', e => {
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
   if (gearOpen){ P.yaw -= dx * 0.01; return; }
   CAM.yaw -= dx * 0.0055; CAM.dragT = time;
-  if (CAM.sky && P.sit?.kind === 'float') CAM.skyPitch = clamp(CAM.skyPitch - dy * 0.004, -0.5, 1.5); else if (CAM.fp) CAM.fpPitch = clamp(CAM.fpPitch - dy * 0.004, -1.45, 0.9); else CAM.pitch = clamp(CAM.pitch + dy * 0.004, -0.4, 1.25);
+  if (CAM.sky && P.sit?.kind === 'float') CAM.skyPitch = clamp(CAM.skyPitch - dy * 0.004, -0.5, 1.5); else if (CAM.fp) CAM.fpPitch = clamp(CAM.fpPitch - dy * 0.004, -1.45, 1.45); else CAM.pitch = clamp(CAM.pitch + dy * 0.004, -0.4, 1.25);
 });
 const endPtr = e => { const p = ptr.get(e.pointerId); if (p?.joy){ JOY.id = null; JOY.x = JOY.y = 0; $('#joy b').style.transform = ''; resetJoy(); } ptr.delete(e.pointerId); };
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
