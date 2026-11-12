@@ -57,6 +57,22 @@ button:focus-visible{outline:3px solid var(--hallabong);outline-offset:2px}
 #keys{left:12px;bottom:12px;font-size:12.5px;color:#fff;background:rgba(11,79,108,.55);padding:7px 11px;border-radius:12px;line-height:1.55;max-width:min(560px,60vw)}
 #keys b{font-family:var(--display);font-weight:400;background:rgba(255,255,255,.2);border-radius:5px;padding:0 5px}
 #actions{right:14px;bottom:max(16px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,64px);gap:10px}
+#bPlay{display:none}
+body.touch #actions{display:block;width:210px;height:220px}
+body.touch #actions .rb{position:absolute}
+body.touch #bUp{right:0;bottom:0;width:78px;height:78px;font-size:16px}
+body.touch #bDown{right:90px;bottom:6px;width:62px;height:62px}
+body.touch #bDown.off{display:none}
+body.touch #bPlay{display:grid;right:12px;bottom:92px;width:54px;height:54px;font-size:13px;box-shadow:inset 0 0 0 4px #9ad0ff,0 4px 0 rgba(36,36,42,.25)}
+body.touch #actions.open #bPlay{background:#9ad0ff;color:#0c3550}
+body.touch #actions .fan{display:none;width:58px;height:58px;font-size:13px}
+body.touch #actions.open .fan{display:grid;animation:fanin .18s ease-out}
+body.touch #bGun{right:78px;bottom:86px}
+body.touch #bFart{right:144px;bottom:86px}
+body.touch #bChat2{right:78px;bottom:152px}
+body.touch #bFp{right:144px;bottom:152px}
+body.touch #bEat{right:4px;bottom:158px}
+@keyframes fanin{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 .rb.eat{box-shadow:inset 0 0 0 5px #ff5f8f,0 4px 0 rgba(36,36,42,.25);font-family:var(--display);font-size:15px;animation:pulse .8s ease-in-out infinite alternate}
 .rb{width:64px;height:64px;border-radius:50%;border:0;background:#fff;box-shadow:inset 0 0 0 5px var(--hallabong),0 4px 0 rgba(36,36,42,.25);font-size:13px;display:grid;place-items:center;line-height:1.05;padding:0;touch-action:none}
 .rb:active,.rb.press{transform:translateY(2px)}
@@ -477,11 +493,12 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
 <div id="keys" class="hud hidden"><b>WASD</b> 이동 · <b>드래그</b> 시점 · <b>휠</b> 줌 · <b>Space</b> 점프/위로 · <b>Shift</b> 달리기(땅)·잠수(물) · <b>X</b> 물총 · <b>B</b> 뽀글 · <b>E</b> 앉기 · <b>F</b> 1인칭 시점 · <b>M</b> 바다 옮기기 · <b>L</b> 순위</div>
 <div id="actions" class="hud hidden">
   <button class="rb" id="bUp" aria-label="위로 / 점프">위로</button>
-  <button class="rb" id="bFp" aria-label="1인칭 시점">1인칭<br>시점</button>
+  <button class="rb fan" id="bFp" aria-label="1인칭 시점">1인칭</button>
   <button class="rb" id="bDown" aria-label="잠수">잠수</button>
-  <button class="rb" id="bChat2" aria-label="말하기">말하기</button>
-  <button class="rb gun" id="bGun" aria-label="물총 쏘기">물총</button>
-  <button class="rb" id="bFart" aria-label="뽀글 방귀">뽀글</button>
+  <button class="rb fan" id="bChat2" aria-label="말하기">말하기</button>
+  <button class="rb gun fan" id="bGun" aria-label="물총 쏘기">물총</button>
+  <button class="rb fan" id="bFart" aria-label="뽀글 방귀">뽀글</button>
+  <button class="rb play" id="bPlay" aria-label="놀기 버튼 펼치기" aria-expanded="false">놀기</button>
   <button class="rb eat hidden" id="bEat" aria-label="먹기">냠냠</button>
 </div>
 <div id="tags"></div>
@@ -543,10 +560,10 @@ body.touch #act{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(saf
       </ul></div>
     <div><h3>친구들과 놀기</h3>
       <ul>
-        <li>땅에서 <kbd>Shift</kbd>를 누르고 있으면 달려요. 휴대폰은 조이스틱을 끝까지 밀거나 달리기 버튼을 눌러요. 오리발을 신고 뛰면 꽈당 넘어져요!</li>
-        <li><kbd>X</kbd>(휴대폰은 물총 버튼)를 누르고 있으면 물총을 쏴요. 친구를 맞히면 친구가 깜짝 놀라요.</li>
+        <li>땅에서 <kbd>Shift</kbd>를 누르고 있으면 달려요. 휴대폰은 조이스틱을 끝까지 밀어요. 오리발을 신고 뛰면 꽈당 넘어져요!</li>
+        <li><kbd>X</kbd>(휴대폰은 놀기 → 물총)를 누르고 있으면 물총을 쏴요. 친구를 맞히면 친구가 깜짝 놀라요.</li>
         <li>방파제나 바위 끝에서 물로 뛰어들면 다이빙 점수가 나와요. 공중에서 <kbd>Space</kbd>를 다시 누르면 배치기 · 대포알 · 만세 · 엉덩이 다이빙으로 자세가 바뀌어요.</li>
-        <li><kbd>B</kbd>(휴대폰은 뽀글 버튼)를 누르면 뽀글뽀글 방귀! 친구들 화면에도 보여요.</li>
+        <li><kbd>B</kbd>(휴대폰은 놀기 → 뽀글)를 누르면 뽀글뽀글 방귀! 친구들 화면에도 보여요.</li>
       </ul>
       <p class="safe">실제 바다에서는 방파제나 바위에서 물로 뛰어들면 안 돼요. 바닥이 얕거나 바위가 숨어 있어 아주 위험해요. 물총 놀이도 친구 얼굴에는 쏘지 않아요.</p></div>
     <div><h3>잠수 기록 · 순위 · 진주</h3>
@@ -2969,7 +2986,7 @@ function updatePlayer(dt){
     if (DIVE.on) endDive(); DIVE.calm = Math.max(0, DIVE.calm - dt / 2);
     const wading = P.feet < -0.08, tripping = time < FUN.tripT;
     FUN.run = want && !tripping && (down || (TOUCH && Math.hypot(JOY.x, JOY.y) > 0.92));
-    if (FUN.run) hintOnce('run', TOUCH ? '조이스틱을 끝까지 밀거나 달리기 버튼을 누르면 달려요!' : 'Shift를 누르고 있으면 달려요!');
+    if (FUN.run) hintOnce('run', TOUCH ? '조이스틱을 끝까지 밀면 달려요!' : 'Shift를 누르고 있으면 달려요!');
     const sp = 2.7 * (G.fins !== 'none' ? 0.62 : 1) * (wading ? 0.6 : 1) * (FUN.run ? 1.85 : 1);
     if (want && !tripping) moveLand(P.x + dx * sp * dt, P.z + dz * sp * dt);
     if (FUN.run && G.fins !== 'none' && P.grounded){ FUN.tripCheck -= dt; if (FUN.tripCheck <= 0){ FUN.tripCheck = 1; if (Math.random() < 0.22) trip(); } } else FUN.tripCheck = Math.min(FUN.tripCheck, 0.6);
@@ -2982,7 +2999,7 @@ function updatePlayer(dt){
     if (gh < -0.6 && P.feet + 0.4 < 0.05){ const hard = P.vy < -3; P.mode = 'swim'; P.bed = false; P.body = P.feet + 0.4; P.vy = Math.max(P.vy * 0.35, -2.5); if (!diveSplash()){ splashAt(P.x, P.z, hard ? 1.8 : 1); if (hard) AudioSys.splash(true); } }
     if (wading && want){ P.splashT -= dt; if (P.splashT <= 0){ P.splashT = 0.32; splashAt(P.x, P.z, 0.5); } }
     P.moving = want && !tripping;
-    if (P.grounded && gh > 0.5 && groundH(P.x + Math.sin(P.yaw) * 1.2, P.z + Math.cos(P.yaw) * 1.2) < -0.8) hintOnce('divehint', TOUCH ? '여기서 물로 뛰어들 수 있어요! 공중에서 위로 버튼을 다시 누르면 자세가 바뀌어요' : '여기서 물로 뛰어들 수 있어요! 공중에서 Space를 다시 누르면 자세가 바뀌어요');
+    if (P.grounded && gh > 0.5 && groundH(P.x + Math.sin(P.yaw) * 1.2, P.z + Math.cos(P.yaw) * 1.2) < -0.8) hintOnce('divehint', TOUCH ? '여기서 물로 뛰어들 수 있어요! 공중에서 점프 버튼을 다시 누르면 자세가 바뀌어요' : '여기서 물로 뛰어들 수 있어요! 공중에서 Space를 다시 누르면 자세가 바뀌어요');
   } else if (P.surf){
     if (DIVE.on) endDive(); updateSurf(dt, dx, dz); P.moving = true;
   } else {
@@ -4331,10 +4348,13 @@ function updateFun(dt){
       if (time > FUN.hitPopT){ FUN.hitPopT = time + 0.8; surfPop(pickOne(['명중!', '맞혔다!', '첨벙!'])); AudioSys.pop(); } } }
   /* 내가 맞았을 때 */
   if (hitBy.length){ FUN.hitAcc += dt; if (FUN.hitAcc > 0.12){ FUN.wetT = time + 1.6; FUN.wetFx = (FUN.wetFx || 0) - dt; if (FUN.wetFx <= 0){ FUN.wetFx = 0.22; splashAt(P.x, P.z, 0.5); }
-      if (time - FUN.hitSay > 2.6){ FUN.hitSay = time; say(pickOne(['으악 차가워!', '앗, 물총이다!', '복수할 거야!', '꺄아!', '나도 쏜다!'])); hintOnce('wet', TOUCH ? `${nameOf(hitBy[0])} 님 물총에 맞았어요! 물총 버튼으로 복수해 봐요` : `${nameOf(hitBy[0])} 님 물총에 맞았어요! X를 눌러 복수해 봐요`); } } }
+      if (time - FUN.hitSay > 2.6){ FUN.hitSay = time; say(pickOne(['으악 차가워!', '앗, 물총이다!', '복수할 거야!', '꺄아!', '나도 쏜다!'])); hintOnce('wet', TOUCH ? `${nameOf(hitBy[0])} 님 물총에 맞았어요! 놀기 → 물총으로 복수해 봐요` : `${nameOf(hitBy[0])} 님 물총에 맞았어요! X를 눌러 복수해 봐요`); } } }
   else FUN.hitAcc = Math.max(0, FUN.hitAcc - dt * 2);
   updateDrops(dt);
   const bd = $('#bDown'); const lbl = P.mode === 'land' ? '달리기' : '잠수'; if (bd.textContent !== lbl){ bd.textContent = lbl; bd.setAttribute('aria-label', lbl); }
+  if (TOUCH){ bd.classList.toggle('off', P.mode === 'land' || hasBoard(G) || G.tube !== 'none' || !!P.surf);
+    const bu = $('#bUp'), ul = P.mode === 'land' ? '점프' : '위로'; if (bu.textContent !== ul) bu.textContent = ul;
+    const A = $('#actions'); if (A.classList.contains('open') && !BTN.shoot && performance.now() - playT > 8000) setPlay(false); }
 }
 
 /* 배치기 다이빙: 높은 곳에서 물로 떨어지면 자세에 따라 물보라 점수 */
@@ -4342,7 +4362,7 @@ function diveAir(up){
   if (P.grounded){ FUN.airTop = P.feet; FUN.pose = -1; FUN.poseLatch = true; return; }
   FUN.airTop = Math.max(FUN.airTop, P.feet);
   const gh = groundH(P.x, P.z);
-  if (FUN.pose < 0 && FUN.airTop > 0.7 && P.feet > 0.2 && gh < -0.6){ FUN.pose = 0; hintOnce('divepose', TOUCH ? '배치기 자세! 공중에서 위로 버튼을 다시 누르면 다이빙 자세가 바뀌어요' : '배치기 자세! 공중에서 Space를 다시 누르면 다이빙 자세가 바뀌어요'); }
+  if (FUN.pose < 0 && FUN.airTop > 0.7 && P.feet > 0.2 && gh < -0.6){ FUN.pose = 0; hintOnce('divepose', TOUCH ? '배치기 자세! 공중에서 점프 버튼을 다시 누르면 다이빙 자세가 바뀌어요' : '배치기 자세! 공중에서 Space를 다시 누르면 다이빙 자세가 바뀌어요'); }
   if (FUN.pose >= 0){ if (up && !FUN.poseLatch){ FUN.poseLatch = true; FUN.pose = (FUN.pose + 1) % DIVE_POSES.length; surfPop(DIVE_POSES[FUN.pose].name); AudioSys.blip(600, 900, 0.08, 'sine', 0.06); } if (!up) FUN.poseLatch = false; }
 }
 function diveSplash(){
@@ -4602,6 +4622,11 @@ canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointerca
 canvas.addEventListener('wheel', e => { e.preventDefault(); CAM.dist = clamp(CAM.dist * (1 + Math.sign(e.deltaY) * 0.1), 2.2, 10); }, { passive: false });
 function hold(id, key){ const el = $(id); const on = e => { e.preventDefault(); BTN[key] = true; el.classList.add('press'); AudioSys.ctx?.resume?.(); }, off = () => { BTN[key] = false; el.classList.remove('press'); }; el.addEventListener('pointerdown', on); el.addEventListener('pointerup', off); el.addEventListener('pointercancel', off); el.addEventListener('pointerleave', off); }
 hold('#bUp', 'up'); hold('#bDown', 'down'); hold('#bGun', 'shoot');
+let playT = 0;
+function setPlay(v){ const A = $('#actions'); A.classList.toggle('open', v); $('#bPlay').setAttribute('aria-expanded', String(v)); playT = performance.now(); if (v) hintOnce('playfan', '놀기에서 물총 · 뽀글 · 말하기 · 1인칭을 쓸 수 있어요'); }
+$('#bPlay').onclick = () => setPlay(!$('#actions').classList.contains('open'));
+for (const id of ['#bGun', '#bFart', '#bChat2', '#bFp']) $(id).addEventListener('pointerdown', () => { playT = performance.now(); });
+for (const id of ['#bFart', '#bChat2', '#bFp']) $(id).addEventListener('click', () => setTimeout(() => setPlay(false), 250));
 $('#bFart').onclick = () => fart();
 $('#bFp').onclick = () => setFP(!CAM.fp); $('#bView').onclick = () => setFP(!CAM.fp);
 $('#bGear').onclick = () => openGear(!gearOpen);
