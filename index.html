@@ -3221,7 +3221,7 @@ function updatePlayer(dt){
   const up = !locked && (keys.Space || BTN.up), down = !locked && (keys.ShiftLeft || keys.ShiftRight || keys.KeyC || keys.KeyQ || BTN.down);
   if (SEA.boat?.on){ boatDrive(dt, dx, dz, want); return; }
   if (SEA.ride){ rideDrive(dt, dx, dz, want, up); return; }
-  if (SEA.sl){ slideDrive(dt); return; }
+  if (SEA.sl){ slideDrive(dt, ix, iz, up); return; }
   if (P.sit){ if (want || (P.sit.kind === 'float' && down)) standUp(); else { sitUpdate(dt); return; } }
   if (P.surf && (P.mode !== 'swim' || !hasBoard(G))) P.surf = null;
   if (P.surf){} else if (CAM.fp) P.yaw = lerpAngle(P.yaw, CAM.yaw, 1 - Math.exp(-dt * 12)); else if (want) P.yaw = lerpAngle(P.yaw, Math.atan2(dx, dz), 1 - Math.exp(-dt * 10));
@@ -3451,7 +3451,7 @@ function snackUpdate(dt){
 }
 
 /* 포즈 애니메이션 */
-const STATES = new Set(['idle', 'walk', 'fall', 'swim', 'tread', 'tube', 'sit', 'paddle', 'surf', 'float', 'dig', 'trip']);
+const STATES = new Set(['idle', 'walk', 'fall', 'swim', 'tread', 'tube', 'sit', 'paddle', 'surf', 'float', 'dig', 'trip', 'slide']);
 const hasBoard = g => g.board === 'long' || g.board === 'short';
 const FINK = () => (G.fins === 'long' || G.fins === 'mermaid') ? 1.45 : G.fins === 'short' ? 1.25 : 1;
 function localState(){
@@ -3490,6 +3490,7 @@ function animRig(rig, dt, st, o){
   else if (st === 'float'){ /* 누워서 물멍: 하늘을 보고 대자로 둥실 */ T.pitch = -1.42 + Math.sin(t * 0.7) * 0.05; T.roll = Math.sin(t * 0.55) * 0.07; T.bob = Math.sin(t * 1.1) * 0.012;
     T.aLz = 1.35 + Math.sin(t * 0.8) * 0.12; T.aRz = -(1.35 + Math.sin(t * 0.8 + 1.1) * 0.12); T.aLx = T.aRx = 0.15; T.lLz = 0.38 + Math.sin(t * 0.6) * 0.06; T.lRz = -T.lLz; T.lLx = Math.sin(t * 1.3) * 0.08; T.lRx = -T.lLx;
     if (cup){ T.aRx = -1.1; T.aRz = -0.2; } }
+  else if (st === 'slide'){ /* 워터 슬라이드: 뒤로 살짝 눕고 두 팔 번쩍, 기울기는 홈 벽을 따라 */ T.pitch = -0.42; T.roll = o.lean || 0; T.bob = -0.04; T.lLx = T.lRx = -1.3; T.lLz = 0.14; T.lRz = -0.14; T.aLz = 2.55 + Math.sin(t * 9) * 0.15; T.aRz = -(2.55 + Math.sin(t * 9 + 1.2) * 0.15); T.aLx = T.aRx = -0.25; }
   else if (st === 'sit'){ T.pitch = -0.12; T.lLx = T.lRx = -1.45; T.aLz = 0.25; T.aRz = -0.25; if (cup){ T.aRx = -0.95; T.aRz = 0.15; } }
   else if (st === 'pose' && o.T) Object.assign(T, o.T); /* 하늘 월드(sky.js)가 자세를 직접 정할 때 */
   if (rig.foodObj && !o.eat && (st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet')){ T.aLx = T.aLx * 0.3 - 0.75; T.aLz = 0.1; }
@@ -3791,7 +3792,7 @@ function refreshHUD(){
   $('#joy').classList.toggle('hidden', !started || !TOUCH || panel || !!P.sit);
   if (P.sit || panel) $('#act').classList.add('hidden');
 }
-const ST_LABEL = { idle: '쉬는 중', walk: '걷는 중', fall: '점프!', swim: '스노클링 중', tread: '둥실둥실', tube: '튜브 타는 중', sit: '물멍 중', paddle: '패들 중', surf: '서핑 중!', run: '달리는 중', seabed: '바다 바닥 탐험 중', seawalk: '바다 바닥 걷는 중', dig: '바닥에서 보물 찾는 중' };
+const ST_LABEL = { idle: '쉬는 중', walk: '걷는 중', fall: '점프!', swim: '스노클링 중', tread: '둥실둥실', tube: '튜브 타는 중', sit: '물멍 중', paddle: '패들 중', surf: '서핑 중!', run: '달리는 중', seabed: '바다 바닥 탐험 중', seawalk: '바다 바닥 걷는 중', dig: '바닥에서 보물 찾는 중', slide: '워터 슬라이드 슝!' };
 let hudT = 0, curInteract = null;
 let zenT = 0;
 document.addEventListener('pointerdown', () => { zenT = 0; document.body.classList.remove('zen'); }, true);
@@ -3814,11 +3815,11 @@ function updateHUD(dt){ updateZen(dt); lobbyTell();
   { const eb = $('#bEat'), showE = TOUCH && started && !panel && P.mode === 'land' && !P.sit && (!!P.food || (!!P.cup && P.level > 0.01)); eb.classList.toggle('hidden', !showE); if (showE){ const t = P.food ? '냠냠' : '꿀꺽'; if (eb.textContent !== t) eb.textContent = t; } }
   if (curInteract?.type === 'float' && started) hintOnce('floathint', TOUCH ? '물 위에서 가만히 있으면 주황 버튼으로 누워서 물멍할 수 있어요' : '물 위에서 가만히 있다가 E를 누르면 누워서 물멍해요');
   if (curInteract?.type === 'kiosk' && started) hintOnce('kioskhint', TOUCH ? '화면 오른쪽 주황 버튼을 누르면 매점이 열려요. 산 먹을거리는 냠냠 버튼으로 먹어요' : 'E를 누르면 매점이 열려요. 산 먹을거리는 R로 먹어요');
-  const act = $('#act'); act.classList.toggle('cue', curInteract?.type === 'surfwait'); act.classList.toggle('go', curInteract?.type === 'surfgo');
+  const act = $('#act'); act.classList.toggle('cue', curInteract?.type === 'surfwait'); act.classList.toggle('go', curInteract?.type === 'surfgo' || curInteract?.type === 'slidego');
   if (curInteract && started){ act.classList.remove('hidden'); act.innerHTML = ''; act.appendChild(document.createTextNode(curInteract.label)); if (!TOUCH && curInteract.type !== 'surfwait'){ const k = document.createElement('kbd'); k.textContent = curInteract.key || 'E'; act.appendChild(k); } } else act.classList.add('hidden');
 }
 function nearestInteract(){
-  if (SEA.sl) return null;
+  if (SEA.sl) return SEA.sl.stage === 'wait' ? { sea: true, type: 'slidego', label: '슝! 내려가기', run: () => slideGo() } : null;
   if (SEA.boat?.on) return { sea: true, type: 'boatoff', label: '보트에서 내리기', run: () => leaveBoat() };
   if (SEA.ride) return { sea: true, type: 'rideoff', label: `${RIDE[SEA.ride.a.kind].name}에서 내리기`, run: () => leaveRide() };
   if (P.sit || P.surf) return null; let best = null, bd = 1e9; const ty = P.mode === 'land' ? P.feet + 0.4 : P.body;
@@ -4768,7 +4769,7 @@ function diveSplash(){
   AudioSys.splash(true); const best = sc > FUN.splashBest; if (best){ FUN.splashBest = sc; saveLS('pp_splash_best', sc); }
   surfPop(`${ps.name}! 물보라 ${sc.toFixed(1)}점`, sc >= 9); if (best && sc >= 5) setTimeout(() => toast(`내 최고 물보라 ${sc.toFixed(1)}점!`, 'found'), 900);
   NET.jid = (NET.jid || 0) + 1; NET.jd = sc; NET.jp = k;
-  setTimeout(() => hintOnce('divesafe', '게임에서만 해요! 실제 방파제나 바위에서 물로 뛰어드는 건 아주 위험해서 하면 안 돼요'), 1600);
+  if (!SEA.slEnd) setTimeout(() => hintOnce('divesafe', '게임에서만 해요! 실제 방파제나 바위에서 물로 뛰어드는 건 아주 위험해서 하면 안 돼요'), 1600);
   return true;
 }
 
@@ -6317,7 +6318,11 @@ body.touch #sandMenu{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 236px)}
 @media (max-width:520px){#sandMenu .row{display:grid;grid-template-columns:1fr 1fr}#sandMenu .row button{min-width:0;padding:9px 9px;font-size:14px}}
 #wallChip{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 76px);border:0;border-radius:999px;background:#c98a3d;color:#fff;font-family:var(--display);font-size:16px;padding:11px 18px;box-shadow:0 4px 0 #8a5a1f}
 body.touch #wallChip{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 362px)}
-body.clean #wallChip{visibility:hidden}`;
+body.clean #wallChip{visibility:hidden}
+#slideChip{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 76px);border:0;border-radius:999px;background:#fff;color:var(--basalt);font-family:var(--display);font-size:15px;padding:10px 16px;box-shadow:inset 0 0 0 2px #3fb8e0,0 3px 0 rgba(0,0,0,.18)}
+body.touch #slideChip{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 372px)}
+body.clean #slideChip{visibility:hidden}
+.tag .bub{white-space:pre-line}`;
   document.head.appendChild(css);
   const card = document.createElement('div'); card.id = 'seaCard'; card.className = 'hidden';
   card.innerHTML = '<button class="chip"></button><div class="box"><b></b><small></small><div class="row"><button class="go"></button><button class="no">닫기</button></div></div>'; document.body.appendChild(card);
@@ -6329,6 +6334,7 @@ body.clean #wallChip{visibility:hidden}`;
   if (!TOUCH) sm.querySelectorAll('.row button').forEach((b, i) => { const k = document.createElement('i'); k.textContent = `${i + 1}번 키`; b.appendChild(k); });
   sm.querySelectorAll('.row button').forEach(b => b.onclick = e => { e.stopPropagation(); sandChoose(b.dataset.k); });
   sm.querySelector('.no').onclick = () => openSandMenu(false);
+  const sc = document.createElement('button'); sc.id = 'slideChip'; sc.className = 'hidden'; sc.type = 'button'; sc.textContent = '사다리로 내려가기'; document.body.appendChild(sc); sc.onclick = () => slideCancel();
   const wc = document.createElement('button'); wc.id = 'wallChip'; wc.className = 'hidden'; wc.type = 'button'; document.body.appendChild(wc); wc.onclick = () => stopWall();
   const tb = document.createElement('button'); tb.id = 'tourBtn'; tb.className = 'hidden'; tb.type = 'button'; document.body.appendChild(tb); tb.onclick = () => { if (SEA.tour) stopTour('투어를 멈췄어요'); else startTour(); };
   const bs = document.createElement('button'); bs.id = 'bShark'; bs.className = 'rb hidden'; bs.textContent = '물총!'; bs.setAttribute('aria-label', '물총으로 상어 쫓기'); document.body.appendChild(bs); hold('#bShark', 'shoot');
@@ -6339,44 +6345,75 @@ body.clean #wallChip{visibility:hidden}`;
 })();
 
 /* ---------- 바다를 옮길 때마다 다시 짓기 · 매 프레임 ---------- */
-/* ---------- 12. 워터 슬라이드: 바다마다 해변에 하나. 탑을 빙글빙글 돌아 내려오다 쭉 떨어지고, 끝에서 바다로 슝 날아가 첨벙! ---------- */
-const SLIDE = { r: 0.5, R: 2.3, up: new V3(0, 1, 0) };
-const SLIDE_LV = [{ g0: 0.15, g1: 1.9, ob: 1.0, cl: 5, deep: -1.3, rm: 54, bm: 2 }, { g0: 0.1, g1: 3.2, ob: 1.6, cl: 3.5, deep: -0.9, rm: 72, bm: 1 }, { g0: 0.02, g1: 5, ob: 2.6, cl: 2.5, deep: -0.55, rm: 96, bm: 0 }];
+/* ---------- 12. 워터 슬라이드: 바다마다 해변에 하나. 탑을 빙글빙글 돌아 내려오다 쭉 떨어지고, 끝에서 탁 트인 바다로 슝 날아가 첨벙!
+   자리: 모래 해변 위, 방파제 · 등대 · 계단 · 배 · 건물 같은 구조물에서 떨어진 곳. 미끄럼틀은 늘 먼바다 쪽(+z, ±60도 안)으로 나간다.
+   타기: 사다리 앞 E → 꼭대기에 올라가 기다림 → 안전요원(AI) 안내를 보고 '내려가기' → 앞/뒤로 빨리 · 천천히, 좌우로 기울기 ---------- */
+const SLIDE = { r: 0.5, R: 2.3, up: new V3(0, 1, 0), guard: null };
+/* 자리 고르는 순서: 모래 해변 + 깊은 물 → 모래 해변 + 조금 얕은 물 → 바위 없는 땅 → (물 위에 뜬 슬라이드) → 마지막 수단 */
+const SLIDE_LV = [{ sand: true, deep: -1.2, g1: 2.2, rm: 70 }, { sand: true, deep: -0.9, g1: 2.4, rm: 80 }, { sand: false, rock: 0.3, deep: -1.2, g1: 2.6, rm: 80 }, { sand: true, deep: -0.7, g1: 2.6, rm: 90 }, { sand: false, rock: 0.45, deep: -0.9, g1: 3.0, rm: 90 }, { float: true }, { sand: false, rock: 0.6, deep: -0.6, g1: 3.6, rm: 96 }];
+const SLIDE_DIRS = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6].map(k => k * Math.PI / 18);
 function slideK(gh){ return 1 + Math.max(0, gh - 1.5) * 0.3; }
+/* 방파제 · 등대 · 계단 · 배 · 건물 · 나무 같은 구조물까지 거리 */
+function structDist(x, z, big){ let d = 1e9;
+  for (const b of COL.blocks){ if (big && (b.x1 - b.x0) * (b.z1 - b.z0) < 6 && Math.max(b.x1 - b.x0, b.z1 - b.z0) < 4) continue; const q = Math.hypot(Math.max(b.x0 - x, 0, x - b.x1), Math.max(b.z0 - z, 0, z - b.z1)); if (q < d) d = q; }
+  for (const r of COL.ramps){ const q = Math.hypot(Math.max(r.x0 - x, 0, x - r.x1), Math.max(r.z0 - z, 0, z - r.z1)); if (q < d) d = q; }
+  for (const c of COL.circles){ const q = Math.hypot(x - c.x, z - c.z) - c.r; if (q < d) d = q; }
+  return d; }
+/* 끝에서 떨어지는 곳까지 길이를 고른다: 짧은 것부터, 바다가 충분히 깊고 구조물이 없는 첫 길이 */
+function slideRunLen(x, z, gh, fx, fz, deep, inB){
+  const ex = x - fz * SLIDE.R, ez = z + fx * SLIDE.R, kk = slideK(gh), L0 = 8.4 * kk;
+  const boat = (px, pz, m) => SEA.boat && Math.hypot(SEA.boat.dock.x - px, SEA.boat.dock.z - pz) < m, rx = fz, rz = -fx;
+  /* 바위 옆도 피한다: 홈 양옆 2.5m, 떨어지는 곳 양옆 3.5m에 바위가 없어야 */
+  const rocky = (px, pz, w, lim) => rockAt(px, pz) > lim || rockAt(px + rx * w, pz + rz * w) > lim || rockAt(px - rx * w, pz - rz * w) > lim;
+  const reef = (px, pz) => ROCKSPOTS.some(q => Math.hypot(q.x - px, q.z - pz) < (q.r || 2) + 2.5);
+  if (structDist(ex, ez) < 2.2 || structDist(ex, ez, true) < 9) return 0; let L = 1;
+  for (const Lr of [L0, L0 + 2.5, L0 + 5, L0 + 7.5, L0 + 10, L0 + 12.5, L0 + 15]){
+    if (!inB(ex + fx * (Lr + 13), ez + fz * (Lr + 13), 1)) return 0;
+    for (; L <= Lr; L += 1){ const px = ex + fx * L, pz = ez + fz * L; if (structDist(px, pz) < 1.9 || structDist(px, pz, true) < 8 || boat(px, pz, 5) || groundH(px, pz) > gh + 0.8 || rocky(px, pz, 2.5, 0.4) || rocky(px, pz, 4.5, 0.4)) return 0; }
+    let ok = true; for (let q = 2; q <= 14 && ok; q += 1.5){ const px = ex + fx * (Lr + q), pz = ez + fz * (Lr + q); if (structDist(px, pz) < 4 || structDist(px, pz, true) < 10 || boat(px, pz, 7) || rocky(px, pz, 3.5, 0.3) || reef(px, pz)) ok = false; }
+    if (!ok) continue;
+    let wet = true; for (const q of [3, 6, 9]) if (groundH(ex + fx * (Lr + q), ez + fz * (Lr + q)) > deep) wet = false;
+    if (wet && groundH(ex + fx * (Lr + 12), ez + fz * (Lr + 12)) < -0.4) return Lr; }
+  return 0; }
 function findSlideSpot(){
   const st = SPOT.start, B = SPOT.bounds, inB = (x, z, m) => x > B.minX + m && x < B.maxX - m && z > B.minZ + m && z < B.maxZ - m; SLIDE.diag = [];
-  for (let lv = 0; lv < SLIDE_LV.length; lv++){ const O = SLIDE_LV[lv], D = { lv, n: 0, b: 0, g: 0, cl: 0, ob: 0, dir: 0 }; SLIDE.diag.push(D);
-  for (let r = 6; r <= O.rm; r += 2) for (let k = 0; k < 36; k++){
+  const clear = (x, z, cl) => !SEATS.some(s => Math.hypot(s.x - x, s.z - z) < cl) && !POIS.some(p => Math.hypot(p.x - x, p.z - z) < cl) && !(SEA.boat && Math.hypot(SEA.boat.x - x, SEA.boat.z - z) < 9) && !SEA.cliffs.some(c => Math.hypot(c.sx - x, c.sz - z) < 9 || Math.hypot(c.ex - x, c.ez - z) < 9);
+  for (let lv = 0; lv < SLIDE_LV.length; lv++){ const O = SLIDE_LV[lv];
+    if (O.float){ const f = findFloatSlide(inB, clear); if (f){ f.lv = lv; return f; } continue; }
+    const D = { lv, n: 0, b: 0, g: 0, st: 0, sand: 0, cl: 0, ob: 0, dir: 0 }; SLIDE.diag.push(D);
+  for (let r = 7; r <= O.rm; r += 2) for (let k = 0; k < 36; k++){
     const a = k / 36 * Math.PI * 2 + (r % 4) * 0.04, x = st.x + Math.sin(a) * r, z = st.z + Math.cos(a) * r; D.n++;
-    if (!inB(x, z, 4)) { D.b++; continue; } const gh = groundH(x, z); if (gh < O.g0 || gh > O.g1) { D.g++; continue; }
-    if (SEATS.some(s => Math.hypot(s.x - x, s.z - z) < O.cl + 1) || POIS.some(p => Math.hypot(p.x - x, p.z - z) < O.cl) || (SEA.boat && Math.hypot(SEA.boat.x - x, SEA.boat.z - z) < O.cl + 3) || SEA.cliffs.some(c => Math.hypot(c.sx - x, c.sz - z) < O.cl + 3)) { D.cl++; continue; }
-    let ok = true; for (let j = 0; j < 12 && ok; j++){ const b = j / 12 * Math.PI * 2; for (const q of [1.6, 3.0]) if (groundH(x + Math.sin(b) * q, z + Math.cos(b) * q) > gh + O.ob) ok = false; } if (!ok) { D.ob++; continue; }
-    let dir = null, deep = 0; const kk = slideK(gh);
-    for (let j = 0; j < 36; j++){ const b = j / 36 * Math.PI * 2, fx = Math.sin(b), fz = Math.cos(b), ex = x - fz * SLIDE.R, ez = z + fx * SLIDE.R; let s = 0, good = inB(ex + fx * (8.4 * kk + 10), ez + fz * (8.4 * kk + 10), O.bm);
-      for (const L of [2, 4, 6, 8]) if (good && groundH(ex + fx * L * kk, ez + fz * L * kk) > gh + O.ob - 0.2) good = false;
-      for (const L of [3, 6, 9]){ if (!good) break; const g = groundH(ex + fx * (8.4 * kk + L), ez + fz * (8.4 * kk + L)); if (g > O.deep) good = false; s += g; }
-      if (good && s < deep){ deep = s; dir = b; } }
-    if (dir === null) { D.dir++; continue; } return { x, z, gh, a: dir, lv }; } }
-  /* 모래사장이 없는 바다(섬 · 바위 해안): 물 위에 둥둥 뜬 미끄럼틀 섬을 띄운다 */
-  for (let r = 8; r <= 50; r += 2) for (let k = 0; k < 36; k++){
-    const a = k / 36 * Math.PI * 2, x = st.x + Math.sin(a) * r, z = st.z + Math.cos(a) * r; if (!inB(x, z, 5)) continue; const gh = groundH(x, z); if (gh > -1.6 || gh < -8) continue;
-    if ((SEA.boat && Math.hypot(SEA.boat.x - x, SEA.boat.z - z) < 9) || SEA.cliffs.some(c => Math.hypot(c.ex - x, c.ez - z) < 9)) continue;
-    let ok = true; for (let j = 0; j < 12 && ok; j++){ const b = j / 12 * Math.PI * 2; for (const q of [2, 3.6]) if (groundH(x + Math.sin(b) * q, z + Math.cos(b) * q) > -1.0) ok = false; } if (!ok) continue;
-    let dir = null, deep = 0;
-    for (let j = 0; j < 36; j++){ const b = j / 36 * Math.PI * 2, fx = Math.sin(b), fz = Math.cos(b), ex = x - fz * SLIDE.R, ez = z + fx * SLIDE.R; let s = 0, good = inB(ex + fx * 18, ez + fz * 18, 1);
-      for (const L of [3, 6, 9, 12, 15]){ if (!good) break; const g = groundH(ex + fx * L, ez + fz * L); if (g > -1.3) good = false; s += g; }
-      if (good && s < deep){ deep = s; dir = b; } }
-    if (dir !== null) return { x, z, gh: 0.3, a: dir, lv: 3, float: true }; }
+    if (!inB(x, z, 4)){ D.b++; continue; } const gh = groundH(x, z); if (gh < 0.12 || gh > O.g1){ D.g++; continue; }
+    if (gh - terrainH(x, z) > 0.05 || structDist(x, z) < 4.2 || structDist(x, z, true) < 10){ D.st++; continue; }
+    if (O.sand ? !sandish(x, z) : terrainSample(x, z).rock > O.rock){ D.sand++; continue; }
+    if (!clear(x, z, 4.6)){ D.cl++; continue; }
+    let ok = true; for (let j = 0; j < 12 && ok; j++){ const b = j / 12 * Math.PI * 2; for (const q of [1.6, 3.0]) if (groundH(x + Math.sin(b) * q, z + Math.cos(b) * q) > gh + 1.0) ok = false; if (rockAt(x + Math.sin(b) * 4, z + Math.cos(b) * 4) > 0.4 || rockAt(x + Math.sin(b) * 6, z + Math.cos(b) * 6) > 0.5) ok = false; } if (!ok){ D.ob++; continue; }
+    for (const b of SLIDE_DIRS){ const fx = Math.sin(b), fz = Math.cos(b);
+      if (structDist(x - fx * 3.4, z - fz * 3.4) < 1 || groundH(x - fx * 3.4, z - fz * 3.4) > gh + 1.0) continue;
+      const Lr = slideRunLen(x, z, gh, fx, fz, O.deep, inB); if (Lr) return { x, z, gh, a: b, lv, Lr }; }
+    D.dir++; } }
   return null;
 }
+/* 모래사장이 없는 바다(섬 · 바위 해안 · 포구): 물 위에 둥둥 뜬 미끄럼틀 섬을 띄운다. 이것도 구조물에서 멀리, 먼바다 쪽으로 */
+function findFloatSlide(inB, clear){ const st = SPOT.start;
+  for (let r = 8; r <= 72; r += 2) for (let k = 0; k < 36; k++){
+    const a = k / 36 * Math.PI * 2, x = st.x + Math.sin(a) * r, z = st.z + Math.cos(a) * r; if (!inB(x, z, 5)) continue; const gh = groundH(x, z); if (gh > -1.0 || gh < -8) continue;
+    if (structDist(x, z) < 6 || structDist(x, z, true) < 10 || !clear(x, z, 6)) continue;
+    let ok = true; for (let j = 0; j < 12 && ok; j++){ const b = j / 12 * Math.PI * 2; for (const q of [2, 3.6]) if (groundH(x + Math.sin(b) * q, z + Math.cos(b) * q) > -0.8) ok = false; } if (!ok) continue;
+    for (const b of SLIDE_DIRS){ const fx = Math.sin(b), fz = Math.cos(b), ex = x - fz * SLIDE.R, ez = z + fx * SLIDE.R; let good = inB(ex + fx * 20, ez + fz * 20, 1);
+      for (const L of [3, 6, 9, 12, 15]){ if (!good) break; if (groundH(ex + fx * L, ez + fz * L) > -1.1 || ROCKSPOTS.some(q => Math.hypot(q.x - ex - fx * L, q.z - ez - fz * L) < (q.r || 2) + 2.5) || structDist(ex + fx * L, ez + fz * L) < 5 || structDist(ex + fx * L, ez + fz * L, true) < 10 || (SEA.boat && Math.hypot(SEA.boat.dock.x - ex - fx * L, SEA.boat.dock.z - ez - fz * L) < 7)) good = false; }
+      if (good) return { x, z, gh: 0.3, a: b, float: true, Lr: 8.4 }; } }
+  return null; }
 function buildSlide(){
-  SEA.slide = null; SEA.sl = null; const sp = findSlideSpot(); if (!sp) return;
+  SEA.slide = null; SEA.sl = null; const sp = findSlideSpot(); slideGuardHide(); if (!sp) return;
   const fx = Math.sin(sp.a), fz = Math.cos(sp.a), top = sp.gh + 5.8, R = SLIDE.R, yEnd = sp.gh + 2.3, phiEnd = Math.atan2(-fz, fx), turns = 1.25, phi0 = phiEnd - turns * Math.PI * 2;
   const pts = []; for (let i = 0; i <= 20; i++){ const t = i / 20, f = phi0 + t * (phiEnd - phi0), rr = R - 0.45 * Math.max(0, 1 - t * 5); pts.push(new V3(sp.x + Math.sin(f) * rr, top + 0.3 - t * (top + 0.3 - yEnd), sp.z + Math.cos(f) * rr)); }
   const A = pts[pts.length - 1], at = (k, y) => { const p = new V3(A.x + fx * k, 0, A.z + fz * k); p.y = Math.max(y, groundH(p.x, p.z) + 0.5); return p; };
-  const kk = slideK(sp.gh); pts.push(at(2.2 * kk, A.y - 0.75), at(4.6 * kk, 0.95), at(7.0 * kk, 0.95), at(8.4 * kk, 1.4));
+  const kk = slideK(sp.gh), Lr = sp.Lr || 8.4 * kk; pts.push(at(2.2 * kk, A.y - 0.75), at(4.6 * kk, 0.95)); for (let L = 4.6 * kk + 2.4; L < Lr - 2.6; L += 2.4) pts.push(at(L, 0.95)); pts.push(at(Lr - 1.4, 0.95), at(Lr, 1.4));
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal'), len = curve.getLength(), N = Math.round(len / 0.12), S = [];
-  for (let i = 0; i <= N; i++){ const u = i / N, p = curve.getPointAt(u), t = curve.getTangentAt(u); let s0 = new V3().crossVectors(t, SLIDE.up); if (s0.lengthSq() < 1e-6) s0 = S.length ? S[S.length - 1].s.clone() : new V3(1, 0, 0); s0.normalize(); const up = new V3().crossVectors(s0, t).normalize(); S.push({ p, t, s: s0, u: up, d: u * len }); }
+  for (let i = 0; i <= N; i++){ const u = i / N, p = curve.getPointAt(u), t = curve.getTangentAt(u); let s0 = new V3().crossVectors(t, SLIDE.up); if (s0.lengthSq() < 1e-6) s0 = S.length ? S[S.length - 1].s.clone() : new V3(1, 0, 0); s0.normalize(); const up = new V3().crossVectors(s0, t).normalize(); S.push({ p, t, s: s0, u: up, d: u * len, c: 0 }); }
+  /* 굽은 정도(홈 옆벽 쪽 성분): 빠르게 돌면 바깥 벽으로 올라탄다 */
+  for (let i = 1; i < N; i++){ const a = S[i - 1], b = S[i + 1], k = b.t.clone().sub(a.t).multiplyScalar(1 / Math.max(1e-3, b.d - a.d)); S[i].c = k.dot(S[i].s); }
   /* 미끄럼 홈: 아래쪽 반원 단면을 길 따라 쓸어서 만든다(노랑 · 산호 줄무늬) */
   const M0 = 12, pos = [], nor = [], col = [], idx = [], cA = new THREE.Color('#ffd23f'), cB = new THREE.Color('#ff7a59'), cO = new THREE.Color('#3fb8e0');
   for (let i = 0; i <= N; i++){ const f = S[i], c = (Math.floor(i / 8) % 2) ? cA : cB;
@@ -6385,7 +6422,7 @@ function buildSlide(){
   for (let i = 0; i < N; i++) for (let j = 0; j < M0; j++){ const a = i * (M0 + 1) + j, b = a + M0 + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
   const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); tg.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); tg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); tg.setIndex(idx);
   const g = new THREE.Group(); SEA.root.add(g); const trough = new THREE.Mesh(tg, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); g.add(trough);
-  /* 기둥 · 탑 · 꼭대기 지붕 · 사다리 */
+  /* 기둥 · 탑 · 꼭대기 지붕 · 사다리 · 구명환 */
   const parts = new THREE.Group(); g.add(parts); const W0 = SEAM.white, gr = sp.float ? 0.3 : groundH(sp.x, sp.z);
   if (sp.float){ mesh(new THREE.CylinderGeometry(3.3, 3.1, 0.5, 26), SEAM.white, parts, sp.x, 0.08, sp.z); const rim = mesh(new THREE.TorusGeometry(3.3, 0.2, 8, 30), SEAM.coral, parts, sp.x, 0.2, sp.z); rim.rotation.x = Math.PI / 2;
     for (let k = 0; k < 6; k++){ const b = k / 6 * Math.PI * 2; mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 6), SEAM.yellow, parts, sp.x + Math.sin(b) * 3.15, 0.5, sp.z + Math.cos(b) * 3.15); } }
@@ -6400,39 +6437,88 @@ function buildSlide(){
   for (const s of [-1, 1]) mesh(new THREE.CylinderGeometry(0.035, 0.035, top - gr, 6), W0, parts, lx + rx * s * 0.28, (top + gr) / 2, lz + rz * s * 0.28);
   for (let y = gr + 0.3; y < top; y += 0.35){ const rg = mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.56, 5), SEAM.yellow, parts, lx, y, lz); rg.rotation.z = Math.PI / 2; rg.rotation.y = Math.atan2(fx, fz); }
   for (let i = 10; i < S.length - 6; i += 22){ const f = S[i], b = f.p.clone().addScaledVector(f.u, -SLIDE.r), gh = groundH(b.x, b.z), h = b.y - Math.max(gh, -1.2); if (h > 0.6) mesh(new THREE.CylinderGeometry(0.07, 0.09, h, 8), W0, parts, b.x, b.y - h / 2, b.z); }
+  /* 안전요원 자리: 꼭대기 출발점 옆(사다리 구멍은 피해서) */
+  const angL = Math.atan2(-fx, -fz), dAng = (p, q) => Math.abs(Math.atan2(Math.sin(p - q), Math.cos(p - q))); let ga = phi0 - 0.95; if (dAng(ga, angL) < 0.9) ga = phi0 + 0.95;
+  const gx = sp.x + Math.sin(ga) * 0.88, gz = sp.z + Math.cos(ga) * 0.88;
+  { const lb = mesh(new THREE.TorusGeometry(0.24, 0.075, 8, 20), SEAM.lifeR, parts, sp.x + Math.sin(ga - 0.4) * 1.49, top + 0.3, sp.z + Math.cos(ga - 0.4) * 1.49); lb.rotation.y = ga - 0.4; }
   seaBake(parts);
-  const signM = new THREE.MeshLambertMaterial({ map: textTex('워터 슬라이드', { bg: '#3fb8e0', fg: '#ffffff', size: 70, sub: '꼭대기에서 바다로 슝!', subSize: 40, w: 512, h: 200 }), side: THREE.DoubleSide });
+  const signM = new THREE.MeshLambertMaterial({ map: textTex('워터 슬라이드', { bg: '#3fb8e0', fg: '#ffffff', size: 70, sub: '한 명씩 · 앉아서 타요', subSize: 40, w: 512, h: 200 }), side: THREE.DoubleSide });
   const sx0 = sp.x - fx * (sp.float ? 2.5 : 3.4) + rx * 1.2, sz0 = sp.z - fz * (sp.float ? 2.5 : 3.4) + rz * 1.2, sg = sp.float ? 0.3 : groundH(sx0, sz0); const sign = mesh(new THREE.PlaneGeometry(1.5, 0.58), signM, g, sx0, sg + 1.3, sz0); sign.rotation.y = Math.atan2(-fx, -fz);
   mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.0, 6), SEAM.pole, g, sx0, sg + 0.5, sz0);
   const poi = { sea: true, type: 'slide', x: lx - fx * 0.5, z: lz - fz * 0.5, r: 2.4, label: '워터 슬라이드 타기', run: () => startSlide() }; POIS.push(poi);
   let dA = 0, bd = 1e9; for (const f of S){ const q = f.p.distanceToSquared(A); if (q < bd){ bd = q; dA = f.d; } }
-  SEA.slide = { S, len, top, gr, x: sp.x, z: sp.z, lx, lz, fx, fz, poi, g, lv: sp.lv, float: !!sp.float, dA };
+  SEA.slide = { S, len, top, gr, x: sp.x, z: sp.z, lx, lz, fx, fz, poi, g, lv: sp.lv, float: !!sp.float, dA, Lr, gx, gz, ga, phi0 };
+}
+/* ---------- 안전요원 (AI): 꼭대기에 한 명. 이름표에 늘 AI라고 쓴다 ---------- */
+const GUARD_NAMES = ['물결이', '파랑이', '해솔이', '바다', '모래', '하늘이'];
+function slideGuardHide(){ const G0 = SLIDE.guard; if (!G0) return; G0.rig.root.visible = false; G0.tag.el.classList.add('hidden'); G0.on = false; }
+function slideGuardBuild(S0){
+  if (!SLIDE.guard){ const tag = makeTag(); tag.el.classList.add('npc'); SLIDE.guard = { rig: makeRig(), tag, on: false, sayT: 0, said: '' }; }
+  const G0 = SLIDE.guard; let h = 11; for (const c of SPOT.id) h = (h * 31 + c.charCodeAt(0)) | 0;
+  const gear = sanitizeGear(Object.assign({}, npcGear(mulberry32(h ^ 0x6a17)), { suit: '#e2382f', shorts: '#ffd21f', cap: 'bucket', capColor: '#ffd21f', mask: 'none', snorkel: 'off', fins: 'none', tube: 'none', board: 'none', vest: 'none' }));
+  buildBabyInto(G0.rig, gear); G0.slide = S0; G0.rig.tOff = 3.3; G0.rig.root.scale.setScalar(1.15); G0.rig.root.visible = true; G0.on = true; G0.sayT = 0; G0.said = ''; G0.wave = 0;
+  G0.tag.n.textContent = `안전요원 ${GUARD_NAMES[(h >>> 3) % GUARD_NAMES.length]} (AI)`;
+  G0.rig.root.position.set(S0.gx, S0.top + 0.4, S0.gz);
+}
+function guardSay(text, key){ const G0 = SLIDE.guard; if (!G0?.on) return; if (key && G0.said === key && time < G0.sayT) return; G0.said = key || text; G0.sayT = time + 7; showBubble(G0.tag, text); G0.tag.bT = time + 7; }
+const SLIDE_TXT = {
+  climb: () => TOUCH ? '한 명씩 차례로!\n사다리 앞에서 주황 버튼을 누르면 올라와요' : '한 명씩 차례로!\n사다리 앞에서 E를 누르면 올라와요',
+  ready: () => TOUCH ? '준비됐으면 주황 [내려가기] 버튼!\n내려갈 때 조이스틱 위로 = 빨리, 아래로 = 천천히' : '준비됐으면 E나 Space로 출발!\n내려갈 때 W = 빨리 · S = 천천히 · A·D = 기울기',
+  go: () => '출발~! 꽉 잡아요', done: () => '멋져요! 또 타려면 사다리로 와요',
+};
+function slideGuardUpdate(dt){
+  const S0 = SEA.slide; if (!S0) return; if (!SLIDE.guard || SLIDE.guard.slide !== S0) slideGuardBuild(S0); const G0 = SLIDE.guard; if (!G0.on) return; const root = G0.rig.root, d = Math.hypot(P.x - S0.x, P.z - S0.z), near = d < 60;
+  root.visible = near; if (!near){ G0.tag.el.classList.add('hidden'); return; }
+  const look = SEA.sl || d < 14 ? Math.atan2(P.x - S0.gx, P.z - S0.gz) : S0.ga + Math.PI; root.rotation.y = lerpAngle(root.rotation.y, look, 1 - Math.exp(-dt * 4));
+  G0.wave = Math.max(0, G0.wave - dt); animRig(G0.rig, dt, 'idle', { wave: G0.wave > 0 });
+  placeTag(G0.tag, root, started, true, 40);
+  if (!started) return; const R0 = SEA.sl;
+  if (R0?.stage === 'wait'){ if (!R0.told || (time - R0.told > 9)){ R0.told = time; guardSay(SLIDE_TXT.ready()); G0.wave = 1.6; } }
+  else if (!R0 && Math.hypot(P.x - S0.lx, P.z - S0.lz) < 7 && !SEA.slEnd && time > (G0.climbT || 0)){ G0.climbT = time + 22; guardSay(SLIDE_TXT.climb()); G0.wave = 1.6; }
 }
 function slideAt(d){ const S = SEA.slide.S, n = S.length - 1, f = clamp(d / SEA.slide.len * n, 0, n), i = Math.min(n - 1, Math.floor(f)), k = f - i, a = S[i], b = S[i + 1];
-  return { p: a.p.clone().lerp(b.p, k), t: a.t.clone().lerp(b.t, k).normalize(), u: a.u.clone().lerp(b.u, k).normalize() }; }
+  return { p: a.p.clone().lerp(b.p, k), t: a.t.clone().lerp(b.t, k).normalize(), u: a.u.clone().lerp(b.u, k).normalize(), s: a.s.clone().lerp(b.s, k).normalize(), c: a.c + (b.c - a.c) * k }; }
 function startSlide(){
   const S0 = SEA.slide; if (!S0 || SEA.sl || !(P.mode === 'land' || (S0.float && P.mode === 'swim')) || P.surf) return; if (P.sit) standUp(); SEA.goto = null; SEA.build = null; if (SEA.wallB) stopWall(); if (DIVE.on) endDive(); P.bed = false; P.forceUp = false;
-  SEA.sl = { d: 0, v: 3.2, climb: 1.4, c0: 1.4, max: 0, sx: P.x, sz: P.z }; FUN.run = false; AudioSys.blip(440, 660, 0.12, 'triangle', 0.08); toast('영차영차 꼭대기로 올라가요!');
+  SEA.sl = { stage: 'climb', d: 0, v: 3.2, lat: 0, climb: 1.4, c0: 1.4, max: 0, latch: true }; FUN.run = false; AudioSys.blip(440, 660, 0.12, 'triangle', 0.08); toast('영차영차 꼭대기로 올라가요!');
   hintOnce('slidesafe', '진짜 워터 슬라이드는 꼭 앉아서, 한 명씩 차례로 타요');
 }
-function slideDrive(dt){
+function slideSeat(){ const f = slideAt(0), b = f.p.clone().addScaledVector(f.u, -SLIDE.r * 0.62); P.x = b.x; P.z = b.z; P.feet = b.y - 0.2; P.yaw = Math.atan2(f.t.x, f.t.z); P.mode = 'land'; P.grounded = true; P.vy = 0; P.moving = false; P.lean = 0; }
+function slideGo(){ const R0 = SEA.sl; if (!R0 || R0.stage !== 'wait') return; R0.stage = 'ride'; R0.d = 0; R0.v = 3.2; R0.lat = 0; surfPop('하나 둘 셋, 출발!'); AudioSys.whoosh(); guardSay(SLIDE_TXT.go(), 'go'); CAM.yaw = P.yaw;
+  hintOnce('slidectl', TOUCH ? '조이스틱을 위로 밀면 더 빨리, 아래로 당기면 천천히, 옆으로 밀면 기울어요' : 'W는 더 빨리, S는 천천히, A·D로 좌우로 기울어요'); }
+function slideCancel(){ const R0 = SEA.sl, S0 = SEA.slide; if (!R0 || R0.stage === 'ride' || !S0) return; SEA.sl = null; P.lean = 0;
+  const bk = S0.float ? 3.0 : 0.9, x = S0.lx - S0.fx * bk, z = S0.lz - S0.fz * bk, gh = groundH(x, z); P.x = x; P.z = z; P.yaw = Math.atan2(-S0.fx, -S0.fz);
+  if (gh < -0.6){ P.mode = 'swim'; P.body = -0.2; P.vy = 0; } else { P.mode = 'land'; P.feet = gh; P.grounded = true; P.vy = 0; } toast('사다리로 내려왔어요'); }
+function slideDrive(dt, ix = 0, iz = 0, up = false){
   const R0 = SEA.sl, S0 = SEA.slide; if (!S0){ SEA.sl = null; return; }
-  if (R0.climb > 0){ R0.climb -= dt; const k = 1 - R0.climb / R0.c0; P.x = S0.lx - S0.fx * 0.25; P.z = S0.lz - S0.fz * 0.25; P.feet = S0.gr + k * (S0.top - S0.gr); P.yaw = Math.atan2(S0.fx, S0.fz); P.mode = 'land'; P.grounded = true; P.vy = 0; P.moving = true;
-    if (R0.climb <= 0){ surfPop('하나 둘 셋, 출발!'); AudioSys.whoosh(); CAM.yaw = P.yaw; } return; }
-  let f = slideAt(R0.d); R0.v = clamp(R0.v + (-f.t.y * 16 - 0.5) * dt, 3.2, 17); R0.d += R0.v * dt; R0.max = Math.max(R0.max, R0.v);
-  if (R0.d >= S0.len){ const e = slideAt(S0.len), v = R0.v; P.mode = 'land'; P.x = e.p.x; P.z = e.p.z; P.feet = e.p.y - SLIDE.r * 0.6 - 0.18; P.grounded = false; P.vy = Math.max(2.8, e.t.y * v * 0.5 + 2.6); P.jumpLatch = true;
-    SEA.leap = { vx: e.t.x * v * 0.7, vz: e.t.z * v * 0.7 }; SEA.slEnd = { max: R0.max, t: time }; SEA.sl = null; surfPop('슝~!', true); AudioSys.whoosh(); return; }
-  f = slideAt(R0.d); const b = f.p.addScaledVector(f.u, -SLIDE.r * 0.62);
-  P.x = b.x; P.z = b.z; P.feet = b.y - 0.2; P.yaw = Math.atan2(f.t.x, f.t.z); P.mode = 'land'; P.grounded = true; P.vy = 0; P.moving = true;
-  CAM.yaw = lerpAngle(CAM.yaw, P.yaw, 1 - Math.exp(-dt * 5)); CAM.dragT = -99; if (!CAM.fp){ const e = 1 - Math.exp(-dt * 3), hi = R0.d < S0.dA - 1; CAM.pitch += ((hi ? 0.66 : 0.3) - CAM.pitch) * e; CAM.dist += ((hi ? 5.6 : 5.0) - CAM.dist) * e; }
-  R0.sp = (R0.sp || 0) - dt; if (R0.sp <= 0 && R0.v > 6){ R0.sp = 0.12; addDrop(b.x, b.y + 0.1, b.z, -f.t.x * 1.5 + (Math.random() - 0.5), 1.5 + Math.random(), -f.t.z * 1.5 + (Math.random() - 0.5), 0.6); }
+  if (R0.stage === 'climb'){ R0.climb -= dt; const k = 1 - R0.climb / R0.c0; P.x = S0.lx - S0.fx * 0.25; P.z = S0.lz - S0.fz * 0.25; P.feet = S0.gr + k * (S0.top - S0.gr); P.yaw = Math.atan2(S0.fx, S0.fz); P.mode = 'land'; P.grounded = true; P.vy = 0; P.moving = true;
+    if (R0.climb <= 0){ R0.stage = 'wait'; R0.waitT = time; R0.told = 0; R0.latch = up; slideSeat(); CAM.yaw = P.yaw; CAM.dragT = -99; AudioSys.blip(520, 780, 0.12, 'triangle', 0.08);
+      if (TOUCH || innerWidth < 700) toast('안전요원: ' + SLIDE_TXT.ready().replace('\n', ' ')); } return; }
+  if (R0.stage === 'wait'){ slideSeat();
+    if (!CAM.fp && time - CAM.dragT > 2.5){ const e = 1 - Math.exp(-dt * 3); CAM.yaw = lerpAngle(CAM.yaw, P.yaw, e); CAM.pitch += (0.5 - CAM.pitch) * e; CAM.dist += (4.6 - CAM.dist) * e; }
+    if (up && !R0.latch) slideGo(); if (!up) R0.latch = false; return; }
+  /* 내려가는 중: 앞으로 = 더 빨리, 뒤로 = 천천히(멈추지는 않음), 옆으로 = 홈 안에서 기울기. 빨리 돌면 바깥 벽으로 올라탄다 */
+  let f = slideAt(R0.d); const thr = clamp(iz, -1, 1);
+  R0.v = clamp(R0.v + (-f.t.y * 16 - 0.5 + (thr > 0 ? thr * 5 : thr * 7)) * dt, 3.5, thr > 0.2 ? 18 : 16); R0.d += R0.v * dt; R0.max = Math.max(R0.max, R0.v);
+  const cent = clamp(-f.c * R0.v * R0.v * 0.02, -0.8, 0.8), want = clamp(clamp(ix, -1, 1) * 0.8 + cent, -1, 1); R0.lat += (want - R0.lat) * (1 - Math.exp(-dt * 6));
+  if (R0.d >= S0.len){ const e = slideAt(S0.len), v = R0.v, hx = e.t.x + e.s.x * R0.lat * 0.25, hz = e.t.z + e.s.z * R0.lat * 0.25, hl = Math.hypot(hx, hz) || 1;
+    P.mode = 'land'; P.x = e.p.x; P.z = e.p.z; P.feet = e.p.y - SLIDE.r * 0.6 - 0.18; P.grounded = false; P.vy = Math.max(2.8, e.t.y * v * 0.5 + 2.6); P.jumpLatch = true; P.lean = 0;
+    SEA.leap = { vx: hx / hl * v * 0.66, vz: hz / hl * v * 0.66 }; SEA.slEnd = { max: R0.max, t: time }; SEA.sl = null; surfPop(v > 14 ? '슈우웅~!!' : v < 6 ? '퐁당~' : '슝~!', v > 14); AudioSys.whoosh(); return; }
+  f = slideAt(R0.d); const th = R0.lat * 0.95, rr = SLIDE.r * 0.62, b = f.p.addScaledVector(f.s, Math.sin(th) * rr).addScaledVector(f.u, -Math.cos(th) * rr);
+  P.x = b.x; P.z = b.z; P.feet = b.y - 0.2; P.yaw = Math.atan2(f.t.x, f.t.z); P.mode = 'land'; P.grounded = true; P.vy = 0; P.moving = true; P.lean = clamp(-th * 0.6, -0.6, 0.6);
+  /* 카메라: 빙글빙글 구간에서는 탑 바깥쪽 뒤에서 비스듬히(탑 기둥에 가리지 않게), 곧은 구간에서는 바로 뒤에서 */
+  { const hi = R0.d < S0.dA - 1; let yaw = P.yaw; if (hi && !CAM.fp){ const ox = b.x - S0.x, oz = b.z - S0.z, ol = Math.hypot(ox, oz) || 1; yaw = Math.atan2(f.t.x * 0.55 - ox / ol * 0.85, f.t.z * 0.55 - oz / ol * 0.85); }
+    CAM.yaw = lerpAngle(CAM.yaw, yaw, 1 - Math.exp(-dt * 5)); CAM.dragT = -99; if (!CAM.fp){ const e = 1 - Math.exp(-dt * 3); CAM.pitch += ((hi ? 0.5 : 0.3) - CAM.pitch) * e; CAM.dist += (5.0 - CAM.dist) * e; } }
+  R0.sp = (R0.sp || 0) - dt; if (R0.sp <= 0 && R0.v > 6){ R0.sp = R0.v > 13 ? 0.06 : 0.12; addDrop(b.x, b.y + 0.1, b.z, -f.t.x * 1.5 + (Math.random() - 0.5), 1.5 + Math.random(), -f.t.z * 1.5 + (Math.random() - 0.5), 0.6); }
   if (R0.v > 11 && !R0.fast){ R0.fast = true; surfPop('우와아 빠르다!'); }
 }
 function seaSlide(dt){
   const S0 = SEA.slide; if (!S0) return; S0.poi.r = (P.mode === 'land' || (S0.float && P.mode === 'swim')) && !SEA.sl && !P.sit ? (S0.float ? 3.2 : 2.4) : 0;
-  const E = SEA.slEnd; if (E && (P.mode === 'swim' || time - E.t > 6)){ SEA.slEnd = null; if (P.mode === 'swim'){ const kmh = Math.round(E.max * 3.6), pr = seaPayOK('slide', 60) ? 2 : 0; if (pr) addPearl(pr);
+  const E = SEA.slEnd; if (E && (P.mode === 'swim' || time - E.t > 6)){ SEA.slEnd = null; if (P.mode === 'swim'){ const kmh = Math.round(E.max * 3.6), pr = seaPayOK('slide', 60) ? 2 : 0; if (pr) addPearl(pr); guardSay(SLIDE_TXT.done(), 'done');
     setTimeout(() => toast(`워터 슬라이드 완주! 최고 속도 ${kmh}km/h` + (pr ? ' · 진주 +2' : ''), 'found'), 500); } }
   if (!S0.hinted && started && Math.hypot(P.x - S0.x, P.z - S0.z) < 16){ S0.hinted = true; hintOnce('slidenear', S0.float ? '물 위에 둥둥 뜬 워터 슬라이드가 있어요! 헤엄쳐 가서 사다리 앞에서 타 봐요' : '해변에 워터 슬라이드가 있어요! 사다리 앞에서 타 봐요'); }
+  slideGuardUpdate(dt);
+  const ch = $('#slideChip'), on = SEA.sl && (SEA.sl.stage === 'wait' || SEA.sl.stage === 'climb') && !seaPanel(); ch.classList.toggle('hidden', !on);
 }
 
 function seaFunBuild(){
@@ -6447,8 +6533,8 @@ function seaFunBuild(){
   SEA.sl = null; SEA.slEnd = null; try { buildSlide(); } catch (e){ console.warn('slide', e); SEA.slide = null; }
   try { farInit(); } catch (e){ console.warn('far', e); FARN.body = null; }
 }
-function seaState(){ if (SEA.boat?.on || SEA.ride || (SEA.sl && SEA.sl.climb <= 0)) return 'sit'; if (P.sit?.lie) return 'float'; if (time < SEA.tumbleT) return 'trip'; if (SEA.build && P.mode === 'land') return 'dig'; return ''; }
-function seaStateText(){ return SEA.sl ? '워터 슬라이드 타는 중' : SEA.wallB ? '만리장성 쌓는 중' : SEA.ride ? `${RIDE[SEA.ride.a.kind].name} 타는 중` : SEA.tour ? '고래 투어 중' : SEA.boat?.on ? '보트 타는 중' : SEA.build ? '모래성 쌓는 중' : P.sit?.kind === 'sandbath' ? '모래찜질 중' : SEA.goto ? '자리로 가는 중' : ''; }
+function seaState(){ if (SEA.sl?.stage === 'ride') return 'slide'; if (SEA.boat?.on || SEA.ride || SEA.sl?.stage === 'wait') return 'sit'; if (P.sit?.lie) return 'float'; if (time < SEA.tumbleT) return 'trip'; if (SEA.build && P.mode === 'land') return 'dig'; return ''; }
+function seaStateText(){ return SEA.sl ? (SEA.sl.stage === 'ride' ? `워터 슬라이드 ${Math.round(SEA.sl.v * 3.6)}km/h` : SEA.sl.stage === 'wait' ? '워터 슬라이드 · 출발 준비' : '사다리 올라가는 중') : SEA.wallB ? '만리장성 쌓는 중' : SEA.ride ? `${RIDE[SEA.ride.a.kind].name} 타는 중` : SEA.tour ? '고래 투어 중' : SEA.boat?.on ? '보트 타는 중' : SEA.build ? '모래성 쌓는 중' : P.sit?.kind === 'sandbath' ? '모래찜질 중' : SEA.goto ? '자리로 가는 중' : ''; }
 function seaFun(dt){
   if (!SEA.root) return;
   bigWaveUpdate(dt);
@@ -6460,7 +6546,7 @@ function seaFun(dt){
   if (SEA.menu && (seaPanel() || !onSand() || P.sit || P.moving)) openSandMenu(false);
 }
 const SEATEST = { SEA, BIGW, get cliffs(){ return SEA.cliffs.map(c => ({ x: c.sx, z: c.sz, h: c.top, a: c.a })); }, get sharks(){ return SEA.sharks.map(s => ({ x: s.x, z: s.z, y: s.y, st: s.st, c: s.c })); },
-  get whales(){ return SEA.whales.map(a => ({ kind: a.kind, x: a.x, z: a.z, y: a.y, st: a.st })); }, boardRide, leaveRide, startTour, stopTour, startSlide, get slide(){ const S0 = SEA.slide; return S0 && { x: S0.x, z: S0.z, lx: S0.lx, lz: S0.lz, len: S0.len, top: S0.top, lv: S0.lv, a: Math.atan2(S0.fx, S0.fz) }; }, get slideDiag(){ return SLIDE.diag; }, get sl(){ return SEA.sl && { d: SEA.sl.d, v: SEA.sl.v, climb: SEA.sl.climb }; }, get slEnd(){ return SEA.slEnd; }, get ride(){ const r = SEA.ride; return r && { kind: r.a.kind, x: r.a.x, z: r.a.z, v: r.a.v, y: r.a.y }; }, get tour(){ return SEA.tour && { arrived: SEA.tour.arrived }; }, get far(){ return FARN.body ? FARN.body.count : -1; },
+  get whales(){ return SEA.whales.map(a => ({ kind: a.kind, x: a.x, z: a.z, y: a.y, st: a.st })); }, boardRide, leaveRide, startTour, stopTour, startSlide, slideGo, slideCancel, structDist, get guard(){ const G0 = SLIDE.guard; return G0 && { on: G0.on, name: G0.tag.n.textContent, bub: G0.tag.b.classList.contains('hidden') ? '' : G0.tag.b.textContent, x: G0.rig.root.position.x, y: G0.rig.root.position.y, z: G0.rig.root.position.z, vis: G0.rig.root.visible }; }, get slide(){ const S0 = SEA.slide; return S0 && { x: S0.x, z: S0.z, lx: S0.lx, lz: S0.lz, len: S0.len, top: S0.top, lv: S0.lv, Lr: S0.Lr, float: S0.float, a: Math.atan2(S0.fx, S0.fz), sd: structDist(S0.x, S0.z) }; }, get slideDiag(){ return SLIDE.diag; }, timeFind(){ const t = performance.now(); findSlideSpot(); return performance.now() - t; }, get sl(){ return SEA.sl && { stage: SEA.sl.stage, d: SEA.sl.d, v: SEA.sl.v, lat: SEA.sl.lat, climb: SEA.sl.climb }; }, get slEnd(){ return SEA.slEnd; }, get ride(){ const r = SEA.ride; return r && { kind: r.a.kind, x: r.a.x, z: r.a.z, v: r.a.v, y: r.a.y }; }, get tour(){ return SEA.tour && { arrived: SEA.tour.arrived }; }, get far(){ return FARN.body ? FARN.body.count : -1; },
   get walls(){ return SEA.walls.map(w => ({ id: w.id, n: w.pts.length, segs: w.segs.length, towers: w.towers.length, len: wallLen(w) })); }, get castles(){ return SEA.castles.map(c => ({ x: c.x, z: c.z, stage: c.stage, style: c.seed % 3, r: c.r })); }, startWall, stopWall, startCastle, seaSolidAt, seaWalls, seaSolid, slideDrive, seaSlide, slideAt,
   get boat(){ const b = SEA.boat; return b && { x: b.x, z: b.z, yaw: b.yaw, on: b.on, v: b.v }; }, tap: seaTap, startGoto, boardBoat, leaveBoat, sandChoose, openSandMenu, cliffJump: i => cliffJump(SEA.cliffs[i]), onSand, bigWaveH, shoreAt, seaScreen, seatTaken,
   setP(x, z, mode){ if (P.sit) standUp(); if (SEA.boat?.on) leaveBoat(true); P.x = x; P.z = z; const gh = groundH(x, z); if (mode === 'swim' || (mode !== 'land' && gh < -0.6)){ P.mode = 'swim'; P.body = -0.2; P.bed = false; } else { P.mode = 'land'; P.feet = gh; P.grounded = true; } P.vy = 0; },
