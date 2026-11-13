@@ -1139,8 +1139,13 @@ export function createSky(H){
     else if ((P.mode === 'bus' && BUS.state === 'go') || P.mode === 'piggy' || ((P.ride || P.autoMoving) && P.moving)){ if (!cam.drag) cam.yaw = lerpAngle(cam.yaw, P.heading + Math.PI, Math.min(1, dt * 1.3)); }
     cam.d = lerp(cam.d, want, Math.min(1, dt * 2));
     const k = Math.min(1, dt * 9); cam.tx = lerp(cam.tx, tx, k); cam.ty = lerp(cam.ty, ty, k); cam.tz = lerp(cam.tz, tz, k);
-    const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch); let cx = cam.tx + Math.sin(cam.yaw) * cp * cam.d, cy = cam.ty + sp * cam.d, cz = cam.tz + Math.cos(cam.yaw) * cp * cam.d;
-    const gh = Math.max(groundAt(cx, cz), WATER) + 1.2; if (cy < gh) cy = gh; camera.position.set(cx, cy, cz); camera.lookAt(cam.tx, cam.ty, cam.tz); skyDome.position.copy(camera.position);
+    /* 폰으로 날 때: 화각을 넓히고, 시선을 글라이더 조금 위로 올려 지평선과 하늘이 넓게 보이게. 글라이더는 화면 아래쪽에 작게 */
+    cam.fk = lerp(cam.fk || 0, TOUCH && flying && started ? 1 : 0, 1 - Math.exp(-dt * 1.5)); if (cam.fk < 0.002) cam.fk = 0;
+    const pe = Math.max(-0.12, cam.pitch - 0.07 * cam.fk), lift = cam.fk * cam.d * 0.15;
+    const fov = (cam.fov0 || 58) + cam.fk * (camera.aspect < 0.8 ? 10 : 6); if (Math.abs(camera.fov - fov) > 0.02){ camera.fov = fov; camera.updateProjectionMatrix(); }
+    if (me && me.tag) me.tag.visible = !(TOUCH && flying);
+    const cp = Math.cos(pe), sp = Math.sin(pe); let cx = cam.tx + Math.sin(cam.yaw) * cp * cam.d, cy = cam.ty + sp * cam.d, cz = cam.tz + Math.cos(cam.yaw) * cp * cam.d;
+    const gh = Math.max(groundAt(cx, cz), WATER) + 1.2; if (cy < gh) cy = gh; camera.position.set(cx, cy, cz); camera.lookAt(cam.tx, cam.ty + lift, cam.tz); skyDome.position.copy(camera.position);
   }
 
   /* ============================== 화면 (HUD · 작은 지도 · 결과 카드 · 부탁 카드 · 모바일 버튼) ============================== */
@@ -1184,7 +1189,29 @@ export function createSky(H){
   .sksay b{display:block;font-family:var(--display);font-weight:normal;font-size:12px;color:#e8601a;margin-bottom:1px}
   #skReq .card{width:min(320px,90vw)}#skReq .row{display:flex;gap:8px}#skReq .row .btn{margin-top:10px;flex:1;width:auto}
   @media (max-width:720px){#skStats{top:74px;min-width:0;max-width:calc(100vw - 150px);font-size:11px}#skStats b{font-size:13px}#skMap{width:104px;height:104px}#skRight{top:64px}#skRight .ib{width:38px;height:38px;font-size:18px}#skPrompt{bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 4px);font-size:11.5px;max-width:58vw;padding:6px 12px;left:auto;right:auto;transform:none;left:50%;transform:translateX(-50%);display:none}}
+  /* 폰으로 나는 동안: 하늘과 풍경이 주인공. 카드 · 지도 · 가게 버튼은 숨기고 작은 반투명 알약만 */
+  #skFly,#skFlare{display:none}
+  body.touch.skyfly #spotcard,body.touch.skyfly #bGear,body.touch.skyfly #skStats,body.touch.skyfly #skRight .ibs,body.touch.skyfly #skMap{display:none!important}
+  body.touch.skyfly #skRight.mapon #skMap{display:block!important;width:120px;height:120px;opacity:.92}
+  body.touch.skyfly #topbar{opacity:.75}
+  body.touch.skyfly #skPrompt{display:none!important}
+  body.touch.skyfly #skFly{display:flex;position:absolute;left:12px;top:calc(max(12px,env(safe-area-inset-top)) + 4px);align-items:baseline;gap:8px;background:rgba(16,38,58,.34);color:#fff;border-radius:999px;padding:6px 13px 7px;font-size:12px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-shadow:0 1px 2px rgba(0,0,0,.25)}
+  #skFly b{font-family:var(--display);font-weight:normal;font-size:19px;line-height:1}
+  #skFly i{font-style:normal;font-family:var(--display);font-size:13px;border-radius:999px;padding:1px 7px;background:rgba(255,255,255,.16)}
+  #skFly i.up{background:rgba(91,209,139,.85);color:#08321b;text-shadow:none}#skFly i.dn{background:rgba(255,138,122,.8);color:#4a1209;text-shadow:none}
+  body.touch.skyfly #skNav{background:rgba(16,38,58,.34);border:0;box-shadow:none;color:#fff;pointer-events:auto;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-shadow:0 1px 2px rgba(0,0,0,.25);cursor:pointer}
+  body.touch.skyfly #skNavA{background:rgba(255,255,255,.22);color:#fff}
+  body.touch.skyfly #skMain{width:70px;height:70px;font-size:15px;background:rgba(255,138,42,.72);box-shadow:0 3px 0 rgba(36,36,42,.14)}
+  body.touch.skyfly #skSub{width:54px;height:54px;font-size:13px;background:rgba(251,243,225,.62);box-shadow:0 3px 0 rgba(36,36,42,.12)}
+  body.touch.skyfly #skMain.flare{background:var(--hallabong);animation:skflare .45s ease-in-out infinite alternate}
+  @keyframes skflare{from{transform:scale(1)}to{transform:scale(1.12)}}
+  body.touch.skyfly #skFlare{display:block;position:absolute;right:12px;bottom:calc(98px + env(safe-area-inset-bottom));background:rgba(36,36,42,.8);color:#fff;font-size:13px;border-radius:14px;padding:6px 11px;font-family:var(--display)}
+  body.touch.skyfly #skFlare.hidden{display:none}
+  body.touch.skyfly #joy{transition:opacity .3s}
+  body.touch.skyfly #joy:not(.on){opacity:.3}
+  body.touch.skyfly #toast{top:calc(max(10px,env(safe-area-inset-top)) + 120px)}
   `;
+  let mapT = 0;
   let ui = null; const $s = id => ui && ui.querySelector('#' + id);
   function buildUi(){
     if (!document.getElementById('skyCss')){ const st = document.createElement('style'); st.id = 'skyCss'; st.textContent = CSS; document.head.appendChild(st); }
@@ -1193,7 +1220,7 @@ export function createSky(H){
       <div id="skClimb" class="hidden"><div id="skCTxt">등산 0%</div><div id="skClimbBar"><i id="skClimbF" style="display:block"></i></div></div></div>
       <div id="skRight"><canvas id="skMap" width="280" height="280" aria-label="양방산 작은 지도"></canvas><div class="skp" id="skNav"><span id="skNavA">➤</span><span><b id="skNavN">착륙장</b><span id="skNavD">0m</span></span></div>
         <div class="ibs"><button class="ib" id="skShop" type="button" title="탈것 가게" aria-label="탈것 가게">🛒</button><button class="ib dim" id="skRide" type="button" title="탈것 타기/내리기 (R)" aria-label="탈것 타기 또는 내리기">🛴</button><button class="ib" id="skAuto" type="button" title="길 자동 따라가기 (G)" aria-label="길 자동 따라가기">🧭</button></div></div>
-      <div id="skPrompt"></div><div class="sksay hidden" id="skSay0"><b></b><span></span></div><div class="sksay hidden" id="skSay1"><b></b><span></span></div><div class="sksay hidden" id="skSay2"><b></b><span></span></div>
+      <div id="skFly" aria-live="off"><span>해발 <b id="skFAlt">664</b>m</span><i id="skFV">-</i></div><div id="skFlare" class="hidden">땅이 가까워요 · 브레이크 꾹!</div><div id="skPrompt"></div><div class="sksay hidden" id="skSay0"><b></b><span></span></div><div class="sksay hidden" id="skSay1"><b></b><span></span></div><div class="sksay hidden" id="skSay2"><b></b><span></span></div>
       <div id="skMob" class="hidden"><button id="skUse" type="button" class="hidden">E</button><button id="skSub" type="button">달리기</button><button id="skMain" type="button">이륙!</button></div>
       <div id="skRes" class="hidden"><div class="card"><h3 id="skRT">사뿐 착륙!</h3><div class="sub" id="skRS">남한강 착륙장</div>
         <div class="grid"><div>비행 시간<b id="skR1">0:00</b></div><div>최고 해발<b id="skR2">0m</b></div><div>모은 별<b id="skR3">0</b></div><div>통과한 링<b id="skR4">0</b></div><div>착륙 정확도<b id="skR5">-</b></div><div>착지 충격<b id="skR6">-</b></div></div>
@@ -1202,6 +1229,7 @@ export function createSky(H){
         <p class="safe">실제 패러글라이딩은 자격 있는 파일럿과 2인승(탠덤)으로만 타요. 실제로는 업체 차량으로 이륙장까지 올라가요.</p></div></div>
       <div id="skReq" class="hidden"><div class="card"><b id="skQT">친구가 업어 달래요!</b><div class="row"><button class="btn primary" id="skQY" type="button">업어 주기</button><button class="btn" id="skQN" type="button">다음에</button></div></div></div>`;
     document.body.appendChild(ui);
+    $s('skNav').onclick = () => { if (!document.body.classList.contains('skyfly')) return; const r = $s('skRight'); r.classList.toggle('mapon'); clearTimeout(mapT); if (r.classList.contains('mapon')) mapT = setTimeout(() => r.classList.remove('mapon'), 6000); };
     $s('skShop').onclick = () => H.openStore('veh'); $s('skRide').onclick = () => toggleRide(); $s('skAuto').onclick = () => toggleAuto();
     $s('skRShop').onclick = () => { hideResult(); H.openStore('veh'); }; $s('skRWalk').onclick = () => { hideResult(); toast('길을 따라 정상까지 걸어 올라가요! G를 누르면 길을 자동으로 따라가요'); };
     $s('skRCar').onclick = () => { hideResult(); P.x = LAND.x - 6; P.z = LAND.z - 40; P.y = groundAt(P.x, P.z); P.heading = Math.PI; toast('회수 차량이 착륙장까지 데려다줬어요'); };
@@ -1251,8 +1279,12 @@ export function createSky(H){
     if (layT <= 0){ layT = 0.6; const sc = document.getElementById('spotcard'), tb = document.getElementById('topbar');
       if (sc){ const r = sc.getBoundingClientRect(); if (r.height) $s('skStats').style.top = Math.round(r.bottom + 8) + 'px'; }
       if (tb){ const r = tb.getBoundingClientRect(); if (r.height) $s('skRight').style.top = Math.round(r.bottom + 8) + 'px'; } }
-    const V = P.ride ? VEHMAP[P.ride] : null, fl = P.mode === 'flying';
+    const V = P.ride ? VEHMAP[P.ride] : null, fl = P.mode === 'flying', flyUi = fl || P.mode === 'takeoff';
+    if (document.body.classList.contains('skyfly') !== flyUi){ document.body.classList.toggle('skyfly', flyUi); if (!flyUi) $s('skRight').classList.remove('mapon'); layT = 0; }
     H.setState(STATE_LABEL());
+    if (TOUCH && flyUi){ $s('skFAlt').textContent = toReal(P.y).toLocaleString(); const fv = $s('skFV'), vy = fl ? P.vy : 0; fv.textContent = !fl ? '이륙' : Math.abs(vy) < 0.15 ? '수평' : (vy > 0 ? '▲ ' : '▼ ') + Math.abs(vy).toFixed(1); fv.className = fl && vy >= 0.15 ? 'up' : fl && vy <= -0.15 ? 'dn' : '';
+      const agl = fl ? P.y - groundAt(P.x, P.z) : 99, near = fl && agl < 14; $s('skFlare').classList.toggle('hidden', !near); $s('skMain').classList.toggle('flare', near); }
+    else if (TOUCH){ $s('skMain').classList.remove('flare'); }
     $s('skAlt').textContent = toReal(P.y).toLocaleString(); $s('skV').textContent = fl ? (P.vy >= 0 ? '+' : '') + P.vy.toFixed(1) : '-';
     $s('skT').textContent = fmtT(fl || P.mode === 'landing' ? P.f.t : P.climb.active ? P.climb.t : P.mode === 'sit' ? P.sitT : 0); $s('skStar').textContent = P.f.stars; $s('skRing').textContent = P.f.rings + '/' + RINGS.length; $s('skLeaf').textContent = leafTotal;
     const vf = $s('skVarioF'); const v = fl ? clamp(P.vy / 4, -1, 1) : 0; vf.style.left = (v >= 0 ? 50 : 50 + v * 50) + '%'; vf.style.width = Math.abs(v * 50) + '%'; vf.style.background = v >= 0 ? '#5bd18b' : '#ff8a7a';
@@ -1333,8 +1365,8 @@ export function createSky(H){
     buildUi(); resize(); built = true;
   }
   function exit(){ if (!built) return; audioOff(); clearRemotes(); hideReq(); for (const n of NPCS) freeBaby(n.r.baby); for (const v of VILLAGERS) freeBaby(v.b); for (const s of STAFF) freeBaby(s.b); if (FRIEND) freeBaby(FRIEND.b); if (me) freeBaby(me.baby);
-    disposeScene(); scene = null; camera = null; built = false; started = false; if (ui){ ui.remove(); ui = null; } me = null; }
-  function resize(){ if (!camera) return; const w = innerWidth, h = innerHeight; camera.aspect = w / h; const portrait = w / h < 0.8; camera.fov = portrait ? 72 : 58; if (portrait && !resize.done){ cam.flyDist = 22; cam.walkDist = 10.5; resize.done = true; } camera.updateProjectionMatrix(); }
+    disposeScene(); scene = null; camera = null; built = false; started = false; if (ui){ ui.remove(); ui = null; } me = null; document.body.classList.remove('skyfly'); }
+  function resize(){ if (!camera) return; const w = innerWidth, h = innerHeight; camera.aspect = w / h; const portrait = w / h < 0.8; camera.fov = cam.fov0 = portrait ? 72 : 58; if (portrait && !resize.done){ cam.flyDist = 24; cam.walkDist = 10.5; resize.done = true; } camera.updateProjectionMatrix(); }
   function key(code, repeat){ if (!started || H.blocked()) return false; if (code === 'Escape'){ if (resultOpen()){ hideResult(); return true; } if (reqFrom){ hideReq(); return true; } return false; }
     if (repeat) return ['Space', 'KeyE', 'KeyR', 'KeyG', 'KeyC'].includes(code);
     if (code === 'Space'){ if (P.mode !== 'flying') mainAction(); return true; } if (code === 'KeyE'){ if (reqFrom){ acceptPiggy(reqFrom); return true; } useAction(); return true; } if (code === 'KeyR'){ toggleRide(); return true; } if (code === 'KeyG'){ toggleAuto(); return true; } if (code === 'KeyC'){ cam.off = 0; return true; }
@@ -1348,6 +1380,6 @@ export function createSky(H){
     presence, onPeers, clearRemotes, peerCount: () => REMOTES.size, peerNames: () => [...REMOTES.values()].map(R => R.name),
     renderStore, rebuildMe(){ if (built) buildPlayer(); }, hideUi(v){ if (ui) ui.classList.toggle('hidden', v || !started); },
     get best(){ return best; }, get mode(){ return P.mode; }, P, get BUS(){ return BUS; }, get FRIEND(){ return FRIEND; }, get renderInfo(){ return null; }, PAD, LAND, TRAIL, STOP_POS, SHOP_POS, SNACK_POS, FRIEND_HOME, BENCHES: () => BENCHES, RINGS: () => RINGS, STARS: () => STARS, THERMALS, REMOTES, heightAt, groundAt,
-    _test: { get birds(){ return BIRDS && { n: BIRDS.list.length, seenG: BIRDS.seenG, seenV: BIRDS.seenV, mates: BIRDS.mates, pos: BIRDS.list.map(b => [b.k, Math.round(b.x), Math.round(b.y0), Math.round(b.zz)]) }; }, gooseLead: f => gooseLead(f, (Date.now() / 1000) % 86400), get staff(){ return STAFF.map(s => ({ x: s.x, z: s.z, talking: !!s.bubble, wave: s.waveT > 0, vis: s.grp.visible })); }, get villagers(){ return VILLAGERS.map(v => ({ x: v.x, z: v.z, vis: v.vis, ox: v.ox || 0, oz: v.oz || 0, say: !!v.bubble })); }, get kb(){ return Math.hypot(KB.x, KB.z); }, startTakeoff, mount, boardBus, cancelBus, startPiggy, toggleAuto, useAction, mainAction, requestPiggy, acceptPiggy: () => acceptPiggy(reqFrom), get reqFrom(){ return reqFrom; }, nearInter, resultOpen, hideResult, cam, vk, touchdown },
+    _test: { get LAND(){ return LAND; }, groundAt: (x, z) => groundAt(x, z), get cam(){ return { fk: cam.fk, fov: camera && camera.fov, d: cam.d }; }, get birds(){ return BIRDS && { n: BIRDS.list.length, seenG: BIRDS.seenG, seenV: BIRDS.seenV, mates: BIRDS.mates, pos: BIRDS.list.map(b => [b.k, Math.round(b.x), Math.round(b.y0), Math.round(b.zz)]) }; }, gooseLead: f => gooseLead(f, (Date.now() / 1000) % 86400), get staff(){ return STAFF.map(s => ({ x: s.x, z: s.z, talking: !!s.bubble, wave: s.waveT > 0, vis: s.grp.visible })); }, get villagers(){ return VILLAGERS.map(v => ({ x: v.x, z: v.z, vis: v.vis, ox: v.ox || 0, oz: v.oz || 0, say: !!v.bubble })); }, get kb(){ return Math.hypot(KB.x, KB.z); }, startTakeoff, mount, boardBus, cancelBus, startPiggy, toggleAuto, useAction, mainAction, requestPiggy, acceptPiggy: () => acceptPiggy(reqFrom), get reqFrom(){ return reqFrom; }, nearInter, resultOpen, hideResult, cam, vk, touchdown },
   };
 }

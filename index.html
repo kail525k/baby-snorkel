@@ -5003,7 +5003,7 @@ canvas.addEventListener('pointerdown', e => {
   canvas.focus(); AudioSys.ctx?.resume?.();
   if (!started) return;
   const left = TOUCH && e.clientX < innerWidth * 0.45 && JOY.id === null && !P.sit && !gearOpen;
-  if (left){ JOY.id = e.pointerId; JOY.ox = e.clientX; JOY.oy = e.clientY; const j = $('#joy'); j.style.left = e.clientX + 'px'; j.style.top = e.clientY + 'px'; }
+  if (left){ JOY.id = e.pointerId; JOY.ox = e.clientX; JOY.oy = e.clientY; const j = $('#joy'); j.style.left = e.clientX + 'px'; j.style.top = e.clientY + 'px'; j.classList.add('on'); }
   ptr.set(e.pointerId, { x: e.clientX, y: e.clientY, joy: left }); canvas.setPointerCapture(e.pointerId);
 });
 canvas.addEventListener('pointermove', e => {
@@ -5017,7 +5017,7 @@ canvas.addEventListener('pointermove', e => {
   CAM.yaw -= dx * 0.0055; CAM.dragT = time;
   if (CAM.sky && P.sit?.kind === 'float') CAM.skyPitch = clamp(CAM.skyPitch - dy * 0.004, -0.5, 1.5); else if (CAM.fp) CAM.fpPitch = clamp(CAM.fpPitch - dy * 0.004, -1.45, 1.45); else CAM.pitch = clamp(CAM.pitch + dy * 0.004, -0.4, 1.25);
 });
-const endPtr = e => { const p = ptr.get(e.pointerId); if (p?.joy){ JOY.id = null; JOY.x = JOY.y = 0; $('#joy b').style.transform = ''; resetJoy(); } ptr.delete(e.pointerId); };
+const endPtr = e => { const p = ptr.get(e.pointerId); if (p?.joy){ JOY.id = null; JOY.x = JOY.y = 0; $('#joy b').style.transform = ''; $('#joy').classList.remove('on'); resetJoy(); } ptr.delete(e.pointerId); };
 canvas.addEventListener('pointerup', endPtr); canvas.addEventListener('pointercancel', endPtr);
 canvas.addEventListener('wheel', e => { e.preventDefault(); if (WORLD === 'sky'){ SKYW?.zoom(Math.exp(e.deltaY * 0.0012)); return; } CAM.dist = clamp(CAM.dist * (1 + Math.sign(e.deltaY) * 0.1), 1.0, 12); }, { passive: false });
 function hold(id, key){ const el = $(id); const on = e => { e.preventDefault(); BTN[key] = true; el.classList.add('press'); AudioSys.ctx?.resume?.(); }, off = () => { BTN[key] = false; el.classList.remove('press'); }; el.addEventListener('pointerdown', on); el.addEventListener('pointerup', off); el.addEventListener('pointercancel', off); el.addEventListener('pointerleave', off); }
