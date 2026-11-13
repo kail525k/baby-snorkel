@@ -831,6 +831,91 @@ export function createSky(H){
     if (P.landT > 1.15){ me.wing.g.visible = false; P.mode = 'ground'; P.vy = 0; P.jv = 0; P.idleT = 0; resetPicks();
       const far = Math.hypot(P.x - PAD.x, P.z - PAD.z) > CLIMB_MIN_DIST && P.y < PH - CLIMB_MIN_DROP; P.climb = { active: far, t: 0, steps: 0, rode: false }; showResult(); }
   }
+  /* ============================== 새 떼 ==============================
+     갈매기: 상승기류마다 몇 마리씩 빙글빙글 돌며 높이를 바꾼다(새가 도는 곳 = 상승기류 힌트).
+     강 위 갈매기: 착륙장 근처 강 위를 낮게 돈다.
+     기러기: V자 편대로 골짜기를 크게 한 바퀴씩 돈다. 옆에서 나란히 날면 진주.
+     위치는 실제 시계로 정해서, 같은 하늘의 친구도 거의 같은 자리에서 새를 본다. 그리기는 4번(몸 · 날개 × 2종). */
+  let BIRDS = null;
+  const BQ = new THREE.Quaternion(), BE = new THREE.Euler(0, 0, 0, 'YXZ'), BM = new THREE.Matrix4(), BW = new THREE.Matrix4(), BS = new THREE.Vector3(), BP = new THREE.Vector3(), BWL = new THREE.Matrix4();
+  function colorMerge(parts){
+    const geos = parts.map(([g, c, m]) => { const q = g.index ? g.toNonIndexed() : g.clone(); g.dispose(); if (m) q.applyMatrix4(m); const n = q.attributes.position.count, col = new Float32Array(n * 3), C = new THREE.Color(c);
+      for (let i = 0; i < n; i++){ col[i * 3] = C.r; col[i * 3 + 1] = C.g; col[i * 3 + 2] = C.b; } q.setAttribute('color', new THREE.BufferAttribute(col, 3)); return q; });
+    let n = 0; for (const q of geos) n += q.attributes.position.count; const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * 3); let o = 0;
+    for (const q of geos){ pos.set(q.attributes.position.array, o * 3); nor.set(q.attributes.normal.array, o * 3); col.set(q.attributes.color.array, o * 3); o += q.attributes.position.count; q.dispose(); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); return g;
+  }
+  const bm = (x, y, z, sx, sy, sz, rx = 0, ry = 0, rz = 0) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy ?? sx, sz ?? sx));
+  const SPH = () => new THREE.SphereGeometry(1, 14, 10);
+  function birdBody(kind){
+    if (kind === 0) return colorMerge([   /* 통통한 아기 갈매기 */
+      [SPH(), '#ffffff', bm(0, 0, 0, 0.27, 0.25, 0.44)], [SPH(), '#ffffff', bm(0, 0.15, 0.36, 0.23)],
+      [new THREE.ConeGeometry(0.06, 0.18, 8), '#ffa94d', bm(0, 0.1, 0.64, 1, 1, 1, Math.PI / 2)],
+      [SPH(), '#212529', bm(0.12, 0.2, 0.52, 0.042)], [SPH(), '#212529', bm(-0.12, 0.2, 0.52, 0.042)],
+      [SPH(), '#ffffff', bm(0.132, 0.215, 0.555, 0.014)], [SPH(), '#ffffff', bm(-0.108, 0.215, 0.555, 0.014)],
+      [SPH(), '#ffb3c7', bm(0.15, 0.1, 0.5, 0.045, 0.03, 0.03)], [SPH(), '#ffb3c7', bm(-0.15, 0.1, 0.5, 0.045, 0.03, 0.03)],
+      [SPH(), '#dfe6ee', bm(0, 0.04, -0.46, 0.16, 0.05, 0.22)], [SPH(), '#495057', bm(0, 0.05, -0.62, 0.12, 0.04, 0.08)],
+      [SPH(), '#ffc078', bm(0.08, -0.2, -0.14, 0.05, 0.04, 0.09)], [SPH(), '#ffc078', bm(-0.08, -0.2, -0.14, 0.05, 0.04, 0.09)]]);
+    return colorMerge([                   /* 동글동글 기러기 */
+      [SPH(), '#9c9283', bm(0, 0, 0, 0.3, 0.27, 0.5)], [SPH(), '#e9e3d5', bm(0, -0.08, 0.06, 0.24, 0.18, 0.38)],
+      [new THREE.CylinderGeometry(0.085, 0.11, 0.42, 10), '#2b2b2b', bm(0, 0.12, 0.5, 1, 1, 1, 1.0)],
+      [SPH(), '#2b2b2b', bm(0, 0.26, 0.72, 0.17)], [SPH(), '#ffffff', bm(0.1, 0.24, 0.72, 0.07, 0.06, 0.08)], [SPH(), '#ffffff', bm(-0.1, 0.24, 0.72, 0.07, 0.06, 0.08)],
+      [SPH(), '#111111', bm(0.1, 0.31, 0.8, 0.035)], [SPH(), '#111111', bm(-0.1, 0.31, 0.8, 0.035)],
+      [SPH(), '#ffffff', bm(0.11, 0.325, 0.825, 0.012)], [SPH(), '#ffffff', bm(-0.09, 0.325, 0.825, 0.012)],
+      [new THREE.ConeGeometry(0.055, 0.15, 8), '#ff922b', bm(0, 0.25, 0.93, 1, 1, 1, Math.PI / 2)],
+      [SPH(), '#ffb3c7', bm(0.13, 0.2, 0.78, 0.035, 0.025, 0.025)], [SPH(), '#ffb3c7', bm(-0.13, 0.2, 0.78, 0.035, 0.025, 0.025)],
+      [SPH(), '#3b3631', bm(0, 0.04, -0.52, 0.17, 0.06, 0.2)]]);
+  }
+  function birdWing(kind){   /* 오른쪽 날개(+x). 왼쪽은 거울로 뒤집어 쓴다 */
+    const s = new THREE.Shape(); s.moveTo(0, 0.2); s.quadraticCurveTo(0.55, 0.3, 1.12, 0.03); s.quadraticCurveTo(0.78, -0.13, 0.42, -0.12); s.quadraticCurveTo(0.18, -0.22, 0, -0.17); s.closePath();
+    const g = new THREE.ShapeGeometry(s, 6); g.rotateX(Math.PI / 2); const p = g.attributes.position, n = p.count, col = new Float32Array(n * 3);
+    const A = new THREE.Color(kind ? '#8a8174' : '#e7edf3'), B = new THREE.Color(kind ? '#3f3a34' : '#495057'), C = new THREE.Color();
+    for (let i = 0; i < n; i++){ C.copy(A).lerp(B, smooth(0.62, 0.95, p.getX(i))); col[i * 3] = C.r; col[i * 3 + 1] = C.g; col[i * 3 + 2] = C.b; }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); return g;
+  }
+  function buildBirds(){
+    BIRDS = { list: [], k: [null, null], seenG: false, seenV: false, nearT: 0, chirpT: 2, payT: -1e9, mates: 0 };
+    const L = BIRDS.list, per = TOUCH ? 4 : 6;
+    THERMALS.forEach((t, ti) => { const base = heightAt(t.x, t.z), lo = Math.max(base + 30, WATER + 30), hi = t.top - 12;
+      for (let i = 0; i < per; i++) L.push({ k: 0, cx: t.x, cz: t.z, r: t.r * (0.32 + rnd() * 0.42), a0: rnd() * 6.28, w: 0.24 + rnd() * 0.1, y: lo + (hi - lo) * (i + rnd() * 0.8) / per, amp: 6 + rnd() * 8, ph: rnd() * 6.28, s: 1.5 + rnd() * 0.3, therm: true }); });
+    for (let i = 0; i < 5; i++) L.push({ k: 0, cx: PAD.x + 25, cz: PAD.z + 55, r: 18 + i * 5, a0: rnd() * 6.28, w: 0.3 - i * 0.02, y: PH + 4 + i * 5, amp: 3, ph: rnd() * 6.28, s: 1.5 + rnd() * 0.25 });
+    for (let i = 0; i < (TOUCH ? 4 : 6); i++){ const x = LAND.x - 40 + rnd() * 90; L.push({ k: 0, cx: x, cz: riverZ(x), r: 14 + rnd() * 16, a0: rnd() * 6.28, w: -(0.3 + rnd() * 0.12), y: WATER + 14 + rnd() * 16, amp: 4, ph: rnd() * 6.28, s: 1.4 + rnd() * 0.2 }); }
+    for (let f = 0; f < 2; f++) for (let i = 0; i < 7; i++){ const rank = Math.ceil(i / 2), side = i === 0 ? 0 : (i % 2 ? 1 : -1); L.push({ k: 1, flock: f, lead: i === 0, back: rank * 3.8, side: side * rank * 3.0, ph: rnd() * 6.28, s: 1.8 + rnd() * 0.15 }); }
+    const mat = new THREE.MeshLambertMaterial({ vertexColors: true }), wmat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    for (const k of [0, 1]){ const n = L.filter(b => b.k === k).length; let j = 0; for (const b of L) if (b.k === k) b.i = j++;
+      const body = new THREE.InstancedMesh(birdBody(k), mat, n), wing = new THREE.InstancedMesh(birdWing(k), wmat, n * 2);
+      for (const m of [body, wing]){ m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); } BIRDS.k[k] = { body, wing }; }
+    for (const b of L){ b.ox = b.oy = b.oz = 0; b.x = b.y0 = 0; }
+    updateBirds(0);
+  }
+  function gooseLead(f, T){ const a = T * 0.03 + f * Math.PI, cx = 60, cz = 140, rx = 430, rz = 330, x = cx + Math.sin(a) * rx, z = cz + Math.cos(a) * rz;
+    const tx = Math.cos(a) * rx, tz = -Math.sin(a) * rz, tl = Math.hypot(tx, tz); return { x, z, y: PH - 8 + 30 * Math.sin(a * 2 + f), hx: tx / tl, hz: tz / tl }; }
+  function updateBirds(dt){
+    if (!BIRDS) return; const T = (Date.now() / 1000) % 86400, flying = P.mode === 'flying' || P.mode === 'takeoff'; let nearG = 1e9, nearV = 1e9;
+    const G2 = [gooseLead(0, T), gooseLead(1, T)];
+    for (const b of BIRDS.list){
+      let x, y, z, hd, roll = 0, flap, sp;
+      if (b.k === 0){ const a = b.a0 + b.w * T, sg = Math.sign(b.w); x = b.cx + Math.cos(a) * b.r; z = b.cz + Math.sin(a) * b.r; y = b.y + b.amp * Math.sin(T * 0.06 + b.ph);
+        hd = Math.atan2(-Math.sin(a) * sg, Math.cos(a) * sg); roll = 0.38 * sg; const burst = Math.sin(T * 0.45 + b.ph * 3) > 0.55; flap = burst ? Math.sin(T * 10 + b.ph) * 0.65 : 0.12 + Math.sin(T * 1.3 + b.ph) * 0.05; sp = 9; }
+      else { const G = G2[b.flock], rx = G.hz, rz = -G.hx; x = G.x - G.hx * b.back + rx * b.side; z = G.z - G.hz * b.back + rz * b.side; y = G.y - b.back * 0.15 + Math.sin(T * 0.9 + b.ph) * 0.25; hd = Math.atan2(G.hx, G.hz); roll = -0.06; flap = Math.sin(T * 7.5 + b.ph) * 0.6; sp = 11; }
+      /* 가까이 날아오면 깜짝 놀라 퍼드덕 비켜난다 */
+      const dx = x + b.ox - P.x, dy = y + b.oy - (P.y + 2.6), dz = z + b.oz - P.z, d = Math.hypot(dx, dy, dz); let tx = 0, ty = 0, tz = 0;
+      if (d < 13 && d > 0.01){ const k = (13 - d) * 0.9 / d; tx = dx * k; ty = Math.abs(dy) * k * 0.5 + 1.2; tz = dz * k; flap = Math.sin(T * 16 + b.ph) * 0.8; }
+      const e = 1 - Math.exp(-dt * (d < 13 ? 3 : 0.6)); b.ox += (tx - b.ox) * e; b.oy += (ty - b.oy) * e; b.oz += (tz - b.oz) * e;
+      x += b.ox; y += b.oy; z += b.oz; b.x = x; b.y0 = y; b.zz = z;
+      if (flying){ const dd = Math.hypot(x - P.x, y - P.y, z - P.z); if (b.k === 0) nearG = Math.min(nearG, dd); else nearV = Math.min(nearV, dd); }
+      const K = BIRDS.k[b.k]; BE.set(0, hd, roll); BQ.setFromEuler(BE); BS.setScalar(b.s); BP.set(x, y, z); BM.compose(BP, BQ, BS); K.body.setMatrixAt(b.i, BM);
+      for (const sd of [1, -1]){ BW.makeRotationZ(flap * sd); BW.setPosition(sd * 0.2, 0.08, 0.04); if (sd < 0) BW.multiply(BWL.makeScale(-1, 1, 1)); BW.premultiply(BM); K.wing.setMatrixAt(b.i * 2 + (sd > 0 ? 0 : 1), BW); } }
+    for (const K of BIRDS.k){ K.body.instanceMatrix.needsUpdate = true; K.wing.instanceMatrix.needsUpdate = true; }
+    if (!dt || !started) return;
+    if (nearG < 40 && !BIRDS.seenG){ BIRDS.seenG = true; toast('갈매기들이 빙글빙글 도는 곳은 상승기류예요! 같이 돌면 쑥쑥 올라가요'); }
+    if (nearV < 60 && !BIRDS.seenV){ BIRDS.seenV = true; toast('V자로 날아가는 기러기 떼예요! 옆에 붙어서 나란히 날아 봐요'); }
+    if (Math.min(nearG, nearV) < 22){ BIRDS.chirpT -= dt; if (BIRDS.chirpT <= 0){ BIRDS.chirpT = 0.9 + Math.random() * 1.6; const f = nearV < nearG ? 520 : 1500 + Math.random() * 500; beep(f, 0.06, 0.035, 'triangle', f * (nearV < nearG ? 0.8 : 1.25)); } }
+    /* 기러기 편대 옆(꼬리 쪽 빈자리)에서 4초 함께 날면 진주 */
+    let mate = false; if (P.mode === 'flying') for (const G of G2){ const d = Math.hypot(G.x - P.x, G.z - P.z), dy = Math.abs(G.y - P.y); if (d < 26 && dy < 12){ const vx = Math.sin(P.heading), vz = Math.cos(P.heading); if (vx * G.hx + vz * G.hz > 0.6) mate = true; } }
+    BIRDS.mates = mate ? BIRDS.mates + dt : Math.max(0, BIRDS.mates - dt * 0.5);
+    if (BIRDS.mates > 4 && NOW - BIRDS.payT > 150){ BIRDS.payT = NOW; BIRDS.mates = 0; H.addPearl(3); toast('기러기 떼랑 나란히 날았어요! 진주 +3', 'found'); beep(660, 0.12, 0.08, 'triangle', 990); }
+  }
 
   /* ============================== 같이 날기 (친구들) ============================== */
   const REMOTES = new Map(); let busRefT = 0;
@@ -1030,7 +1115,7 @@ export function createSky(H){
     TP.forEach(o => { const p = o.g.attributes.position; const Hh = o.t.top + 20 - o.base; o.st.forEach((s, i) => { s.y += dt * (0.05 + 0.03 * (i % 3)); if (s.y > 1) s.y -= 1; s.a += dt * 0.7; p.setXYZ(i, o.t.x + Math.cos(s.a) * s.r, o.base + s.y * Hh, o.t.z + Math.sin(s.a) * s.r); }); p.needsUpdate = true; });
     NPCS.forEach(n => { n.a += n.w * dt; const r = n.t.r * 0.75; const x = n.t.x + Math.cos(n.a) * r, z = n.t.z + Math.sin(n.a) * r; n.r.rig.position.set(x, n.alt + Math.sin(NOW * 0.25 + n.ph) * 12, z);
       n.r.rig.rotation.y = Math.atan2(-Math.sin(n.a), Math.cos(n.a)); n.r.pivot.rotation.z = -0.32; const near = n.r.rig.position.distanceTo(camera.position) < 260; n.r.baby.w.visible = near; if (near){ poseFly(n.r.baby, [0.3, 0.1], NOW + n.ph); H.animRig(n.r.baby.rig, dt, n.r.baby.st, n.r.baby.o); } });
-    socks.forEach(s => { s.userData.sock.rotation.z = Math.sin(NOW * 3) * 0.08; });
+    socks.forEach(s => { s.userData.sock.rotation.z = Math.sin(NOW * 3) * 0.08; }); updateBirds(dt);
     PUFFS.forEach(p => { if (!p.m.visible) return; p.t += dt; p.m.position.y += p.vy * dt; p.m.scale.setScalar(1 + p.t * 1.2); p.m.material.opacity = 0.45 * (1 - p.t); if (p.t >= 1) p.m.visible = false; });
     updateVillagers(dt); updateCars(dt); updateFriendIdle(dt); updateStaff(dt); if (FRIEND.state !== 'carry' && FRIEND.state !== 'back' || true) H.animRig(FRIEND.b.rig, dt, FRIEND.b.st, FRIEND.b.o);
     updateRemotes(dt);
@@ -1242,7 +1327,7 @@ export function createSky(H){
     if (built) return; ensureGrid(); seed = 7;
     scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.3, 5000);
     COLL.length = 0; STAGS = []; STAFF = []; HOUSES = []; DISPLAY = []; socks = []; BENCHES = []; TP = []; PUFFS = []; STARS = []; RINGS = []; PICKS = []; NPCS = []; VILLAGERS = []; CARS = []; VOBJ = {}; skates = null; me = null;
-    buildBase(); buildTrees(); buildTown(); buildVillage(); buildPadAndField(); buildSkyStuff(); buildBus(); buildPeople(); buildStaff();
+    buildBase(); buildTrees(); buildTown(); buildVillage(); buildPadAndField(); buildSkyStuff(); buildBirds(); buildBus(); buildPeople(); buildStaff();
     shadow = new THREE.Mesh(new THREE.CircleGeometry(0.9, 24), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .3, depthWrite: false })); scene.add(shadow);
     myKey = H.myId(); buildPlayer(); resetToPad(); P.ride = null; P.mode = 'ground'; cam.d = 26; cam.tx = PAD.x; cam.ty = PH; cam.tz = PAD.z;
     buildUi(); resize(); built = true;
@@ -1263,6 +1348,6 @@ export function createSky(H){
     presence, onPeers, clearRemotes, peerCount: () => REMOTES.size, peerNames: () => [...REMOTES.values()].map(R => R.name),
     renderStore, rebuildMe(){ if (built) buildPlayer(); }, hideUi(v){ if (ui) ui.classList.toggle('hidden', v || !started); },
     get best(){ return best; }, get mode(){ return P.mode; }, P, get BUS(){ return BUS; }, get FRIEND(){ return FRIEND; }, get renderInfo(){ return null; }, PAD, LAND, TRAIL, STOP_POS, SHOP_POS, SNACK_POS, FRIEND_HOME, BENCHES: () => BENCHES, RINGS: () => RINGS, STARS: () => STARS, THERMALS, REMOTES, heightAt, groundAt,
-    _test: { get staff(){ return STAFF.map(s => ({ x: s.x, z: s.z, talking: !!s.bubble, wave: s.waveT > 0, vis: s.grp.visible })); }, get villagers(){ return VILLAGERS.map(v => ({ x: v.x, z: v.z, vis: v.vis, ox: v.ox || 0, oz: v.oz || 0, say: !!v.bubble })); }, get kb(){ return Math.hypot(KB.x, KB.z); }, startTakeoff, mount, boardBus, cancelBus, startPiggy, toggleAuto, useAction, mainAction, requestPiggy, acceptPiggy: () => acceptPiggy(reqFrom), get reqFrom(){ return reqFrom; }, nearInter, resultOpen, hideResult, cam, vk, touchdown },
+    _test: { get birds(){ return BIRDS && { n: BIRDS.list.length, seenG: BIRDS.seenG, seenV: BIRDS.seenV, mates: BIRDS.mates, pos: BIRDS.list.map(b => [b.k, Math.round(b.x), Math.round(b.y0), Math.round(b.zz)]) }; }, gooseLead: f => gooseLead(f, (Date.now() / 1000) % 86400), get staff(){ return STAFF.map(s => ({ x: s.x, z: s.z, talking: !!s.bubble, wave: s.waveT > 0, vis: s.grp.visible })); }, get villagers(){ return VILLAGERS.map(v => ({ x: v.x, z: v.z, vis: v.vis, ox: v.ox || 0, oz: v.oz || 0, say: !!v.bubble })); }, get kb(){ return Math.hypot(KB.x, KB.z); }, startTakeoff, mount, boardBus, cancelBus, startPiggy, toggleAuto, useAction, mainAction, requestPiggy, acceptPiggy: () => acceptPiggy(reqFrom), get reqFrom(){ return reqFrom; }, nearInter, resultOpen, hideResult, cam, vk, touchdown },
   };
 }
