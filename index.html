@@ -659,7 +659,7 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
       <p class="safe">이건 게임 속 규칙이에요. 실제 바다에서는 숨 참기 시합이나 연습을 하지 않아요. 숨을 몰아쉬거나 오래 참으면 물속에서 갑자기 정신을 잃을 수 있어요. 스노클링은 물 위에서 스노클로 숨 쉬며, 꼭 어른·안전요원과 함께 해요.</p></div>
     <div id="hSurf"><h3>서핑</h3><p>장비에서 서핑보드를 고르거나, 모래사장의 서핑보드 거치대로 가 보세요. 노란 깃발 사이가 서핑 존이에요. 보드에 엎드려 패들하다가 파도가 바로 뒤로 오면 <kbd>Space</kbd>(휴대폰은 화면 가운데 버튼)로 일어서요. 타는 동안에는 좌우로 방향을 바꾸고, 깃발 밖으로 나가면 떨어져요. 롱보드는 파도 잡기가 쉽고, 숏보드는 방향 전환이 빨라요.</p><p>파도 위에 뜬 별(10점)과 황금 조개(30점)를 모으고, 좌우로 크게 꺾으면 턴 점수를 받아요. 파도가 끝날 때까지 타면 완주 보너스! 한 번에 60점을 넘기면 서핑 지역·전체 순위가 열려요.</p></div>
     <div id="hNoSurf" class="hidden"><h3>서핑</h3><p>이 바다에는 서핑 파도가 없어요. 서핑은 <b>양양 죽도해변</b>에서 할 수 있어요. 위쪽 "바다 옮기기"를 눌러 보세요.</p></div>
-    <div><h3>같이 수영하기</h3><p>이 페이지를 공유받은 사람이 Claude에 로그인한 채로 열고 같은 바다를 고르면 그 바다에서 만나요. 파도는 모두에게 똑같이 보이고, 물고기 무리도 거의 같은 자리에 있어요. 공개 링크로 들어오거나 로그인하지 않았다면 혼자 놀기로 열려요. 친구 목록에서 "옆으로 가기"를 누르면 친구 옆으로 바로 가고, <kbd>T</kbd>나 말하기 버튼으로 말풍선을 띄울 수 있어요.</p></div>
+    <div><h3>같이 수영하기</h3><p id="hNet">로그인 없이, 같은 시간에 같은 바다를 고르면 그 바다에서 만나요. 파도는 모두에게 똑같이 보이고, 물고기 무리도 거의 같은 자리에 있어요. 위쪽 친구 버튼(사람 모양)을 누르면 지금 이 바다에 누가 있는지와 다른 바다에서 노는 친구 수가 보이고, "가기"로 그 바다로 옮겨요. 친구 목록의 "옆으로 가기"로 친구 옆으로 바로 가고, <kbd>T</kbd>나 말하기 버튼으로 말풍선을 띄울 수 있어요. 인터넷이 끊기면 혼자 놀기로 바뀌었다가, 다시 연결되면 친구들이 보여요.</p></div>
     <div><h3 id="hSeatT">물멍자리</h3><p id="hSeats"></p></div>
     <div><h3 id="hRealT">실제 바다에 간다면</h3><ul id="hTips"></ul><p class="src">이 바다들은 실제 지형과 풍경, 그곳에 사는 생물을 참고해서 만든 미니어처예요. 사진처럼 똑같지는 않아요.</p></div>
     <div><h3>다음 바다 (준비 중)</h3><p id="nextList"></p></div>
@@ -3983,7 +3983,8 @@ function onPeersChange(ch){
 }
 function clearPeers(){ for (const k of [...NET.peers.keys()]) removePeer(k); if (SKYW?.active) SKYW.clearRemotes(); updateFriendChip(); }
 async function initNet(){
-  const C = window.claude; if (!C || typeof C.use !== 'function'){ const sb = await sbClient(); if (sb){ NET.mode = 'sb'; NET.lobby = sbLobby(sb); initRank(); await joinSpotRoom(); joinLobby(); return; } setNetStatus('solo'); return; }
+  const C = window.claude; if (C && typeof C.use === 'function') $('#hNet').innerHTML = '이 페이지를 공유받은 사람이 Claude에 로그인한 채로 열고 같은 바다를 고르면 그 바다에서 만나요. 파도는 모두에게 똑같이 보이고, 물고기 무리도 거의 같은 자리에 있어요. 공개 링크로 들어오거나 로그인하지 않았다면 혼자 놀기로 열려요. 친구 목록에서 "옆으로 가기"를 누르면 친구 옆으로 바로 가고, <kbd>T</kbd>나 말하기 버튼으로 말풍선을 띄울 수 있어요.';
+  if (!C || typeof C.use !== 'function'){ const sb = await sbClient(); if (sb){ NET.mode = 'sb'; NET.lobby = sbLobby(sb); initRank(); await joinSpotRoom(); joinLobby(); return; } setNetStatus('solo'); return; }
   let room = null, user = null;
   try { [room, user] = await Promise.all([C.use('room'), C.use('user')]); } catch (e){}
   if (!user && !room){ RANK.status = 'solo'; }
