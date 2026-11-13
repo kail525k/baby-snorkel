@@ -642,6 +642,8 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
         <li><kbd>X</kbd>(휴대폰은 놀기 → 물총)를 누르고 있으면 물총을 쏴요. 친구를 맞히면 친구가 깜짝 놀라요.</li>
         <li>야비지 투어(미야코지마 바다 5곳): 해변의 야비지 투어 가이드(AI)에게 가면 준비물(구명조끼 · 마스크 · 스노클은 꼭)을 알려 줘요. 배는 매일 오전 9시 · 오후 2시(한국 시간)에 떠나고 20분 동안 탈 수 있어요(미리 예약도 돼요). 하루 한 번, 배를 타고 일본에서 가장 큰 산호초 야비지로 가서 가이드를 따라 포인트 세 곳을 돌고 기념사진을 받아요.</li>
         <li>워터 슬라이드: 사다리 앞에서 타고 꼭대기에서 출발! 끝에서 날아가는 동안 <kbd>W</kbd> 앞구르기 · <kbd>S</kbd> 뒤구르기 · <kbd>A</kbd><kbd>D</kbd> 옆돌기 · <kbd>Space</kbd> 빙글 스핀(휴대폰은 조이스틱을 툭, 위로 버튼). 물에 닿기 전에 다 돌면 깔끔한 입수 점수예요.</li>
+        <li>모래 놀이: 마른 모래 위에서 모래성 · 만리장성 쌓기 · 눕기 · 모래찜질. 모래성과 만리장성은 단단해서 못 지나가요. 점프로 넘거나, 가까이 가서 <kbd>E</kbd>(휴대폰은 주황 버튼) "쿵! 부수기"로 와르르 부숴요. 만리장성은 한 덩어리라 한 번에 다 무너져요. 친구 것을 부수면 친구에게도 알려 줘요.</li>
+        <li>감시탑 위에는 라이프가드(AI)가 앉아서 바다를 지켜봐요. 가까이 가면 인사하고, 큰 파도가 오면 호루라기로 알려 줘요.</li>
         <li>방파제나 바위 끝에서 물로 뛰어들면 다이빙 점수가 나와요. 공중에서 <kbd>Space</kbd>를 다시 누르면 배치기 · 대포알 · 만세 · 엉덩이 다이빙으로 자세가 바뀌어요.</li>
         <li><kbd>B</kbd>(휴대폰은 놀기 → 뽀글)를 누르면 뽀글뽀글 방귀! 친구들 화면에도 보여요.</li>
         <li><kbd>F</kbd>(휴대폰은 오른쪽 위 <b>1인칭</b> 버튼)를 누르면 아기 눈으로 봐요. 다시 누르면 3인칭으로 돌아와요.</li>
@@ -1066,10 +1068,14 @@ function palm(x, z){ const gy = terrainH(x, z), g = new THREE.Group(); g.positio
 function pine(x, z, s = 1){ const gy = terrainH(x, z); mesh(new THREE.CylinderGeometry(0.14 * s, 0.22 * s, 2.2 * s, 7), L('#6b4a32'), null, x, gy + 1.1 * s, z);
   for (let k = 0; k < 3; k++) mesh(new THREE.ConeGeometry((1.5 - k * 0.35) * s, 1.6 * s, 8), L(k % 2 ? '#2f5d36' : '#3a6b3f'), null, x, gy + (2.2 + k * 0.9) * s, z); addBlock(x, z, 0.5 * s, 0.5 * s, gy + 6 * s); }
 function bush(x, z, c = '#4f8a3e'){ const gy = terrainH(x, z); sph(L(c), null, x, gy + 0.3, z, R(0.8, 1.4), R(0.5, 0.8), R(0.8, 1.4)); }
+/* 감시탑마다 라이프가드(AI)가 의자에 앉아 바다를 지켜본다. 탑 위치만 모아 두고 사람은 lgUpdate가 앉힌다 */
+const LG = { spots: [], list: [], pool: [], spot: null, warnK: -1 };
 function lifeguard(x, z){ const gy = terrainH(x, z), g = new THREE.Group(); g.position.set(x, gy, z); BUILD.parent.add(g);
+  { const chair = L('#ffd23a'); mesh(new THREE.BoxGeometry(0.46, 0.06, 0.42), chair, g, 0.3, 3.26, -0.16); for (const [cx, cz] of [[0.12, 0.0], [0.48, 0.0], [0.12, -0.32], [0.48, -0.32]]) mesh(new THREE.BoxGeometry(0.05, 0.6, 0.05), white, g, cx, 2.96, cz); const bk = mesh(new THREE.BoxGeometry(0.46, 0.44, 0.05), chair, g, 0.3, 3.5, -0.38); bk.rotation.x = -0.12; }
+  LG.spots.push({ x, z, gy, i: LG.spots.length });
   for (const [lx, lz] of [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]]) mesh(new THREE.BoxGeometry(0.12, 2.6, 0.12), white, g, lx, 1.3, lz);
   mesh(new THREE.BoxGeometry(1.6, 0.12, 1.6), L('#e2382f'), g, 0, 2.6, 0); mesh(new THREE.BoxGeometry(0.9, 0.6, 0.1), L('#e2382f'), g, 0, 2.95, 0.4);
-  mesh(new THREE.ConeGeometry(1.2, 0.5, 8), L('#ffd23a'), g, 0, 4.2, 0); mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 6), dark, g, 0, 3.4, 0); addBlock(x, z, 1.6, 1.6, gy + 4); }
+  mesh(new THREE.ConeGeometry(1.2, 0.5, 8), L('#ffd23a'), g, 0, 4.6, 0); mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.8, 6), dark, g, 0, 3.6, 0); addBlock(x, z, 1.6, 1.6, gy + 4.4); }
 function fishingBoat(x, z, yaw, c, collide = true){
   const b = new THREE.Group(); b.position.set(x, 0, z); b.rotation.y = yaw; BUILD.parent.add(b);
   const hull = new THREE.BoxGeometry(2.6, 1.1, 7.5, 1, 1, 4), hp = hull.attributes.position; for (let i = 0; i < hp.count; i++){ const zz = hp.getZ(i); if (zz > 2) hp.setX(i, hp.getX(i) * (1 - (zz - 2) / 2.4)); if (hp.getY(i) < 0) hp.setX(i, hp.getX(i) * 0.82); } hull.computeVertexNormals();
@@ -2537,7 +2543,7 @@ function buildSpot(id){
   if (SG) disposeGroup(SG);
   SG = new THREE.Group(); scene.add(SG); BUILD.parent = SG;
   SPOT = def; SURF = def.surf || null; def.dex = spotDex(def);
-  COL.blocks.length = 0; COL.ramps.length = 0; COL.circles.length = 0; SEATS.length = 0; POIS.length = 0; ANIM.length = 0; FAR.length = 0; FAR.push(...CLOUDS);
+  COL.blocks.length = 0; COL.ramps.length = 0; COL.circles.length = 0; SEATS.length = 0; POIS.length = 0; LG.spots.length = 0; ANIM.length = 0; FAR.length = 0; FAR.push(...CLOUDS);
   tubeSeats = []; ROCKSPOTS = []; CORALSPOTS = []; ANEMS = []; STATICS = {}; waveMesh = null; flags = null; flagPos = [];
   reseed(hashStr(def.id));
   try {
@@ -3872,6 +3878,7 @@ function nearestInteract(){
   const tr = treasureInteract(); if (tr && tr.d < bd){ bd = tr.d; best = tr; }
   if (best && best.type === 'kiosk' && BAG.length) best = Object.assign({}, best, { label: `망사리 바꾸기 · ${BAG.length}개` });
   if (!best && canFloat()) best = { type: 'float', label: G.tube !== 'none' ? '튜브에 누워 물멍' : '누워서 물멍' };
+  { const sm = smashPrompt(); if (sm && (!best || sm.d + 0.4 < bd)) best = sm; }
   if (!best) best = seaSandPrompt();
   return best;
 }
@@ -5848,9 +5855,9 @@ function onSand(){
   if (P.feet > T.h + 0.06 || T.h > 3.2) return false; return sandish(P.x, P.z);
 }
 function seaSandPrompt(){ if (SEA.build || SEA.goto || P.moving || !onSand()) return null; return { sea: true, type: 'sand', label: '모래 놀이', run: () => openSandMenu(true) }; }
-function openSandMenu(v){ SEA.menu = v; $('#sandMenu').classList.toggle('hidden', !v); document.body.classList.toggle('sandmenu', !!v); if (v){ AudioSys.pop(); const near = SEA.castles.find(c => Math.hypot(c.x - P.x, c.z - P.z) < 2.2 && c.stage < 4); $('#sandMenu [data-k="castle"] span').textContent = near ? '모래성 더 쌓기' : '모래성 만들기'; } }
+function openSandMenu(v){ SEA.menu = v; $('#sandMenu').classList.toggle('hidden', !v); document.body.classList.toggle('sandmenu', !!v); if (v){ AudioSys.pop(); const near = SEA.castles.find(c => Math.hypot(c.x - P.x, c.z - P.z) < 2.2 && c.stage < 4); $('#sandMenu [data-k="castle"] span').textContent = near ? '모래성 더 쌓기' : '모래성 만들기'; const t = smashTarget(); $('#sandMenu [data-k="smash"]').classList.toggle('hidden', !t); if (t) $('#sandMenu [data-k="smash"] span').textContent = `쿵! ${t.name} 부수기`; } }
 function sandChoose(k){
-  openSandMenu(false); if (!onSand()){ toast('마른 모래 위에서 할 수 있어요'); return; }
+  openSandMenu(false); if (k === 'smash'){ doSmash(smashTarget()); return; } if (!onSand()){ toast('마른 모래 위에서 할 수 있어요'); return; }
   if (k === 'castle') startCastle();
   else if (k === 'wall') startWall();
   else { const gh = groundH(P.x, P.z), bath = k === 'bath';
@@ -5903,18 +5910,18 @@ function startCastle(){
 /* ---------- 만리장성: 모래 위를 걸으면 뒤에 성벽이 따라 쌓인다. 6칸마다 망루. 친구 화면에도 보이고 단단해서 못 지나간다(낮아서 점프로 넘을 수는 있음) ---------- */
 const WALL = { segH: 0.46, half: 0.18, step: 1.45, maxPts: 49, mats: new THREE.Matrix4() };
 const WALLG = (() => { const s = g => { g.userData.shared = true; return g; }; return { body: s(new THREE.BoxGeometry(0.36, 0.46, 1)), cren: s(new THREE.BoxGeometry(0.14, 0.13, 0.15)), tower: s(new THREE.BoxGeometry(0.68, 0.86, 0.68)), tcren: s(new THREE.BoxGeometry(0.18, 0.16, 0.18)), roof: s(new THREE.ConeGeometry(0.42, 0.32, 4)) }; })();
-function makeWall(id){ const w = { id, pts: [], segs: [], towers: [], parts: [], mesh: new THREE.Mesh(new THREE.BufferGeometry(), sandMat()) }; w.mesh.frustumCulled = false; SEA.root.add(w.mesh); return w; }
-function wallPart(w, geo, x, y, z, yaw, sx = 1, sy = 1, sz = 1){ const g = geo.index ? geo.toNonIndexed() : geo.clone(); WALL.mats.compose(new V3(x, y, z), new THREE.Quaternion().setFromAxisAngle(new V3(0, 1, 0), yaw), new V3(sx, sy, sz)); g.applyMatrix4(WALL.mats); w.parts.push(g); }
+function makeWall(id){ const w = { id, pts: [], segs: [], towers: [], parts: [], pidx: [], curI: 0, mesh: new THREE.Mesh(new THREE.BufferGeometry(), sandMat()) }; w.mesh.frustumCulled = false; SEA.root.add(w.mesh); return w; }
+function wallPart(w, geo, x, y, z, yaw, sx = 1, sy = 1, sz = 1){ const g = geo.index ? geo.toNonIndexed() : geo.clone(); WALL.mats.compose(new V3(x, y, z), new THREE.Quaternion().setFromAxisAngle(new V3(0, 1, 0), yaw), new V3(sx, sy, sz)); g.applyMatrix4(WALL.mats); w.parts.push(g); w.pidx.push(w.curI); }
 function wallRebuild(w){ let n = 0; for (const p of w.parts) n += p.attributes.position.count; const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3); let i = 0;
   for (const p of w.parts){ pos.set(p.attributes.position.array, i * 3); nor.set(p.attributes.normal.array, i * 3); i += p.attributes.position.count; }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); w.mesh.geometry.dispose(); w.mesh.geometry = g; }
 function wallAddSeg(w, a, b, idx, rebuild = true){
-  const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz); if (L < 0.05) return; const yaw = Math.atan2(dx, dz), y = (a.y + b.y) / 2, mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
+  const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz); if (L < 0.05) return; w.curI = idx; const yaw = Math.atan2(dx, dz), y = (a.y + b.y) / 2, mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
   wallPart(w, WALLG.body, mx, y + WALL.segH / 2 - 0.02, mz, yaw, 1, 1, L + 0.12);
   const n = Math.max(1, Math.floor(L / 0.32)); for (let k = 0; k < n; k += 2){ const t = (k + 0.5) / n - 0.5; wallPart(w, WALLG.cren, mx + dx * t, y + WALL.segH + 0.04, mz + dz * t, yaw); }
   w.segs.push({ ax: a.x, az: a.z, bx: b.x, bz: b.z, top: y + WALL.segH + 0.1, i: idx });
   if (idx % 6 === 0){ wallPart(w, WALLG.tower, b.x, b.y + 0.41, b.z, yaw); for (const [ox, oz] of [[0.25, 0.25], [-0.25, 0.25], [0.25, -0.25], [-0.25, -0.25]]){ const c = Math.cos(yaw), s = Math.sin(yaw); wallPart(w, WALLG.tcren, b.x + ox * c + oz * s, b.y + 0.92, b.z - ox * s + oz * c, yaw); }
-    wallPart(w, WALLG.roof, b.x, b.y + 1.12, b.z, yaw + Math.PI / 4); w.towers.push({ x: b.x, z: b.z, top: b.y + 1.25 }); }
+    wallPart(w, WALLG.roof, b.x, b.y + 1.12, b.z, yaw + Math.PI / 4); w.towers.push({ x: b.x, z: b.z, top: b.y + 1.25, i: idx }); }
   if (rebuild) wallRebuild(w);
 }
 function wallLen(w){ let L = 0; for (const s of w.segs) L += Math.hypot(s.bx - s.ax, s.bz - s.az); return L; }
@@ -5928,7 +5935,7 @@ function startWall(){
   toast('만리장성 쌓기 시작! 모래 위를 걸으면 뒤에 성벽이 따라 쌓여요', 'found'); hintOnce('wallhow', '6칸마다 망루가 생겨요. 다 쌓으면 "그만 쌓기"를 눌러요');
 }
 function stopWall(why){
-  const B = SEA.wallB; SEA.wallB = null; if (!B) return; const w = B.w, L = wallLen(w);
+  const B = SEA.wallB; SEA.wallB = null; if (!B) return; const w = B.w, L = wallLen(w); w.doneT = time;
   if (!w.segs.length){ seaDrop(w.mesh); SEA.walls = SEA.walls.filter(q => q !== w); if (why) toast(why); return; }
   const pr = L >= 8 && seaPayOK('wall', 120) ? 2 : 0; if (pr) addPearl(pr);
   toast((why ? why + ' · ' : '') + (L >= 8 ? `만리장성 완성! 길이 ${Math.round(L)}m` : `성벽 ${Math.round(L)}m를 쌓았어요`) + (pr ? ' · 진주 +2' : ''), 'found'); if (L >= 8){ AudioSys.chime(); showEmote(myTag, '🏯'); }
@@ -5959,11 +5966,11 @@ function seaSolid(){
   if (!started || P.mode !== 'land' || P.sit || SEA.boat?.on || SEA.ride || SEA.sl) return; const BR = 0.3, { L, walls } = seaSolidList(); let hit = false;
   for (const o of L){ if (P.feet > o.top - 0.15) continue; const dx = P.x - o.x, dz = P.z - o.z, d = Math.hypot(dx, dz), R = o.r + BR; if (d >= R) continue;
     const ux = d > 1e-3 ? dx / d : -Math.sin(P.yaw), uz = d > 1e-3 ? dz / d : -Math.cos(P.yaw); P.x = o.x + ux * R; P.z = o.z + uz * R; hit = true; }
-  for (const w of walls){ const building = SEA.wallB?.w === w, lastI = w.pts.length - 1;
-    for (const s of w.segs){ if (building && s.i >= lastI - 1) continue; if (P.feet > s.top - 0.12) continue; const d = segDist(P.x, P.z, s), R = WALL.half + BR; if (d >= R) continue;
+  for (const w of walls){
+    for (const s of w.segs){ if (P.feet > s.top - 0.12) continue; const d = segDist(P.x, P.z, s), R = WALL.half + BR; if (d >= R) continue;
       const dx = P.x - s.px, dz = P.z - s.pz, ux = d > 1e-3 ? dx / d : -Math.sin(P.yaw), uz = d > 1e-3 ? dz / d : -Math.cos(P.yaw); P.x = s.px + ux * R; P.z = s.pz + uz * R; hit = true; }
     for (const t of w.towers){ if (P.feet > t.top - 0.15) continue; const dx = P.x - t.x, dz = P.z - t.z, d = Math.hypot(dx, dz), R = 0.48 + BR; if (d >= R) continue; const ux = d > 1e-3 ? dx / d : 1, uz = d > 1e-3 ? dz / d : 0; P.x = t.x + ux * R; P.z = t.z + uz * R; hit = true; } }
-  if (hit && time > (SEA.solidT || 0)){ SEA.solidT = time + 6; hintOnce('solid', '모래성과 성벽은 단단해서 못 지나가요. 낮은 성벽은 점프로 넘을 수 있어요'); }
+  if (hit && time > (SEA.solidT || 0)){ SEA.solidT = time + 6; hintOnce('solid', TOUCH ? '모래성과 만리장성은 단단해서 못 지나가요. 점프로 넘거나, 주황 [쿵! 부수기] 버튼으로 부숴요' : '모래성과 만리장성은 단단해서 못 지나가요. Space로 점프해서 넘거나, E로 쿵! 부숴요'); }
 }
 /* 친구 성벽: 점(10cm 단위)이 늘어나면 새 칸만 더 쌓는다 */
 function wallFromPeer(V, arr){
@@ -5981,11 +5988,78 @@ function seaCastles(dt){
     else { b.t += dt; const st = CASTLE_T.filter(t => b.t >= t).length;
       if (Math.random() < dt * 5) sandPuff(c.x + R(-0.3, 0.3), c.gh + 0.15, c.z + R(-0.3, 0.3), 2, 0.6);
       if (st > c.stage){ c.stage = st; AudioSys.blip(380 + st * 90, 520 + st * 90, 0.1, 'triangle', 0.07); surfPop(['', '모래 탑 쌓기!', '큰 탑 완성!', '작은 탑도 쏙쏙', '모래성 완성!'][st], st === 4);
-        if (st === 4){ SEA.build = null; const pr = seaPayOK('castle', 90) ? 2 : 0; if (pr) addPearl(pr); AudioSys.chime(); toast('모래성 완성!' + (pr ? ' · 진주 +2' : ''), 'found'); showEmote(myTag, '🏰'); } } } }
+        if (st === 4){ SEA.build = null; c.doneT = time; const pr = seaPayOK('castle', 90) ? 2 : 0; if (pr) addPearl(pr); AudioSys.chime(); toast('모래성 완성!' + (pr ? ' · 진주 +2' : ''), 'found'); showEmote(myTag, '🏰'); } } } }
   for (const c of SEA.castles){ castleStage(c.g, c.stage, dt); if (c.wash){ c.wash -= dt; c.g.scale.y = Math.max(0.05, c.wash / 1.2); c.g.position.y = c.gh - (1 - c.wash / 1.2) * 0.1; if (c.wash <= 0){ seaDrop(c.g); c.dead = true; } } }
   SEA.castles = SEA.castles.filter(c => !c.dead);
 }
 function washCastle(c){ if (c.wash) return; c.wash = 1.2; c.stage = Math.max(1, c.stage); if (SEA.build?.c === c) SEA.build = null; splashAt(c.x, c.z, 1.2); if (Math.hypot(c.x - P.x, c.z - P.z) < 30) setTimeout(() => toast('앗! 큰 파도가 모래성을 쓸어 갔어요. 물에서 먼 곳에 지어 봐요'), 500); }
+/* ---------- 쿵! 부수기: 모래성 · 만리장성 (내 것 + 친구 것) ----------
+   만리장성은 한 덩어리라 어디를 쳐도 맞은 곳부터 양쪽으로 와르르 다 무너진다.
+   친구 작품을 부수면 내 presence에 [번호, 종류, id, x, z]를 실어 보내고, 주인 화면에서 그 작품이 무너지며 알림이 뜬다. */
+const SMASH = { seq: 0, out: [], hide: new Map(), dying: [], walls: [] };
+function wallDist(w, x, z){ let d = 1e9; for (const s of w.segs) d = Math.min(d, segDist(x, z, s) - WALL.half); for (const t of w.towers) d = Math.min(d, Math.hypot(x - t.x, z - t.z) - 0.34); return d; }
+function wallHitAt(w, x, z){ let bi = w.segs[0]?.i || 1, bd = 1e9; for (const s of w.segs){ const d = segDist(x, z, s); if (d < bd){ bd = d; bi = s.i; } } return bi; }
+function smHidden(key, kind, id){ const t = SMASH.hide.get(`${key}|${kind}|${id}`); return t !== undefined && time < t; }
+function smashTarget(){
+  if (!started || P.mode !== 'land' || P.sit || P.surf || SEA.sl || SEA.boat?.on || SEA.ride || SEA.build || SEA.wallB) return null;
+  let best = null, bd = 0.95; const take = (d, o) => { if (d < bd){ bd = d; best = o; o.d = d; } };
+  for (const c of SEA.castles) if (c.stage > 0 && !c.wash && time > (c.doneT || -9) + 2.5) take(Math.hypot(c.x - P.x, c.z - P.z) - c.r, { kind: 'c', own: true, c, x: c.x, z: c.z, name: CASTLE_SHAPE[c.seed % 3].name });
+  for (const w of SEA.walls) if (w.segs.length && time > (w.doneT || -9) + 2.5) take(wallDist(w, P.x, P.z), { kind: 'w', own: true, w, name: '만리장성' });
+  for (const [key, V] of SEA.rv){
+    for (const [seed, g] of V.cast) if (g.userData.parts[0].visible) take(Math.hypot(g.position.x - P.x, g.position.z - P.z) - g.userData.r, { kind: 'c', key, id: seed, g, x: g.position.x, z: g.position.z, name: CASTLE_SHAPE[seed % 3].name });
+    if (V.walls) for (const [id, e] of V.walls) if (e.w.segs.length) take(wallDist(e.w, P.x, P.z), { kind: 'w', key, id, w: e.w, name: '만리장성' }); }
+  return best;
+}
+function smashPrompt(){ const t = smashTarget(); if (!t || (t.own && t.kind === 'c' && t.c.stage < 4)) return null; /* 짓다 만 내 모래성은 모래 놀이 메뉴(더 쌓기 · 부수기)에서 */
+  return { sea: true, type: 'smash', d: t.d, label: `쿵! ${t.name} 부수기`, run: () => doSmash(smashTarget()) }; }
+/* 모래성 무너짐: 납작하게 퍼지며 가라앉는다 */
+function castleCrumble(g, gy){ SMASH.dying.push({ g, gy, t: 0.9 }); sandPuff(g.position.x, gy + 0.3, g.position.z, 14, 1.6); }
+/* 성벽 무너짐: 맞은 칸에서 양쪽으로 한 칸씩 빠르게 사라진다 */
+function wallCrumble(w, at){ if (w.smash) return; w.smash = { at, t: 0, r: -1 }; SMASH.walls.push(w); }
+function wallCrumbleStep(w, dt){
+  const S = w.smash; S.t += dt; const r = Math.floor(S.t * 16); if (r === S.r) return false; S.r = r; const lo = S.at - r, hi = S.at + r, cut = i => i >= lo && i <= hi;
+  let n = 0; for (const s of w.segs) if (cut(s.i)){ n++; sandPuff((s.ax + s.bx) / 2, s.top - 0.32, (s.az + s.bz) / 2, 3, 1.1); }
+  if (n) AudioSys.blip(170 + (r % 5) * 25, 80, 0.07, 'triangle', 0.045);
+  w.segs = w.segs.filter(s => !cut(s.i)); w.towers = w.towers.filter(t => !cut(t.i));
+  const parts = [], pidx = []; w.parts.forEach((g, k) => { if (cut(w.pidx[k])) g.dispose(); else { parts.push(g); pidx.push(w.pidx[k]); } }); w.parts = parts; w.pidx = pidx; wallRebuild(w);
+  return !w.parts.length;
+}
+function doSmash(t){
+  if (!t) return; let x = P.x, z = P.z;
+  if (t.kind === 'w'){ const at = wallHitAt(t.w, P.x, P.z), s = t.w.segs.find(q => q.i === at); if (s){ segDist(P.x, P.z, s); x = s.px; z = s.pz; } }
+  else { x = t.x; z = t.z; }
+  P.yaw = Math.atan2(x - P.x, z - P.z); if (P.grounded){ P.vy = 2.4; P.grounded = false; } FUN.run = false;
+  AudioSys.blip(240, 70, 0.2, 'square', 0.08); surfPop('쿵!'); showEmote(myTag, '💥');
+  if (t.own){
+    if (t.kind === 'c'){ const c = t.c; SEA.castles = SEA.castles.filter(q => q !== c); if (SEA.build?.c === c) SEA.build = null; castleCrumble(c.g, c.gh); toast(`쿵! ${josa(t.name, '이', '가')} 와르르 무너졌어요`); }
+    else { SEA.walls = SEA.walls.filter(q => q !== t.w); wallCrumble(t.w, wallHitAt(t.w, x, z)); toast('쿵! 만리장성이 통째로 와르르 무너졌어요'); }
+    return; }
+  const V = SEA.rv.get(t.key), Rm = NET.peers.get(t.key), who = Rm ? nameOf(Rm) : '친구';
+  SMASH.hide.set(`${t.key}|${t.kind}|${t.id}`, time + 40);
+  if (t.kind === 'c'){ V?.cast.delete(t.id); castleCrumble(t.g, t.g.position.y); }
+  else { V?.walls?.delete(t.id); wallCrumble(t.w, wallHitAt(t.w, x, z)); }
+  SMASH.out.push([++SMASH.seq, t.kind, t.id, Math.round(x * 10), Math.round(z * 10), time]); if (SMASH.out.length > 4) SMASH.out.shift();
+  toast(`쿵! ${who} 님의 ${josa(t.name, '을', '를')} 부쉈어요. 친구 화면에서도 무너져요`);
+}
+/* 친구가 내 작품을 부쉈다는 신호 */
+function smashedByPeer(Rm, kind, id, x, z){
+  if (kind === 'c'){ const c = SEA.castles.find(q => q.seed === id && Math.hypot(q.x - x, q.z - z) < 3); if (!c || c.wash) return;
+    SEA.castles = SEA.castles.filter(q => q !== c); if (SEA.build?.c === c) SEA.build = null; castleCrumble(c.g, c.gh);
+    toast(`${nameOf(Rm)} 님이 내 ${josa(CASTLE_SHAPE[c.seed % 3].name, '을', '를')} 쿵! 부쉈어요`); }
+  else { const w = SEA.walls.find(q => q.id === id); if (!w || !w.segs.length) return; if (SEA.wallB?.w === w) SEA.wallB = null;
+    SEA.walls = SEA.walls.filter(q => q !== w); wallCrumble(w, wallHitAt(w, x, z)); toast(`${nameOf(Rm)} 님이 내 만리장성을 쿵! 부쉈어요`); }
+  if (Math.hypot(x - P.x, z - P.z) < 40) AudioSys.blip(240, 70, 0.2, 'square', 0.06);
+}
+function smashUpdate(dt){
+  for (const d of SMASH.dying){ d.t -= dt; const k = Math.max(0, d.t / 0.9), sp = 1 + (1 - k) * 0.45; d.g.scale.set(sp, Math.max(0.04, k * k), sp); d.g.position.y = d.gy - (1 - k) * 0.08;
+    if (Math.random() < dt * 14) sandPuff(d.g.position.x + R(-0.4, 0.4), d.gy + 0.15, d.g.position.z + R(-0.4, 0.4), 2, 0.9);
+    if (d.t <= 0){ seaDrop(d.g); d.dead = true; } }
+  if (SMASH.dying.length) SMASH.dying = SMASH.dying.filter(d => !d.dead);
+  for (const w of SMASH.walls) if (wallCrumbleStep(w, dt)){ seaDrop(w.mesh); w.dead = true; }
+  if (SMASH.walls.length) SMASH.walls = SMASH.walls.filter(w => !w.dead);
+  if (SMASH.out.length && time - SMASH.out[0][5] > 30) SMASH.out.shift();
+  if (SMASH.hide.size > 20) for (const [k, t] of SMASH.hide) if (time > t) SMASH.hide.delete(k);
+}
 /* 모래찜질: 몸 위에 모래 이불을 덮는다. 머리는 밖으로 */
 function makeMound(parent){ const g = new THREE.Group(), m = sandMat(); parent.add(g); sph(m, g, 0, 0.04, 0.26, 0.42, 0.36, 0.56); sph(m, g, 0.1, 0.02, 0.62, 0.28, 0.26, 0.26); sph(m, g, -0.12, 0.0, -0.08, 0.3, 0.26, 0.22); sph(SEAM.pink, g, -0.14, 0.39, 0.18, 0.07, 0.03, 0.07); sph(SEAM.white, g, 0.12, 0.37, 0.4, 0.06, 0.025, 0.06); return g; }
 function placeMound(g, x, gy, z, yaw, k){ g.position.set(x, gy + 0.02, z); g.rotation.y = yaw; g.scale.set(1, Math.max(0.01, k), 1); }
@@ -6313,12 +6387,15 @@ function seaPresence(){ const o = {}; const b = SEA.boat; if (b?.on) o.bt = [Mat
   if (SEA.castles.length) o.cs = SEA.castles.filter(c => !c.wash).map(c => [Math.round(c.x * 100) / 100, Math.round(c.z * 100) / 100, c.stage, c.seed]);
   if (SEA.walls.length) o.wl = SEA.walls.map(w => [w.id, ...w.pts.flatMap(q => [Math.round(q.x * 10), Math.round(q.z * 10)])]);
   if (P.sit?.kind === 'sandbath') o.sbt = 1; if (SEA.ride){ const a = SEA.ride.a; o.rk = [a.kind, Math.round(a.x * 100) / 100, Math.round(a.z * 100) / 100, Math.round(a.yaw * 100) / 100, Math.round((a.y || 0) * 100) / 100]; }
-  if (NET.tkid) o.tk = [NET.tkid, NET.tkk]; return o; }
+  if (NET.tkid) o.tk = [NET.tkid, NET.tkk]; if (SMASH.out.length) o.sm = SMASH.out.map(a => a.slice(0, 5)); return o; }
 function seaPeer(Rm, pr){ const s = Rm.sea || (Rm.sea = {});
   s.bt = Array.isArray(pr.bt) && pr.bt.length === 3 ? [clamp(num(pr.bt[0]), -70, 80), clamp(num(pr.bt[1]), -80, 80), num(pr.bt[2])] : null;
   s.wl = Array.isArray(pr.wl) ? pr.wl.slice(0, 2).filter(a => Array.isArray(a) && a.length >= 3 && a.length <= 1 + WALL.maxPts * 2 && a.length % 2 === 1 && Number.isInteger(a[0]) && a[0] >= 0 && a[0] < 70000 && a.every((v, i) => Number.isFinite(v) && (i === 0 || Math.abs(v) < 9000))) : [];
   s.cs = Array.isArray(pr.cs) ? pr.cs.slice(0, CASTLE_MAX).filter(a => Array.isArray(a) && a.length === 4).map(a => [clamp(num(a[0]), -70, 80), clamp(num(a[1]), -80, 80), clamp(Math.round(num(a[2])), 0, 4), Math.abs(Math.round(num(a[3]))) % 65536]) : [];
   if (Array.isArray(pr.tk) && pr.tk.length === 2 && Number.isInteger(pr.tk[0]) && pr.tk[0] !== s.tkid){ if (s.tkid !== undefined && TRICKS[pr.tk[1]]) Rm.trk = { k: pr.tk[1], t: 0 }; s.tkid = pr.tk[0]; }
+  if (Array.isArray(pr.sm)){ const L0 = pr.sm.slice(-4).filter(a => Array.isArray(a) && a.length === 5 && Number.isInteger(a[0]) && (a[1] === 'c' || a[1] === 'w') && Number.isInteger(a[2]) && a[2] >= 0 && a[2] < 70000 && Number.isFinite(a[3]) && Number.isFinite(a[4]));
+    const mx = L0.reduce((m, a) => Math.max(m, a[0]), 0); if (Rm.smLast === undefined) Rm.smLast = mx; else { for (const a of L0) if (a[0] > Rm.smLast) smashedByPeer(Rm, a[1], a[2], a[3] / 10, a[4] / 10); Rm.smLast = Math.max(Rm.smLast, mx); } }
+  else if (Rm.smLast === undefined) Rm.smLast = 0;
   s.sbt = !!pr.sbt; s.rk = Array.isArray(pr.rk) && pr.rk.length === 5 && RIDE[pr.rk[0]] ? [pr.rk[0], clamp(num(pr.rk[1]), -70, 80), clamp(num(pr.rk[2]), -80, 80), num(pr.rk[3]), clamp(num(pr.rk[4]), -4, 4)] : null; }
 function seaRemotes(dt){
   for (const [key, V] of SEA.rv){ const Rm = NET.peers.get(key); if (Rm && Rm.visible) continue; seaDrop(V.boat); seaDrop(V.mound); seaDrop(V.ride); for (const c of V.cast.values()) seaDrop(c); if (V.walls) for (const e of V.walls.values()) seaDrop(e.w.mesh); SEA.rv.delete(key); }
@@ -6331,10 +6408,10 @@ function seaRemotes(dt){
     if (s.sbt && Rm.st === 'float'){ if (!V.mound) V.mound = makeMound(SEA.root); placeMound(V.mound, root.position.x, groundH(root.position.x, root.position.z), root.position.z, root.rotation.y, 1); }
     else if (V.mound){ seaDrop(V.mound); V.mound = null; }
     const keep = new Set();
-    for (const [x, z, stage, seed] of s.cs){ keep.add(seed); let g = V.cast.get(seed); if (!g){ g = makeCastle(SEA.root, seed); g.position.set(x, groundH(x, z), z); g.rotation.y = (seed % 628) / 100; V.cast.set(seed, g); } castleStage(g, stage, dt); }
-    for (const [seed, g] of V.cast) if (!keep.has(seed)){ seaDrop(g); V.cast.delete(seed); }
-    if (!V.walls) V.walls = new Map(); for (const e of V.walls.values()) e.seen = false; for (const a of (s.wl || [])) wallFromPeer(V, a);
-    for (const [id, e] of V.walls) if (!e.seen){ seaDrop(e.w.mesh); V.walls.delete(id); } }
+    for (const [x, z, stage, seed] of s.cs){ if (smHidden(Rm.key, 'c', seed)) continue; keep.add(seed); let g = V.cast.get(seed); if (!g){ g = makeCastle(SEA.root, seed); g.position.set(x, groundH(x, z), z); g.rotation.y = (seed % 628) / 100; V.cast.set(seed, g); } castleStage(g, stage, dt); }
+    for (const [seed, g] of V.cast) if (!keep.has(seed)){ if (g.userData.parts[0].visible) castleCrumble(g, g.position.y); else seaDrop(g); V.cast.delete(seed); }
+    if (!V.walls) V.walls = new Map(); for (const e of V.walls.values()) e.seen = false; for (const a of (s.wl || [])) if (!smHidden(Rm.key, 'w', a[0] | 0)) wallFromPeer(V, a);
+    for (const [id, e] of V.walls) if (!e.seen){ if (e.w.segs.length) wallCrumble(e.w, e.w.segs[e.w.segs.length >> 1].i); else seaDrop(e.w.mesh); V.walls.delete(id); } }
 }
 
 /* ---------- 화면 UI: 자리 카드 · 모래 놀이 메뉴 · 상어용 물총 버튼 ---------- */
@@ -6355,6 +6432,7 @@ function seaRemotes(dt){
 #sandMenu>b{font-family:var(--display);font-weight:400;font-size:19px}
 #sandMenu .row button{display:grid;gap:2px;padding:10px 12px;font-size:15px;min-width:92px}
 #sandMenu .row button i{font-style:normal;font-size:11.5px;opacity:.85;font-family:var(--body)}
+#sandMenu .row button.smash{background:#d94c3d;box-shadow:0 3px 0 #9e3027}
 body:not(.touch) #sandMenu .row button i{display:block}
 #bShark{position:fixed;z-index:6;right:16px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 224px);width:72px;height:72px;font-family:var(--display);font-size:16px;background:#ff5f6b;color:#fff;box-shadow:inset 0 0 0 5px #fff,0 4px 0 rgba(36,36,42,.25);animation:pulse .5s ease-in-out infinite alternate}
 #tourBtn{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 76px);border:0;border-radius:999px;background:#2fb5d3;color:#fff;font-family:var(--display);font-size:17px;padding:11px 20px;box-shadow:0 4px 0 #1b7f95}
@@ -6376,7 +6454,7 @@ body.clean #slideChip{visibility:hidden}
   card.querySelector('.go').onclick = e => { e.stopPropagation(); if (SEA.card) startGoto(SEA.card.t); };
   card.querySelector('.no').onclick = e => { e.stopPropagation(); closeSeaCard(); };
   const sm = document.createElement('div'); sm.id = 'sandMenu'; sm.className = 'hidden';
-  sm.innerHTML = '<b>모래 놀이</b><div class="row"><button data-k="castle"><span>모래성 만들기</span></button><button data-k="wall"><span>만리장성 쌓기</span></button><button data-k="lie"><span>모래에 눕기</span></button><button data-k="bath"><span>모래찜질</span></button></div><button class="no">닫기</button>'; document.body.appendChild(sm);
+  sm.innerHTML = '<b>모래 놀이</b><div class="row"><button data-k="castle"><span>모래성 만들기</span></button><button data-k="wall"><span>만리장성 쌓기</span></button><button data-k="lie"><span>모래에 눕기</span></button><button data-k="bath"><span>모래찜질</span></button><button data-k="smash" class="smash"><span>쿵! 부수기</span></button></div><button class="no">닫기</button>'; document.body.appendChild(sm);
   if (!TOUCH) sm.querySelectorAll('.row button').forEach((b, i) => { const k = document.createElement('i'); k.textContent = `${i + 1}번 키`; b.appendChild(k); });
   sm.querySelectorAll('.row button').forEach(b => b.onclick = e => { e.stopPropagation(); sandChoose(b.dataset.k); });
   sm.querySelector('.no').onclick = () => openSandMenu(false);
@@ -6384,7 +6462,7 @@ body.clean #slideChip{visibility:hidden}
   const wc = document.createElement('button'); wc.id = 'wallChip'; wc.className = 'hidden'; wc.type = 'button'; document.body.appendChild(wc); wc.onclick = () => stopWall();
   const tb = document.createElement('button'); tb.id = 'tourBtn'; tb.className = 'hidden'; tb.type = 'button'; document.body.appendChild(tb); tb.onclick = () => { if (SEA.tour) stopTour('투어를 멈췄어요'); else startTour(); };
   const bs = document.createElement('button'); bs.id = 'bShark'; bs.className = 'rb hidden'; bs.textContent = '물총!'; bs.setAttribute('aria-label', '물총으로 상어 쫓기'); document.body.appendChild(bs); hold('#bShark', 'shoot');
-  addEventListener('keydown', e => { if (!SEA.menu) return; const k = { Digit1: 'castle', Digit2: 'wall', Digit3: 'lie', Digit4: 'bath' }[e.code]; if (k){ e.preventDefault(); sandChoose(k); } else if (e.code === 'Escape') openSandMenu(false); });
+  addEventListener('keydown', e => { if (!SEA.menu) return; const k = { Digit1: 'castle', Digit2: 'wall', Digit3: 'lie', Digit4: 'bath', Digit5: 'smash' }[e.code]; if (k === 'smash' && $('#sandMenu [data-k="smash"]').classList.contains('hidden')) return; if (k){ e.preventDefault(); sandChoose(k); } else if (e.code === 'Escape') openSandMenu(false); });
   canvas.addEventListener('pointerdown', e => { SEA.tap = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), mv: 0 }; });
   canvas.addEventListener('pointermove', e => { const t = SEA.tap; if (t && t.id === e.pointerId) t.mv = Math.max(t.mv, Math.hypot(e.clientX - t.x, e.clientY - t.y)); });
   canvas.addEventListener('pointerup', e => { const t = SEA.tap; SEA.tap = null; if (!t || t.id !== e.pointerId || t.mv > 12 || performance.now() - t.t > 450) return; seaTap(e.clientX, e.clientY); });
@@ -6522,6 +6600,35 @@ function slideGuardUpdate(dt){
   if (!started) return; const R0 = SEA.sl;
   if (R0?.stage === 'wait'){ if (!R0.told || (time - R0.told > 9)){ R0.told = time; guardSay(SLIDE_TXT.ready()); G0.wave = 1.6; } }
   else if (!R0 && Math.hypot(P.x - S0.lx, P.z - S0.lz) < 7 && !SEA.slEnd && time > (G0.climbT || 0)){ G0.climbT = time + 22; guardSay(SLIDE_TXT.climb()); G0.wave = 1.6; }
+}
+/* ---------- 감시탑 라이프가드 (AI): 의자에 앉아 바다를 훑어보고, 가까이 오면 쳐다보며 인사한다 ---------- */
+const LG_TIPS = ['깃발 안에서 놀아요!', '물놀이 전엔 준비운동!\n쭉쭉 기지개 켜요', '혼자 너무 멀리 가지 마요.\n내가 보이는 곳에서 놀아요', '힘들면 튜브 잡고\n둥실 쉬어 가요', '물 마시면서 놀아요.\n매점에 시원한 음료 있어요'];
+function lgBuild(){
+  LG.spot = SPOT.id; for (const q of LG.list){ q.rig.root.visible = false; q.tag.el.classList.add('hidden'); LG.pool.push(q); } LG.list = [];
+  let h = 7, hs = 11; for (const c of SPOT.id){ h = (h * 31 + c.charCodeAt(0)) | 0; hs = (hs * 31 + c.charCodeAt(0)) | 0; }
+  const taken = SEA.slide ? GUARD_NAMES[(hs >>> 3) % GUARD_NAMES.length] : '';
+  LG.spots.forEach((s, i) => {
+    const q = LG.pool.pop() || (() => { const tag = makeTag(); tag.el.classList.add('npc'); return { rig: makeRig(), tag }; })();
+    const gear = sanitizeGear(Object.assign({}, npcGear(mulberry32(h ^ (0x51a7 + i * 977))), { suit: '#ffd21f', shorts: '#e2382f', cap: 'bucket', capColor: '#e2382f', mask: 'none', snorkel: 'off', fins: 'none', tube: 'none', board: 'none', vest: 'none' }));
+    buildBabyInto(q.rig, gear); q.rig.tOff = 1.3 + i * 2.1; q.rig.root.scale.setScalar(1.15); q.rig.root.position.set(s.x + 0.3, s.gy + 3.46, s.z - 0.16); q.rig.root.rotation.y = 0; q.rig.root.visible = true;
+    let k = ((h >>> 5) + i * 3 + 2) % GUARD_NAMES.length; if (GUARD_NAMES[k] === taken) k = (k + 1) % GUARD_NAMES.length;
+    q.name = GUARD_NAMES[k]; q.tag.n.textContent = `라이프가드 ${q.name} (AI)`; q.s = s; q.wave = 0; q.hiT = 0; q.tipT = 25 + i * 9; q.said = ''; q.sayT = 0; LG.list.push(q); });
+}
+function lgSay(q, text, key){ if (key && q.said === key && time < q.sayT) return; q.said = key || text; q.sayT = time + 7; showBubble(q.tag, text); q.tag.bT = time + 7; }
+function lgUpdate(dt){
+  if (!SPOT || WORLD === 'sky') return; if (LG.spot !== SPOT.id) lgBuild(); if (!LG.list.length) return;
+  let nq = null, nd = 1e9;
+  for (const q of LG.list){ const s = q.s, root = q.rig.root, dx = P.x - s.x, dz = P.z - s.z, d = Math.hypot(dx, dz), near = d < 80;
+    root.visible = near; if (!near){ q.tag.el.classList.add('hidden'); continue; } if (d < nd){ nd = d; nq = q; }
+    const scan = Math.sin(time * 0.31 + s.i * 2.3) * 0.55 + Math.sin(time * 0.83 + s.i) * 0.12, look = started && d < 11 ? clamp(Math.atan2(dx, dz), -1.25, 1.25) : scan;
+    root.rotation.y = lerpAngle(root.rotation.y, look, 1 - Math.exp(-dt * 2.2));
+    q.wave = Math.max(0, q.wave - dt); animRig(q.rig, dt, 'sit', { wave: q.wave > 0 });
+    placeTag(q.tag, root, started, true, 42);
+    if (!started) continue;
+    if (d < 7 && P.mode === 'land' && time > q.hiT){ q.hiT = time + 75; lgSay(q, `안녕! 나는 라이프가드 ${q.name}예요.\n바다는 내가 지켜볼게요`, 'hi'); q.wave = 1.8; }
+    else if (P.mode === 'swim' && d < 45 && time > q.tipT && !SEA.sl){ q.tipT = time + 40 + Math.random() * 25; lgSay(q, pickOne(LG_TIPS)); q.wave = 1.2; }
+  }
+  if (started && nq && nd < 60 && BIGW.warnK !== LG.warnK && BIGW.warnK >= 0){ LG.warnK = BIGW.warnK; lgSay(nq, '삐익~ 큰 파도가 와요!\n둥실 타거나 모래사장으로!', 'bigw'); nq.wave = 2; AudioSys.blip(2100, 1900, 0.22, 'square', 0.035); }
 }
 function slideAt(d){ const S = SEA.slide.S, n = S.length - 1, f = clamp(d / SEA.slide.len * n, 0, n), i = Math.min(n - 1, Math.floor(f)), k = f - i, a = S[i], b = S[i + 1];
   return { p: a.p.clone().lerp(b.p, k), t: a.t.clone().lerp(b.t, k).normalize(), u: a.u.clone().lerp(b.u, k).normalize(), s: a.s.clone().lerp(b.s, k).normalize(), c: a.c + (b.c - a.c) * k }; }
@@ -6903,7 +7010,7 @@ function seaFunBuild(){
   if (!TOUR){ try { buildCliffs(); } catch (e){ console.warn('cliffs', e); SEA.cliffs = []; }
   try { buildSharks(); } catch (e){ console.warn('sharks', e); SEA.sharks = []; }
   try { buildBoat(); } catch (e){ console.warn('boat', e); SEA.boat = null; } }
-  SEA.ride = null; SEA.tour = null; SEA.whaleSeen = false; SEA.seenJump = false; SEA.walls = []; SEA.wallB = null;
+  SEA.ride = null; SEA.tour = null; SEA.whaleSeen = false; SEA.seenJump = false; SEA.walls = []; SEA.wallB = null; SMASH.dying = []; SMASH.walls = []; SMASH.hide.clear(); SMASH.out = [];
   SEA.whales = []; if (!TOUR) try { buildWhales(); } catch (e){ console.warn('whales', e); SEA.whales = []; }
   SEA.sl = null; SEA.slEnd = null; SEA.trk = null; SEA.slide = null; slideGuardHide(); if (!TOUR) try { buildSlide(); } catch (e){ console.warn('slide', e); SEA.slide = null; }
   try { ybSpotBuilt(); } catch (e){ console.warn('yabiji', e); }
@@ -6917,11 +7024,11 @@ function seaFun(dt){
   if (!started){ seaBoatIdle(dt); seaSharks(dt); seaWhales(dt); farUpdate(); return; }
   if (TOUCH){ if (P.mode === 'swim' && !SEA.hUD){ SEA.hUD = true; hintOnce('updown', '물에서는 ▼잠수 버튼으로 내려가고, ▲위로 버튼으로 올라와요'); }
     SEA.playT = (SEA.playT || 0) + dt; if (SEA.playT > 30 && !SEA.hFP){ SEA.hFP = true; hintOnce('fpbtn', '오른쪽 위 1인칭 버튼을 누르면 아기 눈으로 볼 수 있어요'); } }
-  seaBumps(dt); seaSolid(); seaWalls(dt); bigWaveEffects(dt); seaSlide(dt); ybUpdate(dt); seaCliffs(dt); seaCastles(dt); seaBath(dt); seaSharks(dt); seaWhales(dt); seaBoatIdle(dt); seaRemotes(dt); placeSeaCard(); farUpdate();
+  seaBumps(dt); seaSolid(); seaWalls(dt); bigWaveEffects(dt); seaSlide(dt); ybUpdate(dt); seaCliffs(dt); seaCastles(dt); smashUpdate(dt); seaBath(dt); seaSharks(dt); seaWhales(dt); seaBoatIdle(dt); seaRemotes(dt); placeSeaCard(); farUpdate();
   { const tb = $('#tourBtn'), on = !!SEA.boat?.on && SEA.whales.length > 0 && !seaPanel(); tb.classList.toggle('hidden', !on); if (on){ const t = SEA.tour ? '투어 멈추기' : '고래 보러 가기'; if (tb.textContent !== t) tb.textContent = t; } }
   if (SEA.menu && (seaPanel() || !onSand() || P.sit || P.moving)) openSandMenu(false);
 }
-const SEATEST = { SEA, BIGW, get cliffs(){ return SEA.cliffs.map(c => ({ x: c.sx, z: c.sz, h: c.top, a: c.a })); }, get sharks(){ return SEA.sharks.map(s => ({ x: s.x, z: s.z, y: s.y, st: s.st, c: s.c })); },
+const SEATEST = { SEA, BIGW, SMASH, LG, smashTarget, smashPrompt, doSmash, get lg(){ return LG.list.map(q => ({ x: q.rig.root.position.x, y: q.rig.root.position.y, z: q.rig.root.position.z, yaw: q.rig.root.rotation.y, name: q.tag.n.textContent, vis: q.rig.root.visible, bub: q.tag.b.classList.contains('hidden') ? '' : q.tag.b.textContent })); }, get cliffs(){ return SEA.cliffs.map(c => ({ x: c.sx, z: c.sz, h: c.top, a: c.a })); }, get sharks(){ return SEA.sharks.map(s => ({ x: s.x, z: s.z, y: s.y, st: s.st, c: s.c })); },
   get whales(){ return SEA.whales.map(a => ({ kind: a.kind, x: a.x, z: a.z, y: a.y, st: a.st })); }, boardRide, leaveRide, startTour, stopTour, startSlide, slideGo, slideCancel, structDist, get guard(){ const G0 = SLIDE.guard; return G0 && { on: G0.on, name: G0.tag.n.textContent, bub: G0.tag.b.classList.contains('hidden') ? '' : G0.tag.b.textContent, x: G0.rig.root.position.x, y: G0.rig.root.position.y, z: G0.rig.root.position.z, vis: G0.rig.root.visible }; }, get slide(){ const S0 = SEA.slide; return S0 && { x: S0.x, z: S0.z, lx: S0.lx, lz: S0.lz, len: S0.len, top: S0.top, lv: S0.lv, Lr: S0.Lr, float: S0.float, a: Math.atan2(S0.fx, S0.fz), sd: structDist(S0.x, S0.z) }; }, get slideDiag(){ return SLIDE.diag; }, timeFind(){ const t = performance.now(); findSlideSpot(); return performance.now() - t; }, get sl(){ return SEA.sl && { stage: SEA.sl.stage, d: SEA.sl.d, v: SEA.sl.v, lat: SEA.sl.lat, climb: SEA.sl.climb }; }, get yb(){ return { stage: YB.stage, idx: YB.idx, gs: YB.gs, ptT: YB.ptT, photos: YB.photos.length, warn: YB.warn, booth: YB.booth, used: ybUsed(), ready: ybReady(), card: YB.card, origin: YB.origin, guide: YB.guide && { on: YB.guide.on, x: YB.guide.x, z: YB.guide.z, name: YB.guide.tag.n.textContent, bub: YB.guide.tag.b.classList.contains('hidden') ? '' : YB.guide.tag.b.textContent }, boat: YB.boat && { x: YB.boat.x, z: YB.boat.z } }; }, ybReset(){ localStorage.removeItem('pp_yabiji_day'); YB.resv = ''; }, ybClock(ms){ YB.clockOff = ms; }, get ybSlot(){ return Object.assign(ybSlot(), { resv: YB.resv }); }, ybDiag(){ const s = SPOT.start, c = { n: 0, h: 0, ring: 0, struct: 0, poi: 0, slide: 0, ok: 0 }; for (let r = 4; r <= 18; r += 1.5) for (let a = 0; a < 28; a++){ const ang = a / 28 * Math.PI * 2, x = s.x + Math.sin(ang) * r, z = s.z + Math.cos(ang) * r, gh = groundH(x, z); c.n++; if (gh < 0.35 || gh > 4 || gh - terrainH(x, z) > 0.05 || rockAt(x, z) > 0.25){ c.h++; continue; } let bad = false; for (let k = 0; k < 8 && !bad; k++){ const qa = k * Math.PI / 4, q = groundH(x + Math.sin(qa) * 2.4, z + Math.cos(qa) * 2.4); if (Math.abs(q - gh) > 0.5 || q < 0.25 || rockAt(x + Math.sin(qa) * 2.4, z + Math.cos(qa) * 2.4) > 0.3) bad = true; } if (bad){ c.ring++; continue; } if (structDist(x, z) < 3.2){ c.struct++; continue; } if (POIS.some(p => Math.hypot(p.x - x, p.z - z) < 5) || SEATS.some(p => Math.hypot(p.x - x, p.z - z) < 3.2)){ c.poi++; continue; } if (SEA.slide && Math.hypot(SEA.slide.x - x, SEA.slide.z - z) < 8){ c.slide++; continue; } c.ok++; } return c; }, ybFree(v){ YB.free = !!v; }, ybDepart, ybSkip, ybOpenCard, ybWarp(){ const G0 = YB.guide; if (!G0) return; if (YB.stage === 'home'){ const q = ybLocal(0.7, -6.6); G0.x = q.x; G0.z = q.z; return; } const p = YB_POINTS[YB.idx]; if (p){ G0.x = p.x + 0.5; G0.z = p.z + 0.5; } if (YB.gs === 'at') YB.ptT = Math.min(YB.ptT, YB.snapDone ? 0.2 : 13.2); }, ybPoints: YB_POINTS, ybOnBoat, ybGoHome, get trk(){ const T = SEA.trk; return T && { cur: T.cur, p: T.p, list: T.list.slice(), score: T.score }; }, trickPress(k){ const T = SEA.trk; if (!T) return false; if (!T.cur){ T.cur = k; T.p = 0; trickSend(k); } else if (!T.q) T.q = k; return true; }, get slEnd(){ return SEA.slEnd; }, get ride(){ const r = SEA.ride; return r && { kind: r.a.kind, x: r.a.x, z: r.a.z, v: r.a.v, y: r.a.y }; }, get tour(){ return SEA.tour && { arrived: SEA.tour.arrived }; }, get far(){ return FARN.body ? FARN.body.count : -1; },
   get walls(){ return SEA.walls.map(w => ({ id: w.id, n: w.pts.length, segs: w.segs.length, towers: w.towers.length, len: wallLen(w) })); }, get castles(){ return SEA.castles.map(c => ({ x: c.x, z: c.z, stage: c.stage, style: c.seed % 3, r: c.r })); }, startWall, stopWall, startCastle, seaSolidAt, seaWalls, seaSolid, slideDrive, seaSlide, slideAt,
   get boat(){ const b = SEA.boat; return b && { x: b.x, z: b.z, yaw: b.yaw, on: b.on, v: b.v }; }, tap: seaTap, startGoto, boardBoat, leaveBoat, sandChoose, openSandMenu, cliffJump: i => cliffJump(SEA.cliffs[i]), onSand, bigWaveH, shoreAt, seaScreen, seatTaken,
@@ -6938,7 +7045,7 @@ function frame(){
   updateSurfZone();
   if (started) updatePlayer(dt);
   seaFun(dt);
-  placeChar(); animateBaby(dt); updateRemotes(dt); updateNPCs(dt); updateFun(dt);
+  placeChar(); animateBaby(dt); updateRemotes(dt); updateNPCs(dt); lgUpdate(dt); updateFun(dt);
   updateFish(dt); updateJellies(dt); updateOctos(dt); updateTurtle(dt); updateCrits(dt); updateTreasure(dt);
   updateProps(dt); updateFX(dt); updateCamera(dt); updateUnder(); updateTags(); sendPresence(dt);
   if (started){ updateHUD(dt); discT -= dt; if (discT <= 0){ discT = 0.25; checkDiscover(); } }
