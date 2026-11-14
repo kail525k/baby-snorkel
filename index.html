@@ -2610,7 +2610,7 @@ function renderSpots(){
       const im = el('img'); im.alt = ''; queueThumb(im, d); b.appendChild(im);
       const bd = el('div', 'bd'); const tt = el('div', 'tt'); tt.append(el('b', '', d.short), el('span', 'ty', d.type)); bd.appendChild(tt);
       bd.appendChild(el('p', '', d.lead.split(/(?<=요\.)\s/)[0]));
-      const row = el('div', 'row'); row.append(el('span', '', `도감 ${fd}/${dex.length}` + (othersIn(d.id) && !here ? ` · 지금 ${othersIn(d.id)}명` : '')), el('span', 'go', here ? '지금 여기' : '이 바다로 가기')); bd.appendChild(row);
+      const row = el('div', 'row'); { const on = liveN(d.id, here); row.append(el('span', '', (on !== null ? liveTxt(on) + ' · ' : '') + `도감 ${fd}/${dex.length}`), el('span', 'go', here ? '지금 여기' : '이 바다로 가기')); } bd.appendChild(row);
       b.appendChild(bd); b.onclick = () => switchSpot(d.id); grid.appendChild(b);
     }
     body.appendChild(g);
@@ -2618,7 +2618,7 @@ function renderSpots(){
   { const g = el('div', 'sgrp'); g.appendChild(el('h3', '', '한국 · 하늘 (패러글라이딩)')); const grid = el('div', 'sgrid'); g.appendChild(grid);
     for (const d of SKY_SPOTS){ const here = placeId() === d.id, b = el('button', 'spc' + (here ? ' here' : '')); b.type = 'button'; b.setAttribute('aria-label', `${d.label}${here ? ' (지금 여기)' : ' 으로 옮기기'}`);
       const im = el('div', 'skythumb'); im.textContent = '🪂'; b.appendChild(im); const bd = el('div', 'bd'); const tt = el('div', 'tt'); tt.append(el('b', '', d.short), el('span', 'ty', d.type)); bd.appendChild(tt);
-      bd.appendChild(el('p', '', d.lead.split(/(?<=요\.)\s/)[0])); const row = el('div', 'row'); row.append(el('span', '', d.facts[0] + (othersIn(d.id) && !here ? ` · 지금 ${othersIn(d.id)}명` : '')), el('span', 'go', here ? '지금 여기' : '이 하늘로 가기')); bd.appendChild(row);
+      bd.appendChild(el('p', '', d.lead.split(/(?<=요\.)\s/)[0])); const row = el('div', 'row'); { const on = liveN(d.id, here); row.append(el('span', '', (on !== null ? liveTxt(on) + ' · ' : '') + d.facts[0]), el('span', 'go', here ? '지금 여기' : '이 하늘로 가기')); } bd.appendChild(row);
       b.appendChild(bd); b.onclick = () => switchSpot(d.id); grid.appendChild(b); }
     body.appendChild(g); }
   const soon = el('div', 'sgrp soon'); soon.append(el('h3', '', '준비 중인 바다'), el('p', '', NEXT_SPOTS.join(' · '))); body.appendChild(soon);
@@ -2641,7 +2641,7 @@ function renderPickSky(focusFirst){
   const m = el('button', 'mapbtn'); m.type = 'button'; m.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>'; m.append(document.createTextNode('지도')); m.setAttribute('aria-label', '지도에서 하늘 고르기'); m.onclick = () => openSpots(true, 'danyang'); regs.appendChild(m);
   const list = $('#sList'); list.innerHTML = ''; list.setAttribute('aria-label', '하늘 목록');
   for (const d of SKY_SPOTS){ const here = WORLD === 'sky' && SKYSPOT?.id === d.id, b = el('button', 'srow'); b.type = 'button'; b.id = 'pk-' + d.id; b.setAttribute('aria-pressed', here);
-    const i = el('i'); i.style.background = '#2fa7d8'; const w = el('span', 'w'); w.append(el('b', '', d.short), el('small', '', `${d.region} · ${d.type}`)); const tg = el('span', 'tg'); const on = othersIn(d.id); if (on) tg.appendChild(el('span', 'pp', `${on}명`)); tg.appendChild(el('span', 'sk', '패러글라이딩'));
+    const i = el('i'); i.style.background = '#2fa7d8'; const w = el('span', 'w'); w.append(el('b', '', d.short), el('small', '', `${d.region} · ${d.type}`)); const tg = el('span', 'tg'); const on = liveN(d.id, here); tg.appendChild(el('span', 'sk', '패러글라이딩')); if (on !== null) tg.appendChild(el('span', on ? 'pp' : '', liveTxt(on)));
     b.append(i, w, tg); b.onclick = () => { if (!here) switchSpot(d.id); }; list.appendChild(b); }
   for (const [title, arr] of [['국내 · 준비 중', SKY_SOON], ['해외 · 준비 중', SKY_WORLD]]){ list.appendChild(el('div', 'shd', title));
     for (const q of arr){ const b = el('div', 'srow soon'); const i = el('i'); i.style.background = '#b9c2c9'; const w = el('span', 'w'); w.append(el('b', '', q.name), el('small', '', q.where + (q.note ? ' · ' + q.note : ''))); const tg = el('span', 'tg'); tg.appendChild(el('span', '', '준비 중')); b.append(i, w, tg); list.appendChild(b); } }
@@ -2657,7 +2657,7 @@ function renderPick(focusFirst){
   for (const d of spotsIn(pickReg)){ const here = WORLD === 'sea' && SPOT && d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size;
     const b = el('button', 'srow'); b.type = 'button'; b.id = 'pk-' + d.id; b.setAttribute('aria-pressed', !!here);
     const i = el('i'); i.style.background = d.surf ? '#ff8a2a' : d.water.shallow; const w = el('span', 'w'); w.append(el('b', '', d.short), el('small', '', `${d.addr.split(' · ')[0]} · ${d.type}`));
-    const tg = el('span', 'tg'); const on = othersIn(d.id); if (on) tg.appendChild(el('span', 'pp', `${on}명`)); if (d.surf) tg.appendChild(el('span', 'sf', '서핑')); tg.appendChild(el('span', fd ? '' : 'nw', fd ? `도감 ${fd}/${dex.length}` : `친구 ${dex.length}종`));
+    const tg = el('span', 'tg'); const on = liveN(d.id, here); if (d.surf) tg.appendChild(el('span', 'sf', '서핑')); if (on !== null) tg.appendChild(el('span', on ? 'pp' : '', liveTxt(on))); tg.appendChild(el('span', fd ? '' : 'nw', `도감 ${fd}/${dex.length}`));
     b.append(i, w, tg); b.onclick = () => { if (!here) switchSpot(d.id); }; list.appendChild(b); }
   const sel = list.querySelector('[aria-pressed="true"]'); if (sel) sel.scrollIntoView({ block: 'nearest' });
   if (focusFirst) (sel || list.querySelector('button'))?.focus({ preventScroll: true });
@@ -2668,7 +2668,7 @@ function applySpotUI(){
   const d = SPOT;
   $('#spotName').textContent = d.label; canvas.setAttribute('aria-label', d.label + ' 3D 바다');
   $('#sName').textContent = d.short; $('#sAddr').textContent = d.addr.split(' · ').slice(0, 2).join(' · '); $('#sLead').textContent = d.lead; $('#sGo').textContent = `${roJ(d.short)} 들어가기`; if (d.mr !== pickReg && !spotsOpen) pickReg = d.mr;
-  const fx = $('#sFacts'); fx.innerHTML = ''; for (const t of [...(d.seaName ? [`물빛 ${d.seaName}`] : []), `바다 친구 ${d.dex.length}종`, ...d.facts, `물멍자리 ${SEATS.length}곳`, '같이 수영하기']) fx.appendChild(el('span', '', t));
+  const fx = $('#sFacts'); fx.innerHTML = ''; for (const t of [...(d.seaName ? [`물빛 ${d.seaName}`] : []), `도감 ${FOUND.size}/${d.dex.length}`, ...d.facts, `물멍자리 ${SEATS.length}곳`, '같이 수영하기']) fx.appendChild(el('span', '', t));
   $('#bSpot .lbl').textContent = '바다 옮기기'; $('#bSpot').title = '바다 옮기기 (M)';
   pickKind = 'sea'; renderPick(); updateDexCount(); $('#dexT').textContent = `${d.short} 바다 친구 도감`;
   $('#hTitle').textContent = `${d.short} 안내`; $('#hNoSurf p').textContent = `이 바다에는 서핑 파도가 없어요. 서핑은 ${surfNames(d.mr) || surfNames()}에서 할 수 있어요. 위쪽 "바다 옮기기"를 눌러 보세요.`; $('#hSurf').classList.toggle('hidden', !SURF); $('#hNoSurf').classList.toggle('hidden', !!SURF);
@@ -2749,10 +2749,13 @@ async function joinLobby(){
       r.onPeers(ch => { for (const p of ch.left) m.delete(p.peer); for (const p of ch.peers){ if (p.sameTab || p.isMe) continue; m.set(p.peer, { peer: p.peer, presence: p.presence || {} }); } lobbyFeed([...m.values()]); }, () => {});
       LOBBY.room = { presence: pr => r.presence(pr), onAll(){}, leave: () => r.leave?.() }; } }
   } catch (e){ LOBBY.room = null; }
-  if (LOBBY.room){ LOBBY.room.onAll(lobbyFeed); LOBBY.mine = null; lobbyTell(); }
+  if (LOBBY.room){ LOBBY.room.onAll(lobbyFeed); LOBBY.mine = null; lobbyTell(); refreshCounts(); }
 }
 function lobbyTell(){ if (!LOBBY.room) return; const sid = started && SPOT ? placeId() : ''; if (sid === LOBBY.mine) return; LOBBY.mine = sid; LOBBY.room.presence({ s: sid }); }
 const othersIn = id => LOBBY.counts[id] || 0;
+/* 접속 인원: 같이 수영하기에 연결돼 있을 때만 보여 준다(끊겨 있으면 null). 내가 들어가 있는 곳이면 나도 센다 */
+const liveN = (id, here) => LOBBY.room ? othersIn(id) + (here && started ? 1 : 0) : null;
+const liveTxt = n => `접속 ${n}명`;
 function refreshCounts(){
   if (!started && !$('#start').classList.contains('hidden')) renderPick(false);
   if (spotsOpen) setSpMode(spMode);
@@ -2859,14 +2862,14 @@ function renderMapCard(d){
     const sn = surfNames(r ? r.id : null); if (sn) c.appendChild(el('p', 'cs', '서핑할 수 있는 곳: ' + sn)); return; }
   if (d.kind === 'sky' || !d.region){ const sky = d.kind === 'sky', here = sky && placeId() === d.id;
     const tt = el('div', 'tt'); tt.append(el('b', '', sky ? d.short : d.name), el('span', 'ty', sky ? `${d.region} · ${d.type}` : d.where)); c.appendChild(tt);
-    const bd = el('div', 'bdg'); bd.appendChild(el('span', 'b pg', '패러글라이딩')); if (!sky) bd.appendChild(el('span', 'b dx', '준비 중')); if (sky && othersIn(d.id) && !here) bd.appendChild(el('span', 'b pp', `지금 ${othersIn(d.id)}명`)); c.appendChild(bd);
+    const bd = el('div', 'bdg'); bd.appendChild(el('span', 'b pg', '패러글라이딩')); if (!sky) bd.appendChild(el('span', 'b dx', '준비 중')); if (sky){ const on = liveN(d.id, here); if (on !== null) bd.appendChild(el('span', on ? 'b pp' : 'b', liveTxt(on))); } c.appendChild(bd);
     c.appendChild(el('p', '', sky ? d.lead : (d.note ? d.note + '. ' : '') + '아직 준비 중인 하늘이에요. 곧 열려요!'));
     if (sky){ const go = el('button', 'btn primary', here ? '지금 여기에 있어요' : '이 하늘로 가기'); go.type = 'button'; go.disabled = here; go.onclick = () => switchSpot(d.id); c.appendChild(go); }
     return; }
   const here = WORLD === 'sea' && d.id === SPOT.id, dex = d.dex || spotDex(d), fd = here ? FOUND.size : loadFound(d.id).size;
   const im = el('img'); im.alt = `${d.short} 작은 지도`; im.src = spotMap(d); c.appendChild(im);
   const tt = el('div', 'tt'); tt.append(el('b', '', d.short), el('span', 'ty', `${d.region} · ${d.type}`)); c.appendChild(tt);
-  const bd = el('div', 'bdg'); bd.appendChild(el('span', 'b sn', '스노클링')); if (d.surf) bd.appendChild(el('span', 'b sf', '서핑')); bd.appendChild(el('span', 'b dx', `도감 ${fd}/${dex.length}`)); if (othersIn(d.id) && !(SPOT && d.id === SPOT.id)) bd.appendChild(el('span', 'b pp', `지금 ${othersIn(d.id)}명`)); c.appendChild(bd);
+  const bd = el('div', 'bdg'); bd.appendChild(el('span', 'b sn', '스노클링')); if (d.surf) bd.appendChild(el('span', 'b sf', '서핑')); { const on = liveN(d.id, here); if (on !== null) bd.appendChild(el('span', on ? 'b pp' : 'b', liveTxt(on))); } bd.appendChild(el('span', 'b dx', `도감 ${fd}/${dex.length}`)); c.appendChild(bd);
   c.appendChild(el('p', '', d.lead));
   const go = el('button', 'btn primary', here ? '지금 여기에 있어요' : '이 바다로 가기'); go.type = 'button'; go.disabled = here; go.onclick = () => switchSpot(d.id); c.appendChild(go);
 }
