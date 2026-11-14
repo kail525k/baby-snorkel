@@ -645,7 +645,7 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
         <li>땅에서 <kbd>Shift</kbd>를 누르고 있으면 달려요. 휴대폰은 조이스틱을 끝까지 밀어요. 오리발을 신고 뛰면 꽈당 넘어져요!</li>
         <li>하늘 사진은 Poly Haven의 무료 공개(CC0) 사진이에요. 바다 지역마다 하늘이 달라요.</li>
         <li><kbd>X</kbd>(휴대폰은 놀기 → 물총)를 누르고 있으면 물총을 쏴요. 친구를 맞히면 친구가 깜짝 놀라요.</li>
-        <li>야비지 투어(미야코지마 바다 5곳): 해변의 야비지 투어 가이드(AI)에게 가면 준비물(구명조끼 · 마스크 · 스노클은 꼭)을 알려 줘요. 배는 매일 오전 9시 · 오후 2시(한국 시간)에 떠나고 20분 동안 탈 수 있어요(미리 예약도 돼요). 하루 한 번, 배를 타고 일본에서 가장 큰 산호초 야비지로 가서 가이드를 따라 포인트 세 곳을 돌고 기념사진을 받아요.</li>
+        <li>야비지 투어(미야코지마 바다 5곳): 해변의 야비지 투어 가이드(AI)에게 가면 준비물(구명조끼 · 마스크 · 스노클은 꼭)을 알려 줘요. 배는 매일 오전 9시 · 오후 2시(한국 시간)에 떠나고 20분 동안 탈 수 있어요(미리 예약도 돼요). 하루 한 번, 배를 타고 일본에서 가장 큰 산호초 야비지로 가서 배에서 안전 브리핑을 듣고, 가이드를 따라 포인트 세 곳을 돌며 물속 · 드론 기념사진을 받아요.</li>
         <li>워터 슬라이드: 사다리 앞에서 타고 꼭대기에서 출발! 끝에서 날아가는 동안 <kbd>W</kbd> 앞구르기 · <kbd>S</kbd> 뒤구르기 · <kbd>A</kbd><kbd>D</kbd> 옆돌기 · <kbd>Space</kbd> 빙글 스핀(휴대폰은 조이스틱을 툭, 위로 버튼). 물에 닿기 전에 다 돌면 깔끔한 입수 점수예요.</li>
         <li>모래 놀이: 마른 모래 위에서 모래성 · 만리장성 쌓기 · 눕기 · 모래찜질. 모래성과 만리장성은 단단해서 못 지나가요. 점프로 넘거나, 가까이 가서 <kbd>E</kbd>(휴대폰은 주황 버튼) "쿵!"으로 와르르 부숴요. 만리장성은 쿵! 할 때마다 한 칸씩 무너져요. 한 칸 구멍은 좁아서 못 지나가고, 이웃한 두 칸을 부숴야 길이 나요. 친구 것을 부수면 친구 화면에서도 무너지고 친구에게 알려 줘요.</li>
         <li>감시탑 위에는 라이프가드(AI)가 앉아서 바다를 지켜봐요. 가까이 가면 인사하고, 큰 파도가 오면 호루라기로 알려 줘요.</li>
@@ -2436,9 +2436,9 @@ SPOTS.sort((a, b) => SPOT_ORDER.indexOf(a.id) - SPOT_ORDER.indexOf(b.id));
 /* ===== 야비지 (八重干瀬): 목록에는 없고, 미야코 바다 해변 투어 접수처에서 배를 타야만 가는 바다 =====
    일본에서 가장 큰 산호초 무리. 넓은 산호 평원(얕은 곳 약 2m)과 그 사이 파란 물길(약 10m), 북쪽은 깊은 낭떠러지 */
 const YB_POINTS = [
-  { x: -16, z: 4, name: '테이블 산호 정원', say: '여기가 테이블 산호 정원이에요!\n접시처럼 넓은 산호는 위에서만 봐요' },
+  { x: -16, z: 4, name: '테이블 산호 정원', say: '여기가 테이블 산호 정원! 야비지는\n일본에서 테이블 산호가 제일 많아요' },
   { x: 15, z: 14, name: '물고기 아파트', say: '큰 산호 바위에 물고기가\n층층이 살아요. 꼭 아파트 같죠?' },
-  { x: -3, z: 31, name: '파란 낭떠러지', say: '여기부터 바다가 깊어져요.\n저랑 꼭 붙어 있어요' }];
+  { x: -3, z: 31, name: '파란 낭떠러지', say: '이 파란 물빛이 야비지 블루예요!\n여기부터 깊어지니 저랑 꼭 붙어 있어요' }];
 const YB_REEF = [{ x: -17, z: 5, r: 12 }, { x: 15, z: 15, r: 10 }, { x: -3, z: 29, r: 9 }, { x: 32, z: -8, r: 8 }, { x: -36, z: -18, r: 9 }, { x: 36, z: 28, r: 8 }, { x: -38, z: 22, r: 8 }];
 const YB_CORAL = scatterRocks(18, 60, -48, 48, -30, 40, 1.2, 2.6, 0.5, 1.2, 3.6).filter(c => Math.hypot(c.x, c.z + 14) > 9);
 const YB_MOOR = { x: 0, z: -14 }, YB_DECK = 1.0, YB_FROM = { x: 0, z: -62 };
@@ -2447,7 +2447,7 @@ const TOUR_SPOTS = [{
   eyebrow: '아기 스노클링 · 야비지 투어', addr: '八重干瀬 · 이케마섬 북쪽 5~22km · 보트로만 가는 산호초',
   lead: '일본에서 가장 큰 산호초 무리예요. 미야코 바다 해변의 투어 접수처에서 하루 한 번, 가이드와 배를 타고 가요.',
   facts: ['일본에서 가장 큰 산호초 무리', '국가 천연기념물 · 명승', '보트 투어로만 가요', '테이블 산호 · 열대어 떼'],
-  tips: ['야비지는 이케마섬 북쪽에 남북 17km, 동서 6.5km로 펼쳐진 산호초예요.', '보트 투어로만 가요. 구명조끼는 꼭 입어요.', '배를 꽤 오래 타요. 멀미가 걱정되면 어른과 미리 준비하고, 배에서는 먼 수평선을 봐요.', '산호 위에 서거나 산호를 만지지 않아요. 환경에 착한 선크림을 써요.', '날씨나 파도가 나쁘면 투어가 취소되거나 가까운 바다로 바뀌어요.'],
+  tips: ['야비지는 이케마섬 북쪽에 남북 17km, 동서 6.5km로 펼쳐진 산호초예요. 일본에서 테이블 산호가 가장 많이 모인 곳이에요.', '보트 투어로만 가요. 보통 오전 · 오후로 나뉘고, 모이는 시간부터 3~4시간 반쯤 걸려요.', '구명조끼 · 마스크 · 스노클 · 오리발은 투어에서 빌려줘요(추운 철엔 웻슈트도). 수영복은 입고 가요.', '멀미약은 투어에서 주지 않아요. 멀미가 걱정되면 어른과 미리 챙기고, 배에서는 먼 수평선을 봐요.', '보통 만 6세부터 갈 수 있어요. 구명조끼를 입으니 수영을 잘 못해도 괜찮지만, 기초 수영을 할 수 있으면 더 좋아요.', '그날 바다를 보고 포인트 2~3곳을 골라 들어가요. 날씨나 파도가 나쁘면 당일에 취소되기도 해요.', '산호 위에 서거나 산호를 만지지 않아요. 환경에 착한 선크림을 써요.'],
   edgeMsg: '가이드와 보트에서 너무 멀어지면 위험해요',
   area: { x0: -48, x1: 48, z0: -34, z1: 38 }, bounds: { minX: -54, maxX: 54, minZ: -68, maxZ: 40 }, start: { x: 1.15, z: YB_MOOR.z - 2.2, yaw: -Math.PI / 2 }, cine: { c: [-14, 9, -30], r: [14, 10], look: [0, -1, 8] },
   map: {}, colors: C_OKI, water: { shallow: '#4cf0f0', deep: '#0457c8', sandT: '#f7fffb', under: '#1fb0e8', underTop: '#dafeff', underDeep: '#0a5fb8', fogUnder: 0.026 }, seaName: '야비지 블루',
@@ -6753,10 +6753,10 @@ function trickLand(){
   return true;
 }
 
-/* ---------- 13. 야비지 투어: 미야코 바다 5곳 해변의 접수처에서 하루 한 번, 아무 때나 출발.
-   가이드(AI)가 준비물을 알려 주고(바다 친구들도 거들어요) → 배 타고 야비지로 → 가이드를 따라 포인트 3곳 → 배로 돌아와 기념사진 ---------- */
+/* ---------- 13. 야비지 투어: 미야코 바다 5곳 해변의 접수처에서 하루 한 번, 오전 · 오후 배(YB_SLOTS) 중 하나를 타요.
+   가이드(AI)가 준비물을 알려 주고(바다 친구들도 거들어요) → 배 타고 야비지로(배 위 안전 브리핑) → 가이드를 따라 포인트 3곳(포인트마다 물속 사진 · 드론 사진) → 배로 돌아와 기념사진 ---------- */
 const YB_NAMES = ['하루', '나미', '소라', '유이'];
-const YB = { stage: '', idx: 0, ptT: 0, gs: '', photos: [], warn: 0, warnT: 0, origin: '', prep: false, friendT: 12, greetT: 0, snap: false, card: false, t: 0, guide: null, boat: null, buoys: [], ring: null, tube: null, booth: null, poi: null, free: false };
+const YB = { stage: '', drone: false, idx: 0, ptT: 0, gs: '', photos: [], warn: 0, warnT: 0, origin: '', prep: false, friendT: 12, greetT: 0, snap: false, card: false, t: 0, guide: null, boat: null, buoys: [], ring: null, tube: null, booth: null, poi: null, free: false };
 const YB_SLOTS = [{ m: 9 * 60, name: '오전 9시' }, { m: 14 * 60, name: '오후 2시' }], YB_WIN = 20;
 const ybNow = () => Date.now() + (YB.clockOff || 0);
 const ybToday = () => new Date(ybNow() + 9 * 3600e3).toISOString().slice(0, 10);
@@ -6769,14 +6769,14 @@ const ybWait = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor
 const ybUsed = () => !YB.free && loadLS('pp_yabiji_day', '') === ybToday();
 const ybTouring = () => !!SPOT?.tour && ['cruise', 'swim', 'home', 'back'].includes(YB.stage);
 const YB_ITEMS = [
-  { k: 'vest', name: '구명조끼 입기', need: true, ok: () => G.vest === 'vest', tip: '대여소에서 무료로 빌려요. 야비지는 꼭 입어야 해요', friend: '야비지 갈 땐 구명조끼 필수래! 대여소에 있어' },
+  { k: 'vest', name: '구명조끼 입기', need: true, ok: () => G.vest === 'vest', tip: '야비지 투어는 모두 꼭 입어요. 대여소에서 무료로 빌려요', friend: '야비지 갈 땐 구명조끼 필수래! 대여소에 있어' },
   { k: 'mask', name: '마스크 · 스노클', need: true, ok: () => G.mask !== 'none' && G.snorkel === 'on', tip: '장비에서 마스크와 스노클을 골라요', friend: '마스크랑 스노클 챙겼어? 산호 보려면 꼭 있어야 해' },
   { k: 'fins', name: '오리발 신기', need: false, ok: () => G.fins !== 'none', tip: '먼바다라 오리발이 있으면 가이드를 따라가기 쉬워요', friend: '오리발 신으면 가이드 따라가기 쉬워!' },
-  { k: 'water', name: '물 챙기기', need: false, ok: () => !!P.cup, tip: '배를 꽤 오래 타요. 매점 생수는 무료예요', friend: '배 타고 한참 가니까 물 꼭 챙겨~' },
+  { k: 'water', name: '물 챙기기', need: false, ok: () => !!P.cup, tip: '투어는 몇 시간이나 걸리고 햇볕이 세요. 매점 생수는 무료예요', friend: '투어가 길어서 물 꼭 챙겨~ 배에선 간식도 준대!' },
   { k: 'cap', name: '모자 쓰기', need: false, ok: () => G.cap !== 'none', tip: '배 위는 햇빛이 아주 세요', friend: '배 위는 엄청 뜨겁대. 모자 써!' }];
 const ybMissing = () => YB_ITEMS.filter(i => !i.ok());
 const ybReady = () => YB_ITEMS.every(i => !i.need || i.ok());
-const YB_NPC_SAY = ['오전 9시랑 오후 2시에 야비지 배가 떠난대!', '오늘 야비지 투어 가 봤어?', '야비지는 일본에서 제일 큰 산호초래!', '해변 야비지 투어 가이드한테 가 봐!', '가이드 언니가 사진도 찍어 준대~', '야비지에서 바다거북 보면 완전 운 좋은 거래!'];
+const YB_NPC_SAY = ['오전 9시랑 오후 2시에 야비지 배가 떠난대!', '오늘 야비지 투어 가 봤어?', '야비지는 일본에서 제일 큰 산호초래!', '해변 야비지 투어 가이드한테 가 봐!', '가이드가 물속 사진이랑 드론 사진도 찍어 준대~', '야비지에서 바다거북 보면 완전 운 좋은 거래!', '야비지 배에서 음료랑 간식도 준대!', '수영 잘 못해도 구명조끼 입고 가이드 따라가면 된대!'];
 const YB_NPC_SAY_IN = ['산호 진짜 크다!', '물고기가 엄청 많아!', '가이드 옆에 있자~', '산호는 눈으로만 봐요!', '물빛 진짜 파랗다!'];
 function npcLine(){ if (SPOT?.tour) return pickOne(YB_NPC_SAY_IN); if (SPOT?.mr === 'miyako' && !ybUsed() && Math.random() < 0.5) return pickOne(YB_NPC_SAY); return NPC_SAY[(Math.random() * NPC_SAY.length) | 0]; }
 
@@ -6864,7 +6864,7 @@ function ybRenderCard(){
   $('#ybSub').textContent = used ? '오늘은 다녀왔어요 · 내일 또 열려요' : `하루 한 번 · 준비물 ${got}/${YB_ITEMS.length}`;
   const tm = $('#ybTime'); tm.classList.toggle('open', sl.open && !used);
   tm.innerHTML = ''; tm.appendChild(el('b', '', '배 시간 · 매일 오전 9시 · 오후 2시')); tm.appendChild(el('span', '', used ? '내일 오전 9시 배부터 다시 탈 수 있어요' : sl.open ? `지금 ${sl.s.name} 배가 떠나요! ${ybWait(sl.left)} 안에 타요` : `다음 배 ${sl.tomorrow ? '내일 ' : ''}${sl.s.name} · ${ybWait(sl.wait)} 남았어요` + (resv ? ' · 예약했어요' : '')));
-  $('#ybLead').textContent = used ? '오늘 투어는 끝났어요. 야비지는 하루에 한 번만 갈 수 있어요. 내일 또 만나요!' : ybReady() ? (sl.open ? '준비 끝! 출발하면 바로 배를 타고 야비지로 가요. 가이드를 따라 산호 포인트 세 곳을 돌고, 포인트마다 기념사진을 찍어 드려요.' : `준비 끝! 배는 ${sl.s.name}에 떠나요. 예약해 두면 그 시간에 이 바다에 있을 때 바로 태워 줄게요.`) : '일본에서 가장 큰 산호초, 야비지로 가요! 배는 매일 오전 9시와 오후 2시에 떠나요. 구명조끼와 마스크·스노클은 꼭 챙겨야 탈 수 있어요.';
+  $('#ybLead').textContent = used ? '오늘 투어는 끝났어요. 야비지는 하루에 한 번만 갈 수 있어요. 내일 또 만나요!' : ybReady() ? (sl.open ? '준비 끝! 출발하면 바로 배를 타고 야비지로 가요. 배에서 안전 브리핑을 듣고, 가이드를 따라 산호 포인트 세 곳을 돌아요. 포인트마다 물속 사진 · 드론 사진을 찍어 드려요.' : `준비 끝! 배는 ${sl.s.name}에 떠나요. 예약해 두면 그 시간에 이 바다에 있을 때 바로 태워 줄게요.`) : '일본에서 가장 큰 산호초, 야비지로 가요! 배는 매일 오전 9시와 오후 2시에 떠나요. 구명조끼와 마스크·스노클은 꼭 챙겨야 탈 수 있어요.';
   const go = $('#ybGo'); go.disabled = used || !ybReady() || (!sl.open && resv); go.textContent = used ? '내일 또 만나요' : !ybReady() ? '준비물을 챙겨요' : sl.open ? '출발!' : resv ? `${sl.s.name} 배 예약했어요` : `${sl.tomorrow ? '내일 ' : ''}${sl.s.name} 배 예약하기`;
 }
 function ybGoBtn(){ const sl = ybSlot(); if (ybUsed() || !ybReady()) return; if (sl.open){ ybDepart(); return; } YB.resv = sl.key; ybRenderCard(); ybSay(`${sl.s.name} 배 예약 완료!\n시간이 되면 이 바다에서 바로 태워 줄게요`, 'resv', 7); toast(`${sl.tomorrow ? '내일 ' : ''}${sl.s.name} 야비지 배를 예약했어요 · ${ybWait(sl.wait)} 남았어요`, 'found'); }
@@ -6887,7 +6887,7 @@ function ybStartCruise(){
   P.sit = null; P.surf = null; ybSeat(); CAM.yaw = 0.7; CAM.pitch = 0.3; CAM.dist = 7.5;
 }
 function ybSeat(){ const q = ybLocal(1.2, -2.2); P.x = q.x; P.z = q.z; P.mode = 'land'; P.feet = YB_DECK; P.grounded = true; P.vy = 0; P.moving = false; P.yaw = (YB.boat?.yaw || 0) + Math.PI / 2 - 0.5; }
-const YB_BRIEF = [[2, '안녕하세요! 오늘 야비지를 안내할\n가이드예요. 저는 AI 가이드예요'], [7, '약속 하나! 산호는 밟지도 만지지도\n않아요. 산호 위에 서면 산호가 아파요'], [12, '물에서는 제 옆, 노란 번호 부표\n근처에서만 놀아요'], [17, '멀미가 나면 먼 수평선을 봐요.\n곧 도착해요!']];
+const YB_BRIEF = [[1.5, '안녕하세요! 오늘 야비지를 안내할\nAI 가이드예요. 반가워요!'], [5.5, '구명조끼는 물에서도 벗지 않아요.\n힘들면 제 주황 튜브를 잡아요'], [9.5, '약속 하나! 산호는 밟지도 만지지도\n않아요. 산호 위에 서면 산호가 아파요'], [13.5, '오늘 바다를 보고 제일 예쁜 포인트\n세 곳으로 가요. 노란 부표를 따라와요'], [17.5, '멀미 나면 꼭 말해 줘요.\n먼 수평선을 보면 나아요. 곧 도착!']];
 /* 배 위(가는 길 · 오는 길): 앉아서 바다를 봐요. 출발한 뒤 3초가 지나면 '빨리 도착하기'로 건너뛸 수 있어요 */
 function ybRide(dt){
   const B = YB.boat; if (!B) return; YB.t += dt;
@@ -6917,7 +6917,7 @@ function ybSwim(dt){
     if (dT <= 1.2 && dMe < 9){ YB.gs = 'at'; YB.ptT = 22; YB.snapDone = false; ybSay(YB_POINTS[YB.idx].say, 'pt' + YB.idx, 8); surfPop(`포인트 ${YB.idx + 1} · ${YB_POINTS[YB.idx].name}`); AudioSys.blip(600, 900, 0.12, 'sine', 0.06); }
   } else if (YB.stage === 'swim' && YB.gs === 'at'){
     YB.ptT -= dt; G0.yaw = lerpAngle(G0.yaw, Math.atan2(me.x - G0.x, me.z - G0.z), 1 - Math.exp(-dt * 3));
-    if (YB.ptT < 13 && !YB.snapDone){ if (dMe < 12){ YB.snapDone = true; ybSay('사진 찍어요! 하나, 둘, 셋~', 'snap', 4); setTimeout(() => ybPhoto(), 900); } else if (time > (YB.waitT || 0)){ YB.waitT = time + 8; ybSay('사진 찍게 가까이 와요!', 'near', 5); YB.ptT = 13.5; } }
+    if (YB.ptT < 13 && !YB.snapDone){ if (dMe < 12){ YB.snapDone = true; if (YB.idx === 1){ ybSay('이번엔 드론 사진! 하늘 보고\n손 흔들어요~', 'drone', 4); setTimeout(() => { YB.drone = true; ybPhoto(); }, 1400); } else { ybSay('물속 사진 찍어요! 하나, 둘, 셋~', 'snap', 4); setTimeout(() => ybPhoto(), 900); } } else if (time > (YB.waitT || 0)){ YB.waitT = time + 8; ybSay('사진 찍게 가까이 와요!', 'near', 5); YB.ptT = 13.5; } }
     if (YB.ptT <= 0 && YB.snapDone){ YB.idx++; if (YB.idx >= YB_POINTS.length){ YB.stage = 'home'; ybSay('오늘 투어 끝! 배로 돌아가요.\n사다리로 올라와요', 'home', 8); toast('투어 포인트 3곳을 다 돌았어요! 배로 돌아가요', 'found'); }
       else { YB.gs = 'go'; ybSay('다음 포인트로 가요!\n따라오세요~', 'next' + YB.idx, 5); } }
   } else if (YB.stage === 'home'){
@@ -6928,15 +6928,17 @@ function ybSwim(dt){
   /* 산호 지킴이: 바닥에 서면 가이드가 바로 알려 줘요 */
   if ((P.bed || (P.mode === 'land' && !ybOnBoat() && groundH(P.x, P.z) < -0.3)) && time > YB.warnT){ YB.warnT = time + 8; YB.warn++; ybSay('앗! 산호 위에 서면 안 돼요.\n둥실 떠서 위에서만 봐요', 'coral', 6); toast('산호 위에 서면 산호가 아파요. 물 위에 둥실 떠서 봐요'); }
 }
-function ybGoBack(){ YB.stage = 'back'; YB.t = 0; if (YB.ring) YB.ring.visible = false; ybSay('모두 탔죠? 미야코로 돌아가요!', 'back', 5); P.sit = null; }
+function ybGoBack(){ YB.stage = 'back'; YB.t = 0; if (YB.ring) YB.ring.visible = false; ybSay('모두 탔죠? 음료랑 간식 먹으면서\n미야코로 돌아가요!', 'back', 6); P.sit = null; }
 function ybEndEarly(){ if (YB.stage !== 'swim' || !ybOnBoat()) return; ybGoBack(); }
 
 /* 기념사진: 그 순간 화면을 작게 찍어 둔다 (렌더 직후에 찍어야 그림이 남아 있다) */
-function ybPhoto(){ if (!ybTouring()) return; YB.snap = true; const f = $('#ybFlash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); AudioSys.blip(1800, 1200, 0.06, 'square', 0.04); surfPop('찰칵!'); }
+function ybPhoto(){ if (!ybTouring()){ YB.drone = false; return; } YB.snap = true; const f = $('#ybFlash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); AudioSys.blip(1800, 1200, 0.06, 'square', 0.04); surfPop(YB.drone ? '드론 찰칵!' : '찰칵!'); }
 function ybCapture(){ YB.snap = false; try { const cam2 = YB.pcam || (YB.pcam = new THREE.PerspectiveCamera(52, 1, 0.05, 2600)), py = P.mode === 'land' ? P.feet + 0.4 : P.body, G0 = YB.guide; let tx = P.x, tz = P.z;
     if (G0?.on && Math.hypot(G0.x - P.x, G0.z - P.z) < 4){ tx = (P.x + G0.x) / 2; tz = (P.z + G0.z) / 2; } const fx = Math.sin(P.yaw), fz = Math.cos(P.yaw);
-    cam2.position.set(tx + fx * 3.6, Math.max(0.45, py + 1.1), tz + fz * 3.6); cam2.aspect = canvas.width / Math.max(1, canvas.height); cam2.updateProjectionMatrix(); cam2.lookAt(tx, py + 0.15, tz); renderer.render(scene, cam2);
-    const W = 360, H = Math.round(W * canvas.height / Math.max(1, canvas.width)), c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').drawImage(renderer.domElement, 0, 0, W, H); YB.photos.push(c.toDataURL('image/jpeg', 0.72)); if (YB.photos.length > 3) YB.photos.shift(); } catch (e){ console.warn('yb photo', e); } }
+    cam2.aspect = canvas.width / Math.max(1, canvas.height); cam2.updateProjectionMatrix();
+    if (YB.drone){ cam2.position.set(tx + fx * 2.4, py + 8, tz + fz * 2.4); cam2.lookAt(tx, py, tz); } else { cam2.position.set(tx + fx * 3.6, Math.max(0.45, py + 1.1), tz + fz * 3.6); cam2.lookAt(tx, py + 0.15, tz); }
+    renderer.render(scene, cam2);
+    const W = 360, H = Math.round(W * canvas.height / Math.max(1, canvas.width)), c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').drawImage(renderer.domElement, 0, 0, W, H); YB.photos.push(c.toDataURL('image/jpeg', 0.72)); if (YB.photos.length > 3) YB.photos.shift(); } catch (e){ console.warn('yb photo', e); } YB.drone = false; }
 
 /* 다 돌고 배로 돌아오면: 결과 카드 → 원래 미야코 바다로 */
 function ybResult(){
@@ -7026,12 +7028,12 @@ body.clean #ybChip{visibility:hidden}
 @keyframes ybf{0%{opacity:.9}100%{opacity:0}}`;
   document.head.appendChild(css);
   const card = document.createElement('section'); card.id = 'ybCard'; card.className = 'sheet hidden'; card.setAttribute('aria-label', '야비지 투어 접수');
-  card.innerHTML = '<header><h2>야비지 투어<small id="ybSub"></small></h2><button class="x" id="ybClose" type="button">닫기</button></header><div class="ybb"><p id="ybLead"></p><p id="ybTime"></p><div id="ybList"></div><p class="safe">실제 야비지는 꼭 투어 보트와 가이드와 함께, 구명조끼를 입고 가요. 날씨와 파도가 나쁘면 투어가 취소될 수 있어요.</p></div><div class="gfoot"><button class="btn" id="ybLater" type="button">준비하러 가기</button><button class="btn primary" id="ybGo" type="button">출발!</button></div>';
+  card.innerHTML = '<header><h2>야비지 투어<small id="ybSub"></small></h2><button class="x" id="ybClose" type="button">닫기</button></header><div class="ybb"><p id="ybLead"></p><p id="ybTime"></p><div id="ybList"></div><p class="safe">실제 야비지는 꼭 투어 보트와 가이드와 함께, 구명조끼를 입고 가요. 장비는 투어에서 빌려주고, 수영복과 멀미약은 직접 챙겨요. 날씨와 파도가 나쁘면 당일에 취소될 수 있어요.</p></div><div class="gfoot"><button class="btn" id="ybLater" type="button">준비하러 가기</button><button class="btn primary" id="ybGo" type="button">출발!</button></div>';
   document.body.appendChild(card);
   card.querySelector('#ybClose').onclick = () => ybOpenCard(false); card.querySelector('#ybLater').onclick = () => { ybOpenCard(false); if (!ybUsed() && !ybReady()) toast('준비물을 챙기면 위쪽 파란 알림이 초록색으로 바뀌어요'); }; card.querySelector('#ybGo').onclick = () => ybGoBtn();
   const chip = document.createElement('button'); chip.id = 'ybChip'; chip.type = 'button'; chip.className = 'hidden'; document.body.appendChild(chip); chip.onclick = () => { if (YB.booth && Math.hypot(P.x - YB.booth.x, P.z - YB.booth.z) < 12) ybOpenCard(true); else { const m = ybMissing().find(i => i.need); toast(m ? m.tip : '준비 끝! 해변의 야비지 투어 가이드에게 가요'); } };
   const res = document.createElement('section'); res.id = 'ybRes'; res.className = 'sheet hidden'; res.setAttribute('aria-label', '야비지 투어 결과');
-  res.innerHTML = '<header><h2><span id="ybRT">야비지 투어 완주!</span><small id="ybRS"></small></h2></header><div class="ybb"><div id="ybPh"></div><div class="ybg"><div><small>포인트</small><b id="ybR1"></b></div><div><small>만난 바다 친구</small><b id="ybR2"></b></div><div><small>산호 지킴이</small><b id="ybR3"></b></div></div><p id="ybRP"></p><p class="safe">기념사진은 가이드가 찍어 줬어요. 실제 투어에서도 가이드가 사진을 찍어 주는 곳이 많아요.</p></div><div class="gfoot"><button class="btn primary" id="ybHome" type="button">미야코 바다로 돌아가기</button></div>';
+  res.innerHTML = '<header><h2><span id="ybRT">야비지 투어 완주!</span><small id="ybRS"></small></h2></header><div class="ybb"><div id="ybPh"></div><div class="ybg"><div><small>포인트</small><b id="ybR1"></b></div><div><small>만난 바다 친구</small><b id="ybR2"></b></div><div><small>산호 지킴이</small><b id="ybR3"></b></div></div><p id="ybRP"></p><p class="safe">기념사진은 가이드가 물속과 드론으로 찍어 줬어요. 실제 투어에서도 사진을 찍어 주는 곳이 많고, 돌아오면 샤워실에서 씻어요.</p></div><div class="gfoot"><button class="btn primary" id="ybHome" type="button">미야코 바다로 돌아가기</button></div>';
   document.body.appendChild(res); res.querySelector('#ybHome').onclick = () => ybGoHome();
   const fl = document.createElement('div'); fl.id = 'ybFlash'; document.body.appendChild(fl);
 })();
