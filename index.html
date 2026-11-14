@@ -525,6 +525,11 @@ body.touch #topbar .chip svg{width:19px;height:19px}
 body.touch #bUp .ic svg{width:27px;height:27px}body.touch #bUp .ic span{font-size:14px}
 body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font-size:13px}
 </style>
+<!-- 방문 통계: Vercel Web Analytics(쿠키 없음). Vercel 주소에서만 켜고, Claude 안이나 테스트(file·localhost)에서는 부르지 않는다 -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  if (/^https?:$/.test(location.protocol) && !/(^|\.)(claude\.ai|claudeusercontent\.com)$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) { var vaS = document.createElement('script'); vaS.defer = true; vaS.src = '/_vercel/insights/script.js'; document.head.appendChild(vaS); }
+</script>
 </head>
 <body>
 <canvas id="c" tabindex="0" aria-label="판포포구 3D 바다"></canvas>
