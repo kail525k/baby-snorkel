@@ -604,11 +604,17 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
   <div class="ntbody" id="ntBody"></div>
 </section>
 <div id="photoCard" class="hidden" role="dialog" aria-label="기념사진"><img id="phImg" alt="기념사진"><div class="phRow"><b id="phT"></b><span><button type="button" id="phSave">저장</button><button type="button" id="phShare">공유</button><button type="button" id="phX">닫기</button></span></div></div>
-<div id="side" class="hidden"><button type="button" id="sdPill" aria-expanded="false" title="일하다 잠깐: 퇴근 타이머 · 부장님 털 뽑기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span id="sdPillT"></span></button>
-  <div id="sdPanel"><div class="sdHead"><b>일하다 잠깐</b><button type="button" id="sdX" aria-label="접기">접기</button></div>
-    <div class="sdTimes"><label>출근 <input type="time" id="sdIn"></label><label>퇴근 <input type="time" id="sdOut"></label></div>
-    <b id="sdBig"></b><i class="sdBarW"><em id="sdBar"></em></i><small id="sdSub"></small>
-    <div class="sdBossW"><canvas id="sdBoss" width="220" height="180" aria-label="부장님 털 뽑기: 머리카락 · 콧털 · 눈썹을 눌러 뽑아요"></canvas><small id="sdCnt"></small><span class="sdTip">머리카락 · 콧털 · 눈썹을 콕! 뽑아도 다시 자라요</span></div></div></div>
+<div id="side" class="hidden"><button type="button" id="sdPill" aria-expanded="false" title="일하다 잠깐: 퇴근 카운트다운 · 직장상사 괴롭히기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span id="sdPillT"></span></button>
+  <div id="sdPanel" role="dialog" aria-label="일하다 잠깐">
+    <div class="sdHead"><b>일하다 잠깐</b><span><button type="button" id="sdSet" aria-expanded="false">시간 설정</button><button type="button" id="sdX" aria-label="접기">접기</button></span></div>
+    <div class="sdCd"><small id="sdLbl"></small><b id="sdBig">--:--:--</b><i class="sdBarW"><em id="sdBar"></em></i><small id="sdSub"></small><button type="button" id="sdToday" class="hidden"></button></div>
+    <div id="sdCfg" class="hidden"><div class="sdTimes"><label>출근 <input type="time" id="sdIn"></label><label>퇴근 <input type="time" id="sdOut"></label></div>
+      <div class="sdDaysL">근무 요일</div><div class="sdDays" id="sdDays"></div>
+      <label class="sdOff">쉬는 날 표시 <input type="text" id="sdOffT" maxlength="8" placeholder="쉬는 날"></label></div>
+    <div class="sdBossW"><div class="sdBossH"><b id="sdBossT">부장님 괴롭히기</b><button type="button" id="sdLook" aria-expanded="false">얼굴 꾸미기</button></div>
+      <div id="sdLookP" class="hidden"></div>
+      <canvas id="sdBoss" width="260" height="270" aria-label="직장상사 괴롭히기: 털을 잡아당겨 뽑고, 쟁반의 와사비·겨자·고추를 입에 넣어요"></canvas>
+      <small id="sdCnt"></small><span class="sdTip">털을 잡아 쭉 당기거나 톡 눌러 뽑아요 · 음식을 입으로 끌어다 넣어요(톡 누르면 바로 먹여요)</span></div></div></div>
 
 <section id="rank" class="sheet hidden" aria-label="잠수 순위">
   <header><h2><span id="rkT">잠수 순위</span><small id="rkSub"></small></h2><span class="pearl" title="내 진주"><i></i><b class="pearlN">0</b></span><button class="x" id="rkClose">닫기</button></header>
@@ -664,7 +670,7 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
         <li>파도: 몇 초마다 물가로 파도가 밀려왔다 빠지고, 지나간 모래는 잠깐 젖은 색이 돼요. 물가에 지은 모래성 · 만리장성은 파도가 닿을 때마다 아래부터 조금씩 깎이고(큰 파도면 스르르 한 번에), 다 깎이면 낮은 모래 더미만 남아요. 물에서 조금 떨어진 곳에 지으면 안전해요. 파도는 서버 시계로 움직여서 친구들도 같은 파도를 봐요.</li>
         <li>대관람차(속초해수욕장): 매표소에서 표(진주 2개)를 사고 오른쪽 계단 위에서 <kbd>E</kbd>로 줄을 서면, 안내요원(AI)이 차례대로 태워 줘요. 줄에 이어 선 친구끼리는 같은 칸(4명까지)에 함께 타요. 한 바퀴(72초) 올라갔다 내려오고, 꼭대기에서는 기념사진을 찍어 줘요. 노을 시간에는 바퀴에 LED 조명이 켜져요. 줄에서 나오면 표는 환불돼요(<kbd>E</kbd>나 방향키를 잠깐 누르고 있기). 모래사장의 천국의 계단은 걸어서 꼭대기까지 올라갈 수 있어요.</li>
         <li>여행 수첩(<kbd>N</kbd>): 오늘의 미션 3개(한국 시간 자정에 바뀜, 하나에 진주 3개 · 셋 다 하면 보너스 5개), 바다마다 실제 명소를 찾아가면 찍히는 명소 도장(처음 진주 5개), 기념사진 사진첩(이 기기에 최근 8장)이 있어요. 사진은 저장하거나 공유할 수 있어요.</li>
-        <li>일하다 잠깐: 왼쪽 아래 시계를 누르면 출근·퇴근 시간을 넣고 퇴근까지 남은 시간을 볼 수 있어요. 지어낸 만화 부장님의 머리카락 · 콧털 · 눈썹을 콕콕 뽑으며 잠깐 쉬어 가요(다시 자라요).</li>
+        <li>일하다 잠깐: 왼쪽 아래 시계를 누르면 퇴근까지 남은 시간이 초 단위로 줄어들어요. 시간 설정에서 출근·퇴근 시간, 근무 요일, 쉬는 날에 보일 문구를 바꿀 수 있고, 쉬는 날에 출근했으면 '오늘 출근했어요'를 눌러요. 아래에서는 지어낸 만화 직장상사(직함 · 얼굴 꾸미기 가능)의 머리카락 · 옆머리 · 눈썹 · 콧털 · 귀털을 잡아당겨 뽑고(다시 자라요), 와사비 · 겨자 · 청양고추 · 매운 떡볶이를 먹여 맵게 할 수 있어요. 물은 별로 안 듣고 우유가 듣는 것도 진짜와 같아요.</li>
         <li>감시탑 위에는 라이프가드(AI)가 앉아서 바다를 지켜봐요. 가까이 가면 인사하고, 큰 파도가 오면 호루라기로 알려 줘요.</li>
         <li>방파제나 바위 끝에서 물로 뛰어들면 다이빙 점수가 나와요. 공중에서 <kbd>Space</kbd>를 다시 누르면 배치기 · 대포알 · 만세 · 엉덩이 다이빙으로 자세가 바뀌어요.</li>
         <li><kbd>B</kbd>(휴대폰은 놀기 → 뽀글)를 누르면 뽀글뽀글 방귀! 친구들 화면에도 보여요.</li>
@@ -6644,13 +6650,21 @@ body.touch #sandMenu{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 236px)}
 .phRow button{border:0;border-radius:999px;padding:7px 11px;margin-left:4px;font-family:var(--display);font-size:14px;background:#e8f6fb;color:#1d6f9a}.phRow button#phX{background:#f1ece2;color:#6b6152}
 @keyframes phIn{from{transform:translate(-50%,-46%) rotate(-3deg);opacity:0}to{transform:translate(-50%,-50%);opacity:1}}
 #side{position:fixed;z-index:6;left:12px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 70px);font-size:13px}#side.hidden{display:none}body.clean #side{visibility:hidden}
-#sdPill{display:flex;align-items:center;gap:5px;border:0;border-radius:999px;background:rgba(255,253,247,.92);color:var(--basalt);padding:6px 10px 6px 7px;font-family:var(--display);font-size:13.5px;box-shadow:0 2px 8px rgba(0,0,0,.16)}#sdPill svg{width:17px;height:17px}
-#sdPanel{display:none;position:absolute;left:0;bottom:100%;margin-bottom:6px;max-height:calc(100vh - 150px);overflow:auto;width:236px;background:var(--sand);border-radius:16px;padding:10px 12px 12px;box-shadow:0 8px 28px rgba(0,0,0,.25)}#side.open #sdPanel{display:block}
-.sdHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.sdHead b{font-family:var(--display);font-weight:400;font-size:16px}.sdHead button{border:0;background:#fff;border-radius:999px;padding:3px 9px;font-size:12px;color:#6b6152}
-.sdTimes{display:flex;gap:8px;margin-bottom:8px}.sdTimes label{display:flex;flex-direction:column;font-size:11.5px;color:#6b6152;gap:2px}.sdTimes input{width:100px;border:0;border-radius:8px;padding:4px 6px;font-size:13px;background:#fff}
-#sdBig{display:block;font-family:var(--display);font-weight:400;font-size:18px}.sdBarW{display:block;height:7px;border-radius:99px;background:#efe6d3;overflow:hidden;margin:5px 0 3px}.sdBarW em{display:block;height:100%;width:0;background:#ff8a2a;border-radius:99px}#sdSub{color:#6b6152;font-size:12px}
-.sdBossW{margin-top:8px;background:#fff;border-radius:12px;padding:6px;text-align:center}#sdBoss{width:100%;height:auto;touch-action:none;cursor:pointer}.sdBossW small{display:block;font-family:var(--display);font-size:13.5px}.sdTip{display:block;color:#8a7f6a;font-size:11px}
-body.touch #side{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 236px);left:10px}body.touch #sdPanel{max-height:calc(100vh - 330px)}
+#sdPill{display:flex;align-items:center;gap:5px;border:0;border-radius:999px;background:rgba(255,253,247,.92);color:var(--basalt);padding:6px 10px 6px 7px;font-family:var(--display);font-size:13.5px;font-variant-numeric:tabular-nums;box-shadow:0 2px 8px rgba(0,0,0,.16)}#sdPill svg{width:17px;height:17px}
+#sdPanel{display:none;position:absolute;left:0;bottom:100%;margin-bottom:6px;max-height:calc(100vh - 150px);overflow:auto;overscroll-behavior:contain;width:288px;background:var(--sand);border-radius:16px;padding:10px 12px 12px;box-shadow:0 8px 28px rgba(0,0,0,.25)}#side.open #sdPanel{display:block}
+.sdHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.sdHead b{font-family:var(--display);font-weight:400;font-size:16px}.sdHead button,.sdBossH button{border:0;background:#fff;border-radius:999px;padding:3px 9px;font-size:12px;color:#6b6152;margin-left:4px}.sdHead button[aria-expanded="true"],.sdBossH button[aria-expanded="true"]{background:#2b2a30;color:#fff}
+.sdCd{background:#fff;border-radius:12px;padding:8px 10px;text-align:center}.sdCd small{display:block;color:#6b6152;font-size:12px}#sdLbl{font-family:var(--display);font-size:13.5px;color:var(--basalt)}#sdBig{display:block;font-family:var(--display);font-weight:400;font-size:31px;line-height:1.2;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+.sdBarW{display:block;height:7px;border-radius:99px;background:#efe6d3;overflow:hidden;margin:4px 0 4px}.sdBarW em{display:block;height:100%;width:0;background:#ff8a2a;border-radius:99px}
+#sdToday{margin-top:6px;border:0;border-radius:999px;background:#e8f6fb;color:#1d6f9a;font-size:12.5px;padding:4px 11px;font-family:var(--display)}#sdToday.hidden{display:none}
+#sdCfg{margin-top:8px;background:#fff;border-radius:12px;padding:8px 10px}#sdCfg.hidden{display:none}.sdTimes{display:flex;gap:8px;margin-bottom:6px}.sdTimes label{display:flex;flex-direction:column;font-size:11.5px;color:#6b6152;gap:2px}.sdTimes input{width:112px;border:0;border-radius:8px;padding:4px 6px;font-size:13px;background:#f6f1e7}
+.sdDaysL{font-size:11.5px;color:#6b6152}.sdDays{display:flex;gap:4px;margin:3px 0 7px}.sdDays button{flex:1;border:0;border-radius:8px;padding:5px 0;font-size:12.5px;background:#f1ece2;color:#8a7f6a;font-family:var(--display)}.sdDays button[aria-pressed="true"]{background:#1d6f9a;color:#fff}
+.sdOff{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#6b6152}.sdOff input{flex:1;min-width:0;border:0;border-radius:8px;padding:4px 6px;background:#f6f1e7;font-size:13px}
+.sdBossW{margin-top:8px;background:#fff;border-radius:12px;padding:6px 6px 8px;text-align:center}.sdBossH{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 4px}.sdBossH b{font-family:var(--display);font-weight:400;font-size:15px}
+#sdBoss{display:block;width:100%;height:auto;aspect-ratio:260/270;touch-action:none;cursor:grab}
+#sdLookP{text-align:left;padding:2px 4px 6px;font-size:12px}#sdLookP.hidden{display:none}.sdRow{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:3px 0}.sdRow>span{width:44px;color:#8a7f6a}.sdRow button{border:0;border-radius:999px;padding:3px 8px;background:#f1ece2;font-size:12px;color:#4a4238}.sdRow button[aria-pressed="true"]{background:#2b2a30;color:#fff}.sdRow button.sw{width:22px;height:22px;padding:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08)}.sdRow button.sw[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 4px #2b2a30}
+.sdBossW small{display:block;font-family:var(--display);font-size:13.5px;margin-top:2px}.sdTip{display:block;color:#8a7f6a;font-size:11px;line-height:1.35}
+body.touch #side{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 236px);left:10px}
+body.touch #sdPanel{position:fixed;left:50%;top:50%;bottom:auto;transform:translate(-50%,-50%);width:min(320px,calc(100vw - 20px));max-height:calc(100vh - 40px);margin:0;z-index:20}
 #wallChip{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 76px);border:0;border-radius:999px;background:#c98a3d;color:#fff;font-family:var(--display);font-size:16px;padding:11px 18px;box-shadow:0 4px 0 #8a5a1f}
 body.touch #wallChip{left:auto;right:14px;transform:none;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 362px)}
 body.clean #wallChip{visibility:hidden}
@@ -7206,53 +7220,192 @@ async function trackFlush(){ if (TRACK.off || !TRACK.buf.length) return; const s
   try { const { error } = await sb.from('snorkel_events').insert(rows); if (error) TRACK.off = true; } catch (e){ TRACK.off = true; } }
 setInterval(trackFlush, 25000); addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') trackFlush(); });
 
-/* ---------- 사이드: 일하다 잠깐(퇴근까지 남은 시간 + 부장님 털 뽑기) ----------
-   화면 왼쪽 작은 시계를 누르면 펼쳐진다. 출근 · 퇴근 시간은 이 기기에만 저장. 부장님은 지어낸 만화 캐릭터 */
-const SIDE = { open: false, work: Object.assign({ in: '09:00', out: '18:00' }, loadLS('pp_work', {})), pl: Object.assign({ day: '', n: 0 }, loadLS('pp_pluck', {})), hairs: [], fly: [], ouch: 0, say: '', sayT: 0, raf: 0, t: 0 };
+/* ---------- 사이드: 일하다 잠깐(퇴근 카운트다운 + 직장상사 괴롭히기) ----------
+   화면 왼쪽 아래 작은 시계를 누르면 펼쳐진다. 출근 · 퇴근 시간, 근무 요일, 쉬는 날 문구는 이 기기에만 저장(기기 시간 기준).
+   상사는 지어낸 만화 캐릭터(직함과 생김새만 고른다). 털은 잡아당겨 뽑고(다시 자란다), 와사비 · 겨자 · 고추를 먹여 맵게 한다 */
+const SD_DAYS = '일월화수목금토', SD_SKINS = ['#f6d2b8', '#f2c9a0', '#e0ac80', '#c98d62'], SD_TIES = ['#c0392b', '#1d6f9a', '#2fa37a', '#6b4fa0'], SD_TITLES = ['부장님', '과장님', '차장님', '팀장님', '실장님', '본부장님', '사장님'];
+const SD_FOODS = [{ id: 'wasabi', name: '와사비' }, { id: 'mustard', name: '겨자' }, { id: 'pepper', name: '청양고추' }, { id: 'tteok', name: '매운 떡볶이' }, { id: 'milk', name: '우유' }];
+const SIDE = (() => { const w = Object.assign({ in: '09:00', out: '18:00', days: [1, 2, 3, 4, 5], off: '쉬는 날', extra: '' }, loadLS('pp_work', {}));
+  if (!Array.isArray(w.days) || !w.days.every(d => Number.isInteger(d) && d >= 0 && d <= 6)) w.days = [1, 2, 3, 4, 5]; w.off = String(w.off || '쉬는 날').slice(0, 8); w.extra = typeof w.extra === 'string' ? w.extra : '';
+  const lk = Object.assign({ face: 'round', skin: 1, hair: 'barcode', glass: 'horn', must: false, mole: true, tie: 0, title: '부장님' }, loadLS('pp_boss', {}));
+  if (!['round', 'square', 'long'].includes(lk.face)) lk.face = 'round'; if (!['barcode', 'bald', 'full'].includes(lk.hair)) lk.hair = 'barcode'; if (!['none', 'horn', 'gold'].includes(lk.glass)) lk.glass = 'horn';
+  lk.skin = clamp(lk.skin | 0, 0, 3); lk.tie = clamp(lk.tie | 0, 0, 3); if (!SD_TITLES.includes(lk.title)) lk.title = '부장님'; lk.must = !!lk.must; lk.mole = !!lk.mole;
+  return { open: false, work: w, look: lk, pl: Object.assign({ day: '', n: 0, f: 0 }, loadLS('pp_pluck', {})), hairs: [], fly: [], dots: [], drops: [], puffs: [], grab: null, yank: null, food: null, eat: null, drink: null,
+    say: '', sayT: 0, raf: 0, ouch: 0, sneeze: 0, heat: 0, nose: 0, tear: 0, blinkT: 2, blink: 0, eye: [130, 100], last: 0, dpr: 1, burnSaid: 0 }; })();
 const toMin = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(s || ''); return m ? +m[1] * 60 + +m[2] : null; };
-function sideTime(){ const d = new Date(), now = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60, a = toMin(SIDE.work.in), b = toMin(SIDE.work.out), wk = d.getDay();
+const sdYmd = d => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+const sdIsWork = d => SIDE.work.extra === sdYmd(d) || SIDE.work.days.includes(d.getDay());
+const sdAt = (d, hm) => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setMinutes(toMin(hm)); return x; };
+function sdNextStart(now){ for (let k = 0; k < 8; k++){ const d = new Date(now); d.setDate(d.getDate() + k); if (!sdIsWork(d)) continue; const s = sdAt(d, SIDE.work.in); if (s > now) return s; } return null; }
+function sdFmt(ms){ let s = Math.max(0, Math.floor(ms / 1000)); const dd = Math.floor(s / 86400); s %= 86400; const p = v => String(v).padStart(2, '0'), t = `${p(Math.floor(s / 3600))}:${p(Math.floor(s % 3600 / 60))}:${p(s % 60)}`; return dd ? `${dd}일 ${t}` : t; }
+function sideTime(){ const now = new Date(), a = toMin(SIDE.work.in), b = toMin(SIDE.work.out), off = SIDE.work.off || '쉬는 날';
+  if (a === null || b === null || b <= a) return { pill: '퇴근 타이머', lbl: '시간을 넣어 주세요', big: '--:--:--', sub: '시간 설정에서 출근·퇴근 시간을 넣어요', p: 0 };
   const hm = m => { m = Math.max(0, Math.round(m)); const h = Math.floor(m / 60), r = m % 60; return h ? `${h}시간 ${r}분` : `${r}분`; };
-  if (a === null || b === null || b <= a) return { pill: '퇴근 타이머', big: '출근·퇴근 시간을 넣어 주세요', sub: '', p: 0 };
-  if (wk === 0 || wk === 6) return { pill: '주말', big: '오늘은 주말이에요', sub: '푹 쉬어요!', p: 1 };
-  if (now < a) return { pill: `출근 ${hm(a - now)} 전`, big: `출근까지 ${hm(a - now)}`, sub: '아직 출근 전이에요', p: 0 };
-  if (now >= b) return { pill: '퇴근!', big: '퇴근 시간이에요!', sub: `오늘 ${hm(b - a)} 일했어요. 수고했어요`, p: 1 };
-  const left = b - now; return { pill: `퇴근 ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`, big: `퇴근까지 ${hm(left)}`, sub: `오늘 ${hm(now - a)} 일했어요 · ${Math.floor((now - a) / (b - a) * 100)}%`, p: (now - a) / (b - a) }; }
-function sideRefresh(){ const s = sideTime(); $('#sdPillT').textContent = s.pill; if (!SIDE.open) return; $('#sdBig').textContent = s.big; $('#sdSub').textContent = s.sub; $('#sdBar').style.width = Math.round(clamp(s.p, 0, 1) * 100) + '%';
-  const day = kstDate().day; if (SIDE.pl.day !== day){ SIDE.pl = { day, n: 0 }; } $('#sdCnt').textContent = `오늘 뽑은 털 ${SIDE.pl.n}개`; }
-/* 부장님 얼굴(캔버스 220×180). 털 = 선분: 머리 위 가닥(옆으로 넘긴 머리) · 콧구멍 털 · 눈썹 끝 삐친 털. 뽑으면 20~40초 뒤 다시 자란다 */
-function sideHairs(){ SIDE.hairs = [];
-  for (let i = 0; i < 9; i++){ const x = 72 + i * 9.5; SIDE.hairs.push({ k: 'head', x0: x, y0: 40 + Math.abs(i - 4) * 1.6, x1: x + 16 + i, y1: 28 + Math.abs(i - 4) * 1.2 - (i % 2) * 3, back: 0 }); }
-  for (const [x0, y0, x1, y1] of [[100, 117, 96, 127], [104, 118, 103, 129], [118, 118, 120, 129], [122, 117, 127, 126]]) SIDE.hairs.push({ k: 'nose', x0, y0, x1, y1, back: 0 });
-  for (const [x0, y0, x1, y1] of [[84, 72, 76, 63], [137, 72, 146, 63]]) SIDE.hairs.push({ k: 'brow', x0, y0, x1, y1, back: 0 }); }
-function sideDraw(){ const c = $('#sdBoss'); if (!c) return; const x = c.getContext('2d'), now = performance.now() / 1000, ouch = now < SIDE.ouch;
-  x.clearRect(0, 0, 220, 180);
-  x.fillStyle = '#f2c9a0'; x.beginPath(); x.ellipse(52, 92, 12, 18, 0, 0, 7); x.ellipse(168, 92, 12, 18, 0, 0, 7); x.fill();                 /* 귀 */
-  x.beginPath(); x.ellipse(110, 92, 58, 64, 0, 0, 7); x.fill();                                                                                 /* 얼굴 */
-  x.fillStyle = '#5a4636'; x.beginPath(); x.ellipse(56, 66, 10, 22, -0.2, 0, 7); x.ellipse(164, 66, 10, 22, 0.2, 0, 7); x.fill();              /* 옆머리 */
-  x.strokeStyle = '#3b2c22'; x.lineWidth = 4; x.lineCap = 'round'; x.beginPath(); x.moveTo(78, 74); x.lineTo(96, 70); x.moveTo(124, 70); x.lineTo(142, 74); x.stroke();   /* 눈썹 */
-  x.strokeStyle = '#333'; x.lineWidth = 3; x.beginPath(); x.arc(90, 86, 13, 0, 7); x.arc(130, 86, 13, 0, 7); x.moveTo(103, 86); x.lineTo(117, 86); x.stroke();     /* 안경 */
-  x.fillStyle = '#2b2a30'; if (ouch){ x.lineWidth = 3; x.beginPath(); x.moveTo(84, 82); x.lineTo(96, 88); x.moveTo(84, 92); x.lineTo(96, 86); x.moveTo(136, 82); x.lineTo(124, 88); x.moveTo(136, 92); x.lineTo(124, 86); x.stroke(); }
-  else { x.beginPath(); x.arc(90, 87, 3.5, 0, 7); x.arc(130, 87, 3.5, 0, 7); x.fill(); }
-  x.fillStyle = '#e8b48a'; x.beginPath(); x.ellipse(110, 108, 14, 13, 0, 0, 7); x.fill(); x.fillStyle = '#7a4a34'; x.beginPath(); x.ellipse(103, 115, 3.5, 2.6, 0, 0, 7); x.ellipse(117, 115, 3.5, 2.6, 0, 0, 7); x.fill();   /* 코 · 콧구멍 */
-  x.strokeStyle = '#7a3b2a'; x.lineWidth = 3; x.beginPath(); if (ouch){ x.ellipse(110, 138, 9, 7, 0, 0, 7); } else { x.moveTo(98, 138); x.quadraticCurveTo(110, 133, 122, 138); } x.stroke();   /* 입 */
-  if (ouch){ x.fillStyle = 'rgba(255,90,110,.35)'; x.beginPath(); x.ellipse(78, 108, 9, 5, 0, 0, 7); x.ellipse(142, 108, 9, 5, 0, 0, 7); x.fill(); }
-  x.lineWidth = 2; x.strokeStyle = '#2f241c';
-  for (const h of SIDE.hairs){ if (h.back > now) continue; const g = h.grow ? Math.min(1, (now - h.grow) / 1.5) : 1; x.beginPath(); x.moveTo(h.x0, h.y0); x.lineTo(h.x0 + (h.x1 - h.x0) * g, h.y0 + (h.y1 - h.y0) * g); x.stroke(); }
-  SIDE.fly = SIDE.fly.filter(f => now - f.t < 0.9); for (const f of SIDE.fly){ const k = (now - f.t) / 0.9; x.globalAlpha = 1 - k; x.beginPath(); x.moveTo(f.x, f.y - k * 40); x.lineTo(f.x + f.dx, f.y + f.dy - k * 40); x.stroke(); x.globalAlpha = 1; }
-  if (SIDE.say && now < SIDE.sayT){ x.font = `15px ${getComputedStyle(document.documentElement).getPropertyValue('--display').trim() || 'sans-serif'}`; const w = x.measureText(SIDE.say).width + 16; x.fillStyle = '#fff'; x.strokeStyle = '#2b2a30'; x.lineWidth = 1.5; x.beginPath(); if (x.roundRect) x.roundRect(214 - w, 4, w, 26, 10); else x.rect(214 - w, 4, w, 26); x.fill(); x.stroke(); x.fillStyle = '#2b2a30'; x.textAlign = 'right'; x.fillText(SIDE.say, 206, 22); x.textAlign = 'left'; } }
+  const next = sdNextStart(now), nx = next ? `${SD_DAYS[next.getDay()]} ${SIDE.work.in}` : '';
+  if (!sdIsWork(now)) return { pill: off, lbl: `오늘은 ${off}`, big: next ? sdFmt(next - now) : '--:--:--', sub: next ? `다음 출근(${nx})까지 남은 시간` : '근무 요일을 골라 주세요', p: 0, offDay: true };
+  const s = sdAt(now, SIDE.work.in), e = sdAt(now, SIDE.work.out);
+  if (now < s) return { pill: `출근 ${sdFmt(s - now)}`, lbl: '출근까지', big: sdFmt(s - now), sub: `오늘 ${SIDE.work.in} 출근 · ${SIDE.work.out} 퇴근`, p: 0 };
+  if (now >= e) return { pill: '퇴근 완료!', lbl: '퇴근 완료! 오늘도 수고했어요', big: next ? sdFmt(next - now) : '00:00:00', sub: `오늘 ${hm(b - a)} 일했어요 · 다음 출근(${nx})까지`, p: 1, done: true };
+  return { pill: `퇴근 ${sdFmt(e - now)}`, lbl: '퇴근까지', big: sdFmt(e - now), sub: `오늘 ${hm((now - s) / 60000)} 일했어요 · ${Math.floor((now - s) / (e - s) * 100)}%`, p: (now - s) / (e - s) }; }
+function sideTick(){ const s = sideTime(), pill = $('#sdPillT'); if (pill && pill.textContent !== s.pill) pill.textContent = s.pill; if (!SIDE.open) return;
+  $('#sdLbl').textContent = s.lbl; $('#sdBig').textContent = s.big; $('#sdSub').textContent = s.sub; $('#sdBar').style.width = Math.round(clamp(s.p, 0, 1) * 100) + '%';
+  const tb = $('#sdToday'), today = SIDE.work.extra === sdYmd(new Date()); tb.classList.toggle('hidden', !s.offDay && !today); tb.textContent = today ? '오늘 출근 취소' : '오늘 출근했어요';
+  const day = kstDate().day; if (SIDE.pl.day !== day) SIDE.pl = { day, n: 0, f: 0 }; $('#sdCnt').textContent = `오늘 뽑은 털 ${SIDE.pl.n}가닥 · 먹인 매운 음식 ${SIDE.pl.f}개`; }
+const sideRefresh = sideTick;
+
+/* --- 상사 얼굴: 얼굴형 · 눈 · 코 · 입 위치(논리 크기 260×270, 아래 40px는 음식 쟁반) --- */
+function sdGeo(){ const L = SIDE.look, [rx, ry] = L.face === 'square' ? [64, 60] : L.face === 'long' ? [52, 72] : [60, 66], cx = 130, cy = 100;
+  return { cx, cy, rx, ry, eyeY: cy - 4, eyeDX: 22, noseY: cy + 16, mouthY: cy + 42 + (L.face === 'long' ? 6 : 0), n: L.face === 'square' ? 0.62 : 1 }; }
+function sdOutline(x, G, s = 1){ x.beginPath(); for (let i = 0; i <= 48; i++){ const t = i / 48 * Math.PI * 2, c = Math.cos(t), sn = Math.sin(t), px = G.cx + G.rx * s * Math.sign(c) * Math.abs(c) ** G.n, py = G.cy + G.ry * s * Math.sign(sn) * Math.abs(sn) ** (sn > 0 ? G.n : 1); i ? x.lineTo(px, py) : x.moveTo(px, py); } x.closePath(); }
+const sdEdge = (G, t) => { const c = Math.cos(t), sn = Math.sin(t); return [G.cx + G.rx * Math.sign(c) * Math.abs(c) ** G.n, G.cy + G.ry * Math.sign(sn) * Math.abs(sn) ** (sn > 0 ? G.n : 1)]; };
+/* 털 하나 = 뿌리 · 휘는 점 · 끝(2차 곡선). 종류마다 굵기 · 아픔 정도가 다르다 */
+function sideHairs(){ const G = sdGeo(), L = SIDE.look, H = [], r = mulberry32(hashStr(JSON.stringify(L)));
+  const add = (k, rt, c, t, w, col) => H.push({ k, r: rt, c, t, w, col: col || '#2f241c', back: 0, grow: 0 });
+  /* 옆머리: 관자놀이에서 귀 위까지 촘촘히 */
+  const sideN = L.hair === 'bald' ? 7 : 10;
+  for (const s of [-1, 1]) for (let i = 0; i < sideN; i++){ const t = (s < 0 ? Math.PI : 0) + s * (-0.95 + i * (1.05 / sideN)) * -1, [rx0, ry0] = sdEdge(G, s < 0 ? Math.PI + (0.95 - i * 1.05 / sideN) : -(0.95 - i * 1.05 / sideN));
+    const len = 9 + r() * 4; add('side', [rx0 - s * 2, ry0 + 1], [rx0 + s * len * 0.6, ry0 + 2], [rx0 + s * len * 0.8, ry0 + len * 0.7], 2.2); }
+  const top = G.cy - G.ry;
+  if (L.hair === 'barcode'){ for (let i = 0; i < 11; i++){ const [x0, y0] = sdEdge(G, Math.PI + 0.42 + i * 0.035); add('head', [x0 + 4, y0 + 2 - i * 0.6], [G.cx - 12 + i * 3, top - 7 + i * 1.9], [G.cx + G.rx * 0.72 - i * 1.4, top + 16 + i * 2.8], 1.6); } }
+  if (L.hair === 'full'){ for (let i = 0; i < 30; i++){ const t = -Math.PI + 0.42 + i * (Math.PI - 0.84) / 29, [x0, y0] = sdEdge(G, t), nx = Math.cos(t), ny = Math.sin(t), len = 11 + r() * 5, cur = (r() - 0.5) * 8;
+    add('head', [x0 - nx * 2, y0 - ny * 2], [x0 + nx * len * 0.55 + cur, y0 + ny * len * 0.55], [x0 + nx * len + cur * 0.4, y0 + ny * len], 2); } }
+  /* 눈썹: 한쪽 9가닥 */
+  for (const s of [-1, 1]) for (let i = 0; i < 9; i++){ const x0 = G.cx + s * (G.eyeDX - 12 + i * 3), y0 = G.eyeY - 15 - Math.sin(i / 8 * Math.PI) * 3; add('brow', [x0, y0 + 1.5], [x0 + s * 2.5, y0 - 1.5], [x0 + s * 5, y0 - 2.5], 2.3); }
+  /* 콧털: 콧구멍마다 3가닥, 꼬불 */
+  for (const s of [-1, 1]) for (let j = 0; j < 3; j++){ const nx = G.cx + s * 7 + (j - 1) * 2.2, ny = G.noseY + 9; add('nose', [nx, ny - 1], [nx + s * (2 + j) - 1, ny + 6], [nx + (j - 1) * 3 + s * 1.5, ny + 9 + j * 1.5], 1.7, '#3b2c22'); }
+  /* 귀털: 귓구멍에서 3가닥 */
+  for (const s of [-1, 1]) for (let j = 0; j < 3; j++){ const ex = G.cx + s * (G.rx + 3), ey = G.cy + 2 + j * 3; add('ear', [ex - s * 2, ey], [ex + s * 5, ey - 3 + j], [ex + s * 10, ey - 1 + j * 2.5], 1.5); }
+  if (L.must) for (let i = 0; i < 14; i++){ const x0 = G.cx - 19 + i * 2.9, y0 = G.noseY + 14 + Math.abs(i - 6.5) * 0.4, s = i < 7 ? -1 : 1; add('must', [x0, y0], [x0 + s * 2, y0 + 4], [x0 + s * 4, y0 + 8], 2.3); }
+  if (L.mole){ const mx = G.cx + 30, my = G.cy + 28; add('mole', [mx, my], [mx + 9, my - 12], [mx + 17, my - 2], 1.4); }
+  SIDE.hairs = H; }
+const SD_PAIN = { head: 0.5, side: 0.45, brow: 0.7, nose: 1, ear: 0.6, must: 0.8, mole: 0.85 };
+const SD_SAY = { head: ['내 머리카락!', '하나 남은 건데!', '아야! 탈모 온다고!', '끄응…'], side: ['옆머리까지?!', '아얏!'], brow: ['내 눈썹!', '아얏! 눈썹은 왜!'], nose: ['에취!', '콧털은 반칙이야!', '눈물 나…'], ear: ['귀털까지?!', '간지러워! 아니 아파!'], must: ['내 콧수염!', '아야야!'], mole: ['그건 복털이야!', '복 나간다고!'] };
+const sdQ = (h, t) => { const u = 1 - t; return [u * u * h.r[0] + 2 * u * t * h.c[0] + t * t * h.t[0], u * u * h.r[1] + 2 * u * t * h.c[1] + t * t * h.t[1]]; };
+function sdHit(px, py, now){ let best = null, bd = 9; for (const h of SIDE.hairs){ if (h.back > now) continue; for (let i = 0; i <= 8; i++){ const [x, y] = sdQ(h, i / 8), d = Math.hypot(x - px, y - py); if (d < bd){ bd = d; best = h; } } } return best; }
+function sdPluck(h, now){ const back = 25 + Math.random() * 20; h.back = now + back; h.grow = h.back;
+  const [tx, ty] = h.t, dx = tx - h.r[0], dy = ty - h.r[1], l = Math.hypot(dx, dy) || 1; SIDE.fly.push({ h: { ...h }, t: now, vx: dx / l * 70 + (Math.random() - 0.5) * 30, vy: dy / l * 40 - 90, rot: (Math.random() - 0.5) * 8 });
+  SIDE.dots.push({ x: h.r[0], y: h.r[1], t: now }); const pain = SD_PAIN[h.k] || 0.5; SIDE.ouch = now + 0.3 + pain * 0.45; if (h.k === 'nose'){ SIDE.sneeze = now + 0.6; SIDE.tear = Math.max(SIDE.tear, 0.9); } else if (pain > 0.65) SIDE.tear = Math.max(SIDE.tear, 0.5);
+  sdSay(pickOne(SD_SAY[h.k] || SD_SAY.head), now); AudioSys.blip(900 + pain * 700, 1500 + pain * 600, 0.06, 'square', 0.035);
+  const day = kstDate().day; if (SIDE.pl.day !== day) SIDE.pl = { day, n: 0, f: 0 }; SIDE.pl.n++; saveLS('pp_pluck', SIDE.pl); sideTick();
+  if (h.k === 'head' && SIDE.hairs.filter(q => q.k === 'head' && q.back <= now).length === 0) setTimeout(() => sdSay('내 머리… 이제 반짝반짝이야', performance.now() / 1000), 900); if (SIDE.pl.n === 1) track('boss'); }
+function sdSay(t, now){ SIDE.say = t; SIDE.sayT = now + 1.5; }
+/* --- 매운 음식: 와사비 · 겨자는 코가 찡(빨리 사라짐), 고추 · 떡볶이는 입이 화끈(오래감). 물은 별로 안 듣고 우유가 듣는다 --- */
+const sdTray = i => [28 + i * 51, 247];
+function sdFeedDone(id, now){ const G = sdGeo(); SIDE.eat = { id, t0: now }; SIDE.food = null; }
+function sdEffect(id, now){ const day = kstDate().day; if (SIDE.pl.day !== day) SIDE.pl = { day, n: 0, f: 0 };
+  if (id === 'milk'){ SIDE.heat = Math.max(0, SIDE.heat - 0.65); SIDE.nose = Math.max(0, SIDE.nose - 0.5); sdSay(SIDE.heat > 0.2 ? '우유 최고… 조금 살겠다' : '휴… 살았다', now); return; }
+  SIDE.pl.f++; saveLS('pp_pluck', SIDE.pl); sideTick(); if (SIDE.pl.f === 1) track('spicy');
+  if (id === 'wasabi'){ SIDE.nose = 1; SIDE.tear = 1; SIDE.ouch = now + 0.9; sdSay(pickOne(['코가 찡해!!', '으아아 와사비!', '눈물이… 코가…']), now); }
+  else if (id === 'mustard'){ SIDE.nose = Math.max(SIDE.nose, 0.8); SIDE.tear = Math.max(SIDE.tear, 0.8); SIDE.ouch = now + 0.7; sdSay(pickOne(['겨자 코 찡~!', '겨자를 이렇게 많이?!']), now); }
+  else if (id === 'pepper'){ SIDE.heat = Math.min(1.4, SIDE.heat + 0.45); SIDE.ouch = now + 0.5; sdSay(pickOne(['으아 매워!', '청양고추를 통째로?!', '입에서 불 나!']), now); }
+  else if (id === 'tteok'){ SIDE.heat = Math.min(1.4, SIDE.heat + 0.32); sdSay(pickOne(['맵다 매워… 근데 맛있다', '쓰읍 하아 쓰읍 하아']), now); }
+  if (SIDE.heat >= 1 && now > SIDE.burnSaid){ SIDE.burnSaid = now + 6; setTimeout(() => { const n2 = performance.now() / 1000; SIDE.drink = { t0: n2 }; sdSay('물! 물!!', n2); }, 900); } }
+function sdUpdate(dt, now){ SIDE.heat = Math.max(0, SIDE.heat - dt * 0.03); SIDE.nose = Math.max(0, SIDE.nose - dt * 0.4); SIDE.tear = Math.max(0, SIDE.tear - dt * 0.35);
+  if (now > SIDE.blinkT){ SIDE.blink = now + 0.13; SIDE.blinkT = now + 2.5 + Math.random() * 3; }
+  /* 자동 잡아당기기(톡 누르면) */
+  const y = SIDE.yank; if (y){ const k = (now - y.t0) / 0.22; if (k >= 1){ sdPluck(y.h, now); SIDE.yank = null; } else { y.px = y.gx + y.dx * 26 * k; y.py = y.gy + y.dy * 26 * k; } }
+  /* 음식이 입으로 날아가기 */
+  const f = SIDE.food; if (f?.auto){ const G = sdGeo(), k = Math.min(1, (now - f.auto) / 0.45), [sx, sy] = sdTray(f.i); f.x = sx + (G.cx - sx) * k; f.y = sy + (G.mouthY - sy) * k - Math.sin(k * Math.PI) * 40; if (k >= 1) sdFeedDone(SD_FOODS[f.i].id, now); }
+  const e = SIDE.eat; if (e && now - e.t0 > (e.id === 'tteok' ? 1.1 : 0.7)){ SIDE.eat = null; sdEffect(e.id, now); }
+  const d = SIDE.drink; if (d && now - d.t0 > 1.0){ SIDE.drink = null; SIDE.heat = Math.max(0, SIDE.heat - 0.08); sdSay('물 마시니까 더 매워!! 우유 줘!', now); }
+  /* 땀 · 김 · 눈물 */
+  const G = sdGeo();
+  if (SIDE.heat > 0.3 && Math.random() < dt * (2 + SIDE.heat * 4)){ const s = Math.random() < 0.5 ? -1 : 1; SIDE.drops.push({ k: 'sweat', x: G.cx + s * (G.rx * 0.6 + Math.random() * 8), y: G.cy - G.ry * 0.5 + Math.random() * 20, vy: 20, t: now }); }
+  if (SIDE.tear > 0.2 && Math.random() < dt * 6 * SIDE.tear){ const s = Math.random() < 0.5 ? -1 : 1; SIDE.drops.push({ k: 'tear', x: G.cx + s * (G.eyeDX + 6), y: G.eyeY + 6, vy: 30, t: now }); }
+  if (SIDE.heat > 0.5 && Math.random() < dt * 5 * SIDE.heat){ const s = Math.random() < 0.5 ? -1 : 1; SIDE.puffs.push({ x: G.cx + s * (G.rx + 4), y: G.cy - 4, vx: s * 14, t: now }); if (Math.random() < 0.5) SIDE.puffs.push({ x: G.cx + (Math.random() - 0.5) * 30, y: G.cy - G.ry - 2, vx: (Math.random() - 0.5) * 10, t: now }); }
+  for (const p of SIDE.drops){ p.vy += 160 * dt; p.y += p.vy * dt; } SIDE.drops = SIDE.drops.filter(p => p.y < 225 && now - p.t < 2.5).slice(-40);
+  SIDE.puffs = SIDE.puffs.filter(p => now - p.t < 1.1).slice(-30); SIDE.fly = SIDE.fly.filter(q => now - q.t < 1.1); SIDE.dots = SIDE.dots.filter(q => now - q.t < 2.5);
+  for (const h of SIDE.hairs) if (h.back && now >= h.back && h.grow === h.back) h.grow = now; }
+function sdDrawFood(x, id, cx, cy, s = 1){ x.save(); x.translate(cx, cy); x.scale(s, s);
+  if (id === 'wasabi'){ x.fillStyle = '#fff'; x.beginPath(); x.ellipse(0, 6, 16, 5, 0, 0, 7); x.fill(); x.fillStyle = '#8fc94a'; x.beginPath(); x.moveTo(-9, 5); x.quadraticCurveTo(-6, -8, 0, -9); x.quadraticCurveTo(7, -7, 9, 5); x.closePath(); x.fill(); x.strokeStyle = '#6fa834'; x.lineWidth = 1; x.stroke(); }
+  else if (id === 'mustard'){ x.fillStyle = '#fff'; x.beginPath(); x.ellipse(0, 6, 16, 5, 0, 0, 7); x.fill(); x.fillStyle = '#e8b923'; x.beginPath(); x.ellipse(0, 1, 10, 6, 0, 0, 7); x.fill(); x.fillStyle = '#f5d55a'; x.beginPath(); x.ellipse(-3, -1, 4, 2, 0, 0, 7); x.fill(); }
+  else if (id === 'pepper'){ x.rotate(-0.5); x.fillStyle = '#2f9a3a'; x.beginPath(); x.moveTo(-14, -2); x.quadraticCurveTo(0, -7, 13, 0); x.quadraticCurveTo(0, 6, -14, 2); x.closePath(); x.fill(); x.fillStyle = '#5a7a2a'; x.fillRect(-18, -2, 5, 4); }
+  else if (id === 'tteok'){ x.fillStyle = '#f4f1e8'; x.beginPath(); x.ellipse(0, 4, 16, 7, 0, 0, Math.PI); x.fill(); x.fillStyle = '#e2442f'; x.beginPath(); x.ellipse(0, 1, 14, 5, 0, 0, 7); x.fill(); x.fillStyle = '#fbd7c4'; for (const [a, b] of [[-6, -1], [2, 0], [6, -3], [-1, -4]]){ x.beginPath(); x.ellipse(a, b, 4, 1.8, 0.3, 0, 7); x.fill(); } }
+  else { x.fillStyle = '#ffffff'; x.strokeStyle = '#9fc6e8'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(-8, 10); x.lineTo(-8, -6); x.lineTo(0, -12); x.lineTo(8, -6); x.lineTo(8, 10); x.closePath(); x.fill(); x.stroke(); x.fillStyle = '#5aa0e0'; x.fillRect(-8, -1, 16, 5); }
+  x.restore(); }
+function sideDraw(){ const c = $('#sdBoss'); if (!c) return; const x = c.getContext('2d'), now = performance.now() / 1000, dt = Math.min(0.05, now - (SIDE.last || now)); SIDE.last = now; sdUpdate(dt, now);
+  const L = SIDE.look, G = sdGeo(), fd = getComputedStyle(document.documentElement).getPropertyValue('--display').trim() || 'sans-serif';
+  x.setTransform(SIDE.dpr, 0, 0, SIDE.dpr, 0, 0); x.clearRect(0, 0, 260, 270);
+  const ouch = now < SIDE.ouch || SIDE.nose > 0.55, sneeze = now < SIDE.sneeze, shake = (ouch || sneeze || SIDE.heat > 0.9) ? Math.sin(now * 70) * (sneeze ? 3 : 1.6) : 0;
+  /* 어깨 · 셔츠 · 넥타이 */
+  x.fillStyle = '#3d4654'; x.beginPath(); x.moveTo(40, 226); x.quadraticCurveTo(48, 182, 130, 176); x.quadraticCurveTo(212, 182, 220, 226); x.closePath(); x.fill();
+  x.fillStyle = '#ffffff'; x.beginPath(); x.moveTo(108, 178); x.lineTo(130, 214); x.lineTo(152, 178); x.closePath(); x.fill();
+  x.fillStyle = SD_TIES[L.tie]; x.beginPath(); x.moveTo(124, 182); x.lineTo(136, 182); x.lineTo(139, 214); x.lineTo(130, 224); x.lineTo(121, 214); x.closePath(); x.fill();
+  x.save(); x.translate(shake, sneeze ? Math.sin((SIDE.sneeze - now) * 10) * 4 : 0);
+  /* 목 · 귀 · 얼굴(매울수록 빨갛게) */
+  const sk = new THREE.Color(SD_SKINS[L.skin]).lerp(new THREE.Color('#ff5a4a'), Math.min(1, SIDE.heat) * 0.7).getStyle();
+  x.fillStyle = sk; x.fillRect(G.cx - 20, G.cy + G.ry - 12, 40, 26);
+  for (const s of [-1, 1]){ x.beginPath(); x.ellipse(G.cx + s * (G.rx + 2), G.cy + 4, 10, 16, 0, 0, 7); x.fill(); }
+  x.fillStyle = 'rgba(0,0,0,.12)'; for (const s of [-1, 1]){ x.beginPath(); x.ellipse(G.cx + s * (G.rx + 3), G.cy + 4, 4, 7, 0, 0, 7); x.fill(); }
+  x.fillStyle = sk; sdOutline(x, G); x.fill();
+  if (L.hair === 'bald' || (L.hair === 'barcode' && SIDE.hairs.filter(q => q.k === 'head' && q.back <= now).length < 4)){ x.fillStyle = 'rgba(255,255,255,.55)'; x.beginPath(); x.ellipse(G.cx - 16, G.cy - G.ry + 16, 14, 6, -0.4, 0, 7); x.fill(); }
+  /* 볼(매우면 더 빨갛게) · 코(와사비면 코끝 빨갛게) */
+  x.fillStyle = `rgba(255,90,110,${0.12 + Math.min(1, SIDE.heat) * 0.35})`; for (const s of [-1, 1]){ x.beginPath(); x.ellipse(G.cx + s * 34, G.cy + 22, 11, 6, 0, 0, 7); x.fill(); }
+  x.fillStyle = new THREE.Color(sk).multiplyScalar(0.93).lerp(new THREE.Color('#ff4a5a'), SIDE.nose * 0.6).getStyle(); x.beginPath(); x.ellipse(G.cx, G.noseY, 14, 13, 0, 0, 7); x.fill();
+  x.fillStyle = '#6b3a2a'; for (const s of [-1, 1]){ x.beginPath(); x.ellipse(G.cx + s * 7, G.noseY + 8, 3.6, 2.6 + SIDE.nose * 1.2, 0, 0, 7); x.fill(); }
+  /* 눈: 눈동자는 손가락(포인터)을 따라온다. 아프거나 코가 찡하면 꽉 감는다 */
+  const closed = ouch || sneeze || now < SIDE.blink;
+  for (const s of [-1, 1]){ const ex = G.cx + s * G.eyeDX, ey = G.eyeY;
+    if (closed){ x.strokeStyle = '#2b2a30'; x.lineWidth = 2.6; x.beginPath(); if (ouch || sneeze){ x.moveTo(ex - 7, ey - 4); x.lineTo(ex + 1 * s, ey); x.lineTo(ex - 7, ey + 4); if (s > 0){ x.moveTo(ex + 7, ey - 4); x.lineTo(ex - 1, ey); x.lineTo(ex + 7, ey + 4); } } else { x.moveTo(ex - 7, ey); x.quadraticCurveTo(ex, ey + 3, ex + 7, ey); } x.stroke(); }
+    else { x.fillStyle = '#fff'; x.beginPath(); x.ellipse(ex, ey, 8, 6.5, 0, 0, 7); x.fill(); const a = Math.atan2(SIDE.eye[1] - ey, SIDE.eye[0] - ex), m = Math.min(3, Math.hypot(SIDE.eye[0] - ex, SIDE.eye[1] - ey) / 20); x.fillStyle = '#2b2a30'; x.beginPath(); x.arc(ex + Math.cos(a) * m, ey + Math.sin(a) * m, 3.6, 0, 7); x.fill(); x.fillStyle = '#fff'; x.beginPath(); x.arc(ex + Math.cos(a) * m + 1.2, ey + Math.sin(a) * m - 1.2, 1.1, 0, 7); x.fill(); } }
+  if (L.glass !== 'none'){ x.strokeStyle = L.glass === 'gold' ? '#c9a14a' : '#2b2a30'; x.lineWidth = L.glass === 'gold' ? 1.6 : 3.2; for (const s of [-1, 1]){ x.beginPath(); if (x.roundRect) x.roundRect(G.cx + s * G.eyeDX - 13, G.eyeY - 10, 26, 19, 6); else x.rect(G.cx + s * G.eyeDX - 13, G.eyeY - 10, 26, 19); x.stroke(); } x.beginPath(); x.moveTo(G.cx - 9, G.eyeY - 3); x.quadraticCurveTo(G.cx, G.eyeY - 7, G.cx + 9, G.eyeY - 3); x.moveTo(G.cx - G.eyeDX - 13, G.eyeY - 3); x.lineTo(G.cx - G.rx + 2, G.eyeY - 6); x.moveTo(G.cx + G.eyeDX + 13, G.eyeY - 3); x.lineTo(G.cx + G.rx - 2, G.eyeY - 6); x.stroke(); }
+  /* 입: 평소 · 아야 · 씹기 · 매워서 헥헥(불) · 물 마시기 */
+  const my = G.mouthY, chew = SIDE.eat ? Math.abs(Math.sin((now - SIDE.eat.t0) * 14)) : 0, pant = SIDE.heat > 0.75 && !SIDE.eat ? (Math.sin(now * 9) + 1) / 2 : 0, f = SIDE.food, near = f && Math.hypot(f.x - G.cx, f.y - my) < 45;
+  x.lineWidth = 3; x.strokeStyle = '#7a3b2a'; x.fillStyle = '#7a2a24';
+  if (SIDE.eat){ x.beginPath(); x.ellipse(G.cx, my, 11, 2 + chew * 6, 0, 0, 7); x.fill(); }
+  else if (near || ouch || sneeze || pant > 0.2){ const o = near ? 10 : sneeze ? 9 : ouch ? 7 : 4 + pant * 6; x.beginPath(); x.ellipse(G.cx, my, near ? 13 : 10, o, 0, 0, 7); x.fill(); x.fillStyle = '#e8737a'; x.beginPath(); x.ellipse(G.cx, my + o * 0.45, 7, o * 0.35, 0, 0, 7); x.fill();
+    if (pant > 0.4){ const g = x.createLinearGradient(G.cx, my, G.cx, my + 40); g.addColorStop(0, 'rgba(255,220,80,.95)'); g.addColorStop(0.5, 'rgba(255,120,40,.8)'); g.addColorStop(1, 'rgba(255,60,30,0)'); x.fillStyle = g; x.beginPath(); x.moveTo(G.cx - 8, my + 4); for (let i = 0; i <= 6; i++){ const t = i / 6; x.lineTo(G.cx - 16 + t * 32, my + 26 + Math.sin(now * 25 + i * 2) * 8 + (i % 2 ? 10 : 0)); } x.lineTo(G.cx + 8, my + 4); x.closePath(); x.fill(); } }
+  else { x.beginPath(); x.moveTo(G.cx - 12, my); x.quadraticCurveTo(G.cx, my - 5 + SIDE.heat * 6, G.cx + 12, my); x.stroke(); }
+  if (SIDE.drink){ x.fillStyle = 'rgba(200,230,255,.85)'; x.strokeStyle = '#7fb6e0'; x.lineWidth = 2; x.beginPath(); x.moveTo(G.cx + 6, my - 6); x.lineTo(G.cx + 26, my - 10); x.lineTo(G.cx + 30, my + 18); x.lineTo(G.cx + 12, my + 20); x.closePath(); x.fill(); x.stroke(); }
+  if (L.mole){ x.fillStyle = '#5a3b2a'; x.beginPath(); x.arc(G.cx + 30, G.cy + 28, 2.8, 0, 7); x.fill(); }
+  /* 털: 잡혀 있으면 잡아당긴 곳까지 늘어나고 뿌리 쪽 살이 딸려 올라온다 */
+  for (const h of SIDE.hairs){ if (h.back > now) continue; const gr = SIDE.grab?.h === h ? SIDE.grab : SIDE.yank?.h === h ? SIDE.yank : null, gk = h.grow ? Math.min(1, (now - h.grow) / 2.5) : 1;
+    x.strokeStyle = h.col; x.lineWidth = h.w; x.lineCap = 'round'; x.beginPath(); x.moveTo(h.r[0], h.r[1]);
+    if (gr){ const pull = Math.hypot(gr.px - gr.gx, gr.py - gr.gy), bx = h.r[0] + (gr.px - gr.gx) * 0.18, by = h.r[1] + (gr.py - gr.gy) * 0.18; x.stroke(); x.fillStyle = sk; x.beginPath(); x.ellipse(bx, by, 3 + pull * 0.06, 2 + pull * 0.05, 0, 0, 7); x.fill(); x.beginPath(); x.moveTo(bx, by); x.quadraticCurveTo((bx + gr.px) / 2, (by + gr.py) / 2 - 3, gr.px, gr.py); x.stroke(); }
+    else { const [qx, qy] = sdQ(h, gk), cx2 = h.r[0] + (h.c[0] - h.r[0]) * gk, cy2 = h.r[1] + (h.c[1] - h.r[1]) * gk; x.quadraticCurveTo(cx2, cy2, qx, qy); x.stroke(); } }
+  for (const d of SIDE.dots){ x.fillStyle = `rgba(220,60,60,${0.7 * (1 - (now - d.t) / 2.5)})`; x.beginPath(); x.arc(d.x, d.y, 1.8, 0, 7); x.fill(); }
+  x.restore();
+  /* 뽑힌 털이 뿌리째(하얀 모근) 날아간다 */
+  for (const q of SIDE.fly){ const k = now - q.t, h = q.h, ox = q.vx * k, oy = q.vy * k + 140 * k * k; x.save(); x.globalAlpha = Math.max(0, 1 - k / 1.1); x.translate(h.r[0] + ox, h.r[1] + oy); x.rotate(q.rot * k); x.strokeStyle = h.col; x.lineWidth = h.w; x.beginPath(); x.moveTo(0, 0); x.quadraticCurveTo(h.c[0] - h.r[0], h.c[1] - h.r[1], h.t[0] - h.r[0], h.t[1] - h.r[1]); x.stroke(); x.fillStyle = '#fff6e8'; x.strokeStyle = '#d9c7a8'; x.lineWidth = 0.8; x.beginPath(); x.ellipse(0, 0, 1.9, 2.6, 0, 0, 7); x.fill(); x.stroke(); x.restore(); }
+  for (const p of SIDE.drops){ x.fillStyle = p.k === 'tear' ? 'rgba(120,190,255,.9)' : 'rgba(160,210,255,.85)'; x.beginPath(); x.moveTo(p.x, p.y - 4); x.quadraticCurveTo(p.x + 3, p.y + 1, p.x, p.y + 3); x.quadraticCurveTo(p.x - 3, p.y + 1, p.x, p.y - 4); x.fill(); }
+  for (const p of SIDE.puffs){ const k = (now - p.t) / 1.1; x.fillStyle = `rgba(255,255,255,${0.75 * (1 - k)})`; x.beginPath(); x.arc(p.x + p.vx * k, p.y - k * 28, 4 + k * 9, 0, 7); x.fill(); }
+  /* 맵기 게이지 */
+  if (SIDE.heat > 0.02 || SIDE.nose > 0.02){ x.fillStyle = 'rgba(0,0,0,.08)'; x.fillRect(220, 40, 10, 110); const v = Math.min(1, Math.max(SIDE.heat, SIDE.nose * 0.8)), g = x.createLinearGradient(0, 150, 0, 40); g.addColorStop(0, '#ffd23a'); g.addColorStop(0.5, '#ff8a2a'); g.addColorStop(1, '#e2442f'); x.fillStyle = g; x.fillRect(220, 150 - 110 * v, 10, 110 * v); x.fillStyle = '#6b6152'; x.font = `11px ${fd}`; x.textAlign = 'center'; x.fillText('맵기', 225, 164); x.textAlign = 'left'; }
+  /* 쟁반: 와사비 · 겨자 · 청양고추 · 매운 떡볶이 · 우유 */
+  x.fillStyle = '#f1ece2'; x.fillRect(4, 230, 252, 36); SD_FOODS.forEach((it, i) => { const [tx, ty] = sdTray(i); if (SIDE.food?.i === i) return; sdDrawFood(x, it.id, tx, ty - 4, 0.85); x.fillStyle = '#6b6152'; x.font = `10px ${fd}`; x.textAlign = 'center'; x.fillText(it.name, tx, ty + 16); x.textAlign = 'left'; });
+  if (SIDE.food) sdDrawFood(x, SD_FOODS[SIDE.food.i].id, SIDE.food.x, SIDE.food.y, 1);
+  if (SIDE.say && now < SIDE.sayT){ x.font = `14px ${fd}`; const w = x.measureText(SIDE.say).width + 16, bx = Math.min(254 - w, Math.max(6, G.cx + 34)); x.fillStyle = '#fff'; x.strokeStyle = '#2b2a30'; x.lineWidth = 1.5; x.beginPath(); if (x.roundRect) x.roundRect(bx, 6, w, 24, 10); else x.rect(bx, 6, w, 24); x.fill(); x.stroke(); x.fillStyle = '#2b2a30'; x.fillText(SIDE.say, bx + 8, 23); } }
 function sideLoop(){ if (!SIDE.open){ SIDE.raf = 0; return; } sideDraw(); SIDE.raf = requestAnimationFrame(sideLoop); }
-function sidePluck(ev){ const c = $('#sdBoss'), r = c.getBoundingClientRect(), px = (ev.clientX - r.left) * 220 / r.width, py = (ev.clientY - r.top) * 180 / r.height, now = performance.now() / 1000;
-  let best = null, bd = 9; for (const h of SIDE.hairs){ if (h.back > now) continue; const dx = h.x1 - h.x0, dy = h.y1 - h.y0, t = clamp(((px - h.x0) * dx + (py - h.y0) * dy) / (dx * dx + dy * dy), 0, 1), d = Math.hypot(h.x0 + dx * t - px, h.y0 + dy * t - py); if (d < bd){ bd = d; best = h; } }
-  if (!best){ SIDE.say = pickOne(['어딜 만져!', '거기 털 없어~', '일은 다 했나?']); SIDE.sayT = now + 1.2; return; }
-  const back = 20 + Math.random() * 20; best.back = now + back; best.grow = now + back; SIDE.fly.push({ x: best.x0, y: best.y0, dx: best.x1 - best.x0, dy: best.y1 - best.y0, t: now }); SIDE.ouch = now + 0.45;
-  SIDE.say = pickOne(best.k === 'nose' ? ['아야! 콧털은 안 돼!', '에취!', '어허, 이 사람이!'] : best.k === 'brow' ? ['내 눈썹!', '아얏!'] : ['내 소중한 머리카락!', '아야!', '하나 남은 건데!', '끄응…']); SIDE.sayT = now + 1.3;
-  AudioSys.blip(900, 1500, 0.06, 'square', 0.035); const day = kstDate().day; if (SIDE.pl.day !== day) SIDE.pl = { day, n: 0 }; SIDE.pl.n++; saveLS('pp_pluck', SIDE.pl); $('#sdCnt').textContent = `오늘 뽑은 털 ${SIDE.pl.n}개`; if (SIDE.pl.n === 1) track('boss'); }
-function sideOpen(v){ SIDE.open = v; $('#side').classList.toggle('open', v); $('#sdPill').setAttribute('aria-expanded', String(v)); if (v){ if (!SIDE.hairs.length) sideHairs(); $('#sdIn').value = SIDE.work.in; $('#sdOut').value = SIDE.work.out; sideRefresh(); if (!SIDE.raf) sideLoop(); track('side'); } }
+function sdPos(ev){ const r = $('#sdBoss').getBoundingClientRect(); return [(ev.clientX - r.left) * 260 / r.width, (ev.clientY - r.top) * 270 / r.height]; }
+function sdDown(ev){ ev.preventDefault(); ev.stopPropagation(); const [px, py] = sdPos(ev), now = performance.now() / 1000; SIDE.eye = [px, py];
+  if (py > 228){ const i = SD_FOODS.findIndex((_, k) => Math.abs(sdTray(k)[0] - px) < 24); if (i >= 0 && !SIDE.eat && !SIDE.food){ SIDE.food = { i, x: px, y: py, sx: px, sy: py, drag: true }; $('#sdBoss').setPointerCapture?.(ev.pointerId); } return; }
+  if (SIDE.yank) return; const h = sdHit(px, py, now); if (!h){ if (now > SIDE.sayT) sdSay(pickOne(['어딜 만져!', '거기 털 없어~', '일은 다 했나?', '커피 한 잔 타 와요']), now); return; }
+  SIDE.grab = { h, gx: px, gy: py, px, py, t0: now }; $('#sdBoss').setPointerCapture?.(ev.pointerId); }
+function sdMove(ev){ const [px, py] = sdPos(ev); SIDE.eye = [px, py]; const g = SIDE.grab, f = SIDE.food; if (g){ g.px = px; g.py = py; if (Math.hypot(px - g.gx, py - g.gy) > 30){ sdPluck(g.h, performance.now() / 1000); SIDE.grab = null; } } if (f?.drag){ f.x = px; f.y = py; } }
+function sdUp(ev){ const now = performance.now() / 1000, g = SIDE.grab, f = SIDE.food;
+  if (g){ SIDE.grab = null; const mv = Math.hypot(g.px - g.gx, g.py - g.gy); if (mv < 6){ const h = g.h, dx = h.t[0] - h.r[0], dy = h.t[1] - h.r[1], l = Math.hypot(dx, dy) || 1; SIDE.yank = { h, gx: g.gx, gy: g.gy, px: g.gx, py: g.gy, dx: dx / l, dy: dy / l, t0: now }; } else sdSay('휴… 놓쳤네', now); }
+  if (f?.drag){ f.drag = false; const G = sdGeo(); if (Math.hypot(f.x - G.cx, f.y - G.mouthY) < 34) sdFeedDone(SD_FOODS[f.i].id, now); else if (Math.hypot(f.x - f.sx, f.y - f.sy) < 6) f.auto = now; else SIDE.food = null; } }
+/* 얼굴 꾸미기 */
+function sdLookUI(){ const P = $('#sdLookP'); P.innerHTML = ''; const L = SIDE.look;
+  const row = (label, opts, key, sw) => { const r = el('div', 'sdRow'); r.appendChild(el('span', '', label)); opts.forEach(([v, t]) => { const b = el('button', sw ? 'sw' : '', sw ? '' : t); b.type = 'button'; if (sw) b.style.background = t; b.title = sw ? label : t; b.setAttribute('aria-pressed', String(L[key] === v)); b.onclick = () => { L[key] = v; saveLS('pp_boss', L); sideHairs(); sdLookUI(); $('#sdBossT').textContent = `${L.title} 괴롭히기`; }; r.appendChild(b); }); P.appendChild(r); };
+  row('직함', SD_TITLES.map(t => [t, t]), 'title'); row('얼굴형', [['round', '둥근'], ['square', '각진'], ['long', '갸름']], 'face'); row('피부', SD_SKINS.map((c, i) => [i, c]), 'skin', true);
+  row('머리', [['barcode', '옆으로 넘긴 머리'], ['bald', '대머리'], ['full', '숱 많음']], 'hair'); row('안경', [['none', '없음'], ['horn', '뿔테'], ['gold', '금테']], 'glass');
+  row('수염', [[false, '없음'], [true, '콧수염']], 'must'); row('점 털', [[false, '없음'], [true, '있음']], 'mole'); row('넥타이', SD_TIES.map((c, i) => [i, c]), 'tie', true); }
+function sdDaysUI(){ const D = $('#sdDays'); D.innerHTML = ''; for (const d of [1, 2, 3, 4, 5, 6, 0]){ const b = el('button', '', SD_DAYS[d]); b.type = 'button'; b.setAttribute('aria-pressed', String(SIDE.work.days.includes(d)));
+  b.onclick = () => { const W = SIDE.work; W.days = W.days.includes(d) ? W.days.filter(q => q !== d) : [...W.days, d].sort(); saveLS('pp_work', W); sdDaysUI(); sideTick(); }; D.appendChild(b); } }
+function sideOpen(v){ SIDE.open = v; $('#side').classList.toggle('open', v); $('#sdPill').setAttribute('aria-expanded', String(v));
+  if (v){ const c = $('#sdBoss'), dpr = Math.min(3, window.devicePixelRatio || 1); SIDE.dpr = dpr; c.width = 260 * dpr; c.height = 270 * dpr; if (!SIDE.hairs.length) sideHairs();
+    $('#sdIn').value = SIDE.work.in; $('#sdOut').value = SIDE.work.out; $('#sdOffT').value = SIDE.work.off; $('#sdBossT').textContent = `${SIDE.look.title} 괴롭히기`; sdDaysUI(); sideTick(); SIDE.last = 0; if (!SIDE.raf) sideLoop(); track('side'); } }
 function sideInit(){ const s = $('#side'); if (!s) return; $('#sdPill').onclick = () => sideOpen(!SIDE.open); $('#sdX').onclick = () => sideOpen(false);
-  for (const id of ['#sdIn', '#sdOut']) $(id).addEventListener('change', () => { SIDE.work = { in: $('#sdIn').value || '09:00', out: $('#sdOut').value || '18:00' }; saveLS('pp_work', SIDE.work); sideRefresh(); });
-  $('#sdBoss').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); sidePluck(e); });
+  $('#sdSet').onclick = () => { const h = $('#sdCfg').classList.toggle('hidden'); $('#sdSet').setAttribute('aria-expanded', String(!h)); };
+  $('#sdLook').onclick = () => { const h = $('#sdLookP').classList.toggle('hidden'); $('#sdLook').setAttribute('aria-expanded', String(!h)); if (!h) sdLookUI(); };
+  for (const id of ['#sdIn', '#sdOut']) $(id).addEventListener('change', () => { Object.assign(SIDE.work, { in: $('#sdIn').value || '09:00', out: $('#sdOut').value || '18:00' }); saveLS('pp_work', SIDE.work); sideTick(); });
+  $('#sdOffT').addEventListener('input', () => { SIDE.work.off = $('#sdOffT').value.trim().slice(0, 8) || '쉬는 날'; saveLS('pp_work', SIDE.work); sideTick(); });
+  $('#sdToday').onclick = () => { const k = sdYmd(new Date()); SIDE.work.extra = SIDE.work.extra === k ? '' : k; saveLS('pp_work', SIDE.work); sideTick(); };
+  const c = $('#sdBoss'); c.addEventListener('pointerdown', sdDown); c.addEventListener('pointermove', sdMove); c.addEventListener('pointerup', sdUp); c.addEventListener('pointercancel', () => { SIDE.grab = null; if (SIDE.food?.drag) SIDE.food = null; });
   for (const ev of ['pointerdown', 'touchstart', 'wheel']) s.addEventListener(ev, e => e.stopPropagation(), { passive: true });
-  sideRefresh(); setInterval(sideRefresh, 15000); }
+  if (!SIDE.work.in || !SIDE.work.out) $('#sdCfg').classList.remove('hidden');
+  sideTick(); setInterval(sideTick, 1000); }
 /* 수첩 · 사진 카드 · 사이드 버튼 연결(위의 값들이 만들어진 뒤에) */
 $('#bNote').onclick = () => openNote(!noteOpen); $('#ntClose').onclick = () => openNote(false);
 for (const b of document.querySelectorAll('#ntTabs button')) b.onclick = () => { noteTab = b.dataset.t; renderNote(); };
@@ -7670,7 +7823,7 @@ function seaFun(dt){
   { const tb = $('#tourBtn'), on = !!SEA.boat?.on && SEA.whales.length > 0 && !seaPanel(); tb.classList.toggle('hidden', !on); if (on){ const t = SEA.tour ? '투어 멈추기' : '고래 보러 가기'; if (tb.textContent !== t) tb.textContent = t; } }
   if (SEA.menu && (seaPanel() || !onSand() || P.sit || P.moving)) openSandMenu(false);
 }
-const SEATEST = { SEA, BIGW, SMASH, LG, FW, SKYST, MARKS, STAMPS, PHOTO, SIDE, TRACK, get JN(){ jnEnsure(); return JN; }, jnDo, markHit, markCheck, photoSnap, sideOpen, sidePluck, sideTime, openNote, renderNote, fwSim, fwPresence, setPeerFw(pid, fw){ const Rm = NET.peers.get(pid); if (Rm){ Rm.sea = Rm.sea || {}; Rm.sea.fw = fw; } }, fwUpdate, fwJoin, fwLeaveQueue, fwPrompt, fwPivot, fwT, get fw(){ return { on: FW.on, me: FW.me && { ...FW.me }, q: FW.q.map(e => e.kind === 'me' ? 'ME' : e.kind === 'peer' ? 'P:' + e.pid : e.names.join('+')), cab: FW.cab.map(c => c ? (c.npc ? c.npc.join('+') : c.real.join('+')) : null), staff: FW.staff.map(s => ({ name: s.rq.tag.n.textContent, vis: s.rq.rig.root.visible, x: s.x, z: s.z, bub: s.rq.tag.b.classList.contains('hidden') ? '' : s.rq.tag.b.textContent })), leave: FW.leave.length, th: FW.w?.rotation.z }; }, smashTarget, smashPrompt, doSmash, get lg(){ return LG.list.map(q => ({ x: q.rig.root.position.x, y: q.rig.root.position.y, z: q.rig.root.position.z, yaw: q.rig.root.rotation.y, name: q.tag.n.textContent, vis: q.rig.root.visible, bub: q.tag.b.classList.contains('hidden') ? '' : q.tag.b.textContent })); }, get cliffs(){ return SEA.cliffs.map(c => ({ x: c.sx, z: c.sz, h: c.top, a: c.a })); }, get sharks(){ return SEA.sharks.map(s => ({ x: s.x, z: s.z, y: s.y, st: s.st, c: s.c })); },
+const SEATEST = { SEA, BIGW, SMASH, LG, FW, SKYST, MARKS, STAMPS, PHOTO, SIDE, TRACK, get JN(){ jnEnsure(); return JN; }, jnDo, markHit, markCheck, photoSnap, sideOpen, sdPluck, sdHit, sdEffect, sdGeo, sideHairs, sideTick, sideTime, sdDown, sdMove, sdUp, openNote, renderNote, fwSim, fwPresence, setPeerFw(pid, fw){ const Rm = NET.peers.get(pid); if (Rm){ Rm.sea = Rm.sea || {}; Rm.sea.fw = fw; } }, fwUpdate, fwJoin, fwLeaveQueue, fwPrompt, fwPivot, fwT, get fw(){ return { on: FW.on, me: FW.me && { ...FW.me }, q: FW.q.map(e => e.kind === 'me' ? 'ME' : e.kind === 'peer' ? 'P:' + e.pid : e.names.join('+')), cab: FW.cab.map(c => c ? (c.npc ? c.npc.join('+') : c.real.join('+')) : null), staff: FW.staff.map(s => ({ name: s.rq.tag.n.textContent, vis: s.rq.rig.root.visible, x: s.x, z: s.z, bub: s.rq.tag.b.classList.contains('hidden') ? '' : s.rq.tag.b.textContent })), leave: FW.leave.length, th: FW.w?.rotation.z }; }, smashTarget, smashPrompt, doSmash, get lg(){ return LG.list.map(q => ({ x: q.rig.root.position.x, y: q.rig.root.position.y, z: q.rig.root.position.z, yaw: q.rig.root.rotation.y, name: q.tag.n.textContent, vis: q.rig.root.visible, bub: q.tag.b.classList.contains('hidden') ? '' : q.tag.b.textContent })); }, get cliffs(){ return SEA.cliffs.map(c => ({ x: c.sx, z: c.sz, h: c.top, a: c.a })); }, get sharks(){ return SEA.sharks.map(s => ({ x: s.x, z: s.z, y: s.y, st: s.st, c: s.c })); },
   get whales(){ return SEA.whales.map(a => ({ kind: a.kind, x: a.x, z: a.z, y: a.y, st: a.st })); }, boardRide, leaveRide, startTour, stopTour, startSlide, slideGo, slideCancel, structDist, get guard(){ const G0 = SLIDE.guard; return G0 && { on: G0.on, name: G0.tag.n.textContent, bub: G0.tag.b.classList.contains('hidden') ? '' : G0.tag.b.textContent, x: G0.rig.root.position.x, y: G0.rig.root.position.y, z: G0.rig.root.position.z, vis: G0.rig.root.visible }; }, get slide(){ const S0 = SEA.slide; return S0 && { x: S0.x, z: S0.z, lx: S0.lx, lz: S0.lz, len: S0.len, top: S0.top, lv: S0.lv, Lr: S0.Lr, float: S0.float, a: Math.atan2(S0.fx, S0.fz), sd: structDist(S0.x, S0.z) }; }, get slideDiag(){ return SLIDE.diag; }, timeFind(){ const t = performance.now(); findSlideSpot(); return performance.now() - t; }, get sl(){ return SEA.sl && { stage: SEA.sl.stage, d: SEA.sl.d, v: SEA.sl.v, lat: SEA.sl.lat, climb: SEA.sl.climb }; }, get yb(){ return { stage: YB.stage, idx: YB.idx, gs: YB.gs, ptT: YB.ptT, photos: YB.photos.length, warn: YB.warn, booth: YB.booth, used: ybUsed(), ready: ybReady(), card: YB.card, origin: YB.origin, guide: YB.guide && { on: YB.guide.on, x: YB.guide.x, z: YB.guide.z, name: YB.guide.tag.n.textContent, bub: YB.guide.tag.b.classList.contains('hidden') ? '' : YB.guide.tag.b.textContent }, boat: YB.boat && { x: YB.boat.x, z: YB.boat.z } }; }, ybReset(){ localStorage.removeItem('pp_yabiji_day'); YB.resv = ''; }, ybClock(ms){ YB.clockOff = ms; }, get ybSlot(){ return Object.assign(ybSlot(), { resv: YB.resv }); }, ybDiag(){ const s = SPOT.start, c = { n: 0, h: 0, ring: 0, struct: 0, poi: 0, slide: 0, ok: 0 }; for (let r = 4; r <= 18; r += 1.5) for (let a = 0; a < 28; a++){ const ang = a / 28 * Math.PI * 2, x = s.x + Math.sin(ang) * r, z = s.z + Math.cos(ang) * r, gh = groundH(x, z); c.n++; if (gh < 0.35 || gh > 4 || gh - terrainH(x, z) > 0.05 || rockAt(x, z) > 0.25){ c.h++; continue; } let bad = false; for (let k = 0; k < 8 && !bad; k++){ const qa = k * Math.PI / 4, q = groundH(x + Math.sin(qa) * 2.4, z + Math.cos(qa) * 2.4); if (Math.abs(q - gh) > 0.5 || q < 0.25 || rockAt(x + Math.sin(qa) * 2.4, z + Math.cos(qa) * 2.4) > 0.3) bad = true; } if (bad){ c.ring++; continue; } if (structDist(x, z) < 3.2){ c.struct++; continue; } if (POIS.some(p => Math.hypot(p.x - x, p.z - z) < 5) || SEATS.some(p => Math.hypot(p.x - x, p.z - z) < 3.2)){ c.poi++; continue; } if (SEA.slide && Math.hypot(SEA.slide.x - x, SEA.slide.z - z) < 8){ c.slide++; continue; } c.ok++; } return c; }, ybFree(v){ YB.free = !!v; }, ybDepart, ybSkip, ybOpenCard, ybWarp(){ const G0 = YB.guide; if (!G0) return; if (YB.stage === 'home'){ const q = ybLocal(0.7, -6.6); G0.x = q.x; G0.z = q.z; return; } const p = YB_POINTS[YB.idx]; if (p){ G0.x = p.x + 0.5; G0.z = p.z + 0.5; } if (YB.gs === 'at') YB.ptT = Math.min(YB.ptT, YB.snapDone ? 0.2 : 13.2); }, ybPoints: YB_POINTS, ybOnBoat, ybGoHome, get trk(){ const T = SEA.trk; return T && { cur: T.cur, p: T.p, list: T.list.slice(), score: T.score }; }, trickPress(k){ const T = SEA.trk; if (!T) return false; if (!T.cur){ T.cur = k; T.p = 0; trickSend(k); } else if (!T.q) T.q = k; return true; }, get slEnd(){ return SEA.slEnd; }, get ride(){ const r = SEA.ride; return r && { kind: r.a.kind, x: r.a.x, z: r.a.z, v: r.a.v, y: r.a.y }; }, get tour(){ return SEA.tour && { arrived: SEA.tour.arrived }; }, get far(){ return FARN.body ? FARN.body.count : -1; },
   get walls(){ return SEA.walls.map(w => ({ id: w.id, n: w.pts.length, segs: w.segs.length, towers: w.towers.length, len: wallLen(w), broken: [...w.broken] })); }, get castles(){ return SEA.castles.map(c => ({ x: c.x, z: c.z, gh: c.gh, stage: c.stage, style: c.seed % 3, r: c.r, e: c.erode || 0, wet: c.wet || 0 })); }, SWASH, swashAt, swashUpdate, seaErode, seaCastles, get sw(){ return { on: SWASH.on, ok: SWASH.cols.filter(c => c.ok).length, n: SWASH.cols.length, cols: SWASH.cols.filter(c => c.ok).map(c => [c.x, Math.round(c.zw * 100) / 100]) }; }, SRV, startWall, stopWall, startCastle, seaSolidAt, seaWalls, seaSolid, slideDrive, seaSlide, slideAt,
   get boat(){ const b = SEA.boat; return b && { x: b.x, z: b.z, yaw: b.yaw, on: b.on, v: b.v }; }, tap: seaTap, startGoto, boardBoat, leaveBoat, sandChoose, openSandMenu, cliffJump: i => cliffJump(SEA.cliffs[i]), onSand, bigWaveH, shoreAt, seaScreen, seatTaken,
