@@ -7411,6 +7411,8 @@ function track(ev, v){ if (TRACK.off || TRACK.n >= 300 || !/^https?:$/.test(loca
 async function trackFlush(){ if (TRACK.off || !TRACK.buf.length) return; const sb = await sbClient(); if (!sb){ TRACK.buf.length = 0; return; } const rows = TRACK.buf.splice(0, 60);
   try { const { error } = await sb.from('snorkel_events').insert(rows); if (error) TRACK.off = true; } catch (e){ TRACK.off = true; } }
 setInterval(trackFlush, 25000); addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') trackFlush(); });
+/* 놀이 시간: 화면을 보고 있는 동안 1분마다 한 번(몇 분째인지) */
+setInterval(() => { if (started && document.visibilityState === 'visible'){ TRACK.alive = (TRACK.alive || 0) + 1; track('alive', TRACK.alive); } }, 60000);
 
 /* ---------- 사이드: 일하다 잠깐(퇴근 카운트다운 + 직장상사 괴롭히기) ----------
    화면 왼쪽 아래 작은 시계를 누르면 펼쳐진다. 출근 · 퇴근 시간, 근무 요일, 쉬는 날 문구는 이 기기에만 저장(기기 시간 기준).
