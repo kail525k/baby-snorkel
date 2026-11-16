@@ -622,8 +622,9 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
       <label class="sdOff">쉬는 날 표시 <input type="text" id="sdOffT" maxlength="8" placeholder="쉬는 날"></label></div>
     <div class="sdBossW"><div class="sdBossH"><b id="sdBossT">부장님 괴롭히기</b><button type="button" id="sdLook" aria-expanded="false">얼굴 꾸미기</button></div>
       <div id="sdLookP" class="hidden"></div>
-      <canvas id="sdBoss" width="260" height="270" aria-label="직장상사 괴롭히기: 털을 잡아당겨 뽑고, 쟁반의 와사비·겨자·고추를 입에 넣어요"></canvas>
-      <small id="sdCnt"></small><span class="sdTip">털: 잡아당기거나 톡 · 이마: 꾹 누를수록 센 딱밤 · 볼: 잡고 늘리거나 꾹 쥐기 · 음식: 입으로 끌거나 톡</span></div></div></div>
+      <div class="sdTools" id="sdTools" role="group" aria-label="괴롭히는 방법"><button type="button" data-t="hand" aria-pressed="true">손가락</button><button type="button" data-t="fist" aria-pressed="false">주먹</button><button type="button" data-t="kick" aria-pressed="false">발차기</button></div>
+      <canvas id="sdBoss" width="260" height="270" aria-label="직장상사 괴롭히기: 털을 잡아당겨 뽑고, 딱밤 · 꼬집기 · 주먹 · 발차기, 쟁반의 와사비·겨자·고추를 입에 넣어요"></canvas>
+      <small id="sdCnt"></small><span class="sdTip" id="sdTip">털: 잡아당기거나 톡 · 이마: 꾹 누를수록 센 딱밤 · 볼: 잡고 늘리거나 꾹 쥐기 · 음식: 입으로 끌거나 톡</span></div></div></div>
 
 <section id="rank" class="sheet hidden" aria-label="잠수 순위">
   <header><h2><span id="rkT">잠수 순위</span><small id="rkSub"></small></h2><span class="pearl" title="내 진주"><i></i><b class="pearlN">0</b></span><button class="x" id="rkClose">닫기</button></header>
@@ -6793,6 +6794,7 @@ body.touch #sandMenu{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 236px)}
 .sdOff{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#6b6152}.sdOff input{flex:1;min-width:0;border:0;border-radius:8px;padding:4px 6px;background:#f6f1e7;font-size:13px}
 .sdBossW{margin-top:8px;background:#fff;border-radius:12px;padding:6px 6px 8px;text-align:center}.sdBossH{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 4px}.sdBossH b{font-family:var(--display);font-weight:400;font-size:15px}
 #sdBoss{display:block;width:100%;height:auto;aspect-ratio:260/270;touch-action:none;cursor:grab}
+.sdTools{display:flex;gap:4px;justify-content:center;margin:0 0 4px}.sdTools button{border:0;border-radius:999px;padding:4px 12px;background:#f1ece2;font-size:12.5px;color:#6b6152;cursor:pointer}.sdTools button[aria-pressed="true"]{background:#2b2a30;color:#fff}
 #sdLookP{text-align:left;padding:2px 4px 6px;font-size:12px}#sdLookP.hidden{display:none}.sdRow{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:3px 0}.sdRow>span{width:44px;color:#8a7f6a}.sdRow button{border:0;border-radius:999px;padding:3px 8px;background:#f1ece2;font-size:12px;color:#4a4238}.sdRow button[aria-pressed="true"]{background:#2b2a30;color:#fff}.sdRow button.sw{width:22px;height:22px;padding:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08)}.sdRow button.sw[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 4px #2b2a30}
 .sdBossW small{display:block;font-family:var(--display);font-size:13.5px;margin-top:2px}.sdTip{display:block;color:#8a7f6a;font-size:11px;line-height:1.35}
 body.touch #side{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 236px);left:10px}
@@ -7369,7 +7371,8 @@ const SIDE = (() => { const w = Object.assign({ in: '09:00', out: '18:00', days:
   lk.skin = clamp(lk.skin | 0, 0, 3); lk.grey = clamp(lk.grey | 0, 0, 2); lk.tie = clamp(lk.tie | 0, 0, 3); if (!SD_TITLES.includes(lk.title)) lk.title = '부장님'; lk.must = !!lk.must; lk.mole = !!lk.mole;
   return { open: false, work: w, look: lk, pl: Object.assign({ day: '', n: 0, f: 0, d: 0, p: 0 }, loadLS('pp_pluck', {})), hairs: [], fly: [], dots: [], drops: [], puffs: [], grab: null, yank: null, food: null, eat: null, drink: null,
     say: '', sayT: 0, raf: 0, ouch: 0, sneeze: 0, heat: 0, nose: 0, tear: 0, blinkT: 2, blink: 0, eye: [130, 100], last: 0, dpr: 1, burnSaid: 0,
-    flick: null, pinch: null, bumps: [], marks: [], wob: [], pops: [], stars: 0, tilt: 0, tiltV: 0 }; })();
+    flick: null, pinch: null, bumps: [], marks: [], wob: [], pops: [], stars: 0, tilt: 0, tiltV: 0,
+    tool: 'hand', charge: null, hits: [], dizzy: 0, kx: 0, kxV: 0, ky: 0, kyV: 0, jy: 0, jyV: 0 }; })();
 const toMin = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(s || ''); return m ? +m[1] * 60 + +m[2] : null; };
 const sdYmd = d => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 const sdIsWork = d => SIDE.work.extra === sdYmd(d) || SIDE.work.days.includes(d.getDay());
@@ -7388,7 +7391,7 @@ function sideTime(){ const now = new Date(), a = toMin(SIDE.work.in), b = toMin(
 function sideTick(){ const s = sideTime(), pill = $('#sdPillT'); if (pill && pill.textContent !== s.pill) pill.textContent = s.pill; if (!SIDE.open) return;
   $('#sdLbl').textContent = s.lbl; $('#sdBig').textContent = s.big; $('#sdSub').textContent = s.sub; $('#sdBar').style.width = Math.round(clamp(s.p, 0, 1) * 100) + '%';
   const tb = $('#sdToday'), today = SIDE.work.extra === sdYmd(new Date()); tb.classList.toggle('hidden', !s.offDay && !today); tb.textContent = today ? '오늘 출근 취소' : '오늘 출근했어요';
-  const day = kstDate().day; if (SIDE.pl.day !== day) SIDE.pl = { day, n: 0, f: 0, d: 0, p: 0 }; $('#sdCnt').textContent = `오늘 털 ${SIDE.pl.n || 0} · 딱밤 ${SIDE.pl.d || 0} · 꼬집기 ${SIDE.pl.p || 0} · 매운 음식 ${SIDE.pl.f || 0}`; }
+  const day = kstDate().day; if (SIDE.pl.day !== day) SIDE.pl = { day, n: 0, f: 0, d: 0, p: 0 }; $('#sdCnt').textContent = `오늘 털 ${SIDE.pl.n || 0} · 딱밤 ${SIDE.pl.d || 0} · 꼬집기 ${SIDE.pl.p || 0} · 주먹 ${SIDE.pl.k || 0} · 발차기 ${SIDE.pl.kk || 0} · 매운 음식 ${SIDE.pl.f || 0}`; }
 const sideRefresh = sideTick;
 
 /* --- 상사 얼굴: 얼굴형 · 눈 · 코 · 입 위치(논리 크기 260×270, 아래 40px는 음식 쟁반) --- */
@@ -7452,6 +7455,33 @@ function sdFlickHit(px, py, c, now){ const s = Math.max(0.12, c), b = SIDE.bumps
   SIDE.pops.push({ x: px, y: py - 12, t: now, s, txt: s > 0.92 ? '쾅!!' : s > 0.6 ? '딱!!' : '딱!' });
   const many = SIDE.bumps.length >= 3; sdSay(many && Math.random() < 0.5 ? '내 이마가 울퉁불퉁해…' : pickOne(s < 0.35 ? ['뭐야? 간지럽네', '살살 해~'] : s < 0.7 ? ['아야!', '이마에 혹 나겠어!'] : s < 0.95 ? ['으악! 별이 보여…', '딱밤 진짜 세네!'] : ['딱밤이 아니라 대포잖아!!', '이마에 혹이 두 개야…']), now);
   AudioSys.blip(300 + s * 500, 120, 0.05 + s * 0.06, 'square', 0.03 + s * 0.05); sdCnt('d'); if ((SIDE.pl.d || 0) === 1) track('flick'); }
+/* 주먹 · 발차기: 꾹 누른 시간만큼 세진다(딱밤과 같은 1.2초). 만화처럼 퍽! 하고 밀렸다 돌아올 뿐, 다치는 표현은 없다 */
+function sdStrike(kind, px, py, c, now){ const s = Math.max(0.15, c), G = sdGeo(), face = Math.hypot((px - G.cx) / (G.rx + 8), (py - G.cy) / (G.ry + 8)) < 1, side = px < G.cx ? -1 : 1;
+  SIDE.hits.push({ kind, x: px, y: py, s, t0: now, side });
+  if (kind === 'fist'){
+    if (face){ SIDE.kxV += -side * (60 + s * 170); SIDE.tiltV += side * (2 + s * 5); SIDE.wob.push({ side: side, s, t: now }); const b = SIDE.bumps.find(q => Math.hypot(q.x - px, q.y - py) < 12); if (b){ b.s = Math.min(1.6, b.s + s * 0.5); b.t = now; } else SIDE.bumps.push({ x: px, y: py, s: s * 0.8, t: now }); }
+    else { SIDE.jyV -= 40 + s * 90; SIDE.kyV += 30 + s * 60; }
+    SIDE.ouch = now + 0.3 + s * 0.7; if (s > 0.6) SIDE.stars = now + 1.2 + s * 1.4; if (s > 0.9) SIDE.dizzy = now + 2.2; if (s > 0.7) SIDE.tear = Math.max(SIDE.tear, 0.6);
+    SIDE.pops.push({ x: px, y: py - 14, t: now, s, txt: s > 0.92 ? '빠악!!!' : s > 0.6 ? '퍼억!!' : '퍽!' });
+    sdSay(pickOne(face ? (s < 0.35 ? ['어? 쓰다듬는 거야?', '살살 좀~'] : s < 0.7 ? ['아이고 내 얼굴!', '퍽은 좀 심했다!'] : s < 0.95 ? ['으악! 세상이 빙글빙글…', '연봉 협상 때 두고 봐!'] : ['KO 직전이야!!', '별이 몇 개야 이게…']) : ['배는 왜!', '어이쿠 점심 먹은 거 나올라!']), now);
+    AudioSys.blip(160 + s * 120, 60, 0.08 + s * 0.06, 'square', 0.05 + s * 0.06); sdCnt('k'); if ((SIDE.pl.k || 0) === 1) track('punch'); }
+  else {
+    SIDE.jyV -= 120 + s * 260; if (face){ SIDE.kyV -= 80 + s * 160; SIDE.tiltV += side * (1.5 + s * 3); } else SIDE.kxV += -side * (30 + s * 70);
+    SIDE.ouch = now + 0.35 + s * 0.7; if (s > 0.6) SIDE.stars = now + 1.2 + s * 1.4; if (s > 0.9) SIDE.dizzy = now + 2.4;
+    SIDE.pops.push({ x: px, y: py - 14, t: now, s, txt: s > 0.92 ? '뻐어엉!!!' : s > 0.6 ? '뻐엉!!' : '뻥!' });
+    sdSay(pickOne(s < 0.35 ? ['간지럽다니까~', '발 냄새 나!'] : s < 0.7 ? ['아이고 허리야!', '발은 반칙이지!'] : s < 0.95 ? ['날아갈 뻔했네!!', '내 허리… 내일 출근 못 해!'] : ['하늘을 날았어!!', '로켓 발차기냐!!']), now);
+    AudioSys.blip(120 + s * 90, 50, 0.1 + s * 0.08, 'triangle', 0.06 + s * 0.06); sdCnt('kk'); if ((SIDE.pl.kk || 0) === 1) track('kick'); } }
+/* 만화 권투 장갑(빨강) · 운동화: 날아오는 동안 · 모으는 동안 그린다 */
+function sdGlove(x, gx, gy, rot, sc, flip = 1){ x.save(); x.translate(gx, gy); x.rotate(rot * flip); x.scale(sc * flip, sc);
+  x.fillStyle = '#f2f2ee'; x.strokeStyle = '#8a8a86'; x.lineWidth = 1.2; x.beginPath(); if (x.roundRect) x.roundRect(10, -9, 14, 18, 4); else x.rect(10, -9, 14, 18); x.fill(); x.stroke();
+  const g = x.createRadialGradient(-6, -6, 2, 0, 0, 18); g.addColorStop(0, '#ff6b5e'); g.addColorStop(1, '#c82a22'); x.fillStyle = g; x.strokeStyle = '#7a1612'; x.lineWidth = 1.6;
+  x.beginPath(); x.ellipse(0, 0, 15, 13, 0, 0, 7); x.fill(); x.stroke(); x.beginPath(); x.ellipse(3, 9, 8, 5, 0.3, 0, 7); x.fill(); x.stroke();
+  x.fillStyle = 'rgba(255,255,255,.55)'; x.beginPath(); x.ellipse(-6, -6, 5, 3, -0.5, 0, 7); x.fill(); x.restore(); }
+function sdShoe(x, gx, gy, rot, sc){ x.save(); x.translate(gx, gy); x.rotate(rot); x.scale(sc, sc);
+  x.fillStyle = '#3d4654'; x.fillRect(4, -7, 40, 14);   /* 바짓단 */
+  x.fillStyle = '#2f6fd0'; x.strokeStyle = '#1b3f7a'; x.lineWidth = 1.4; x.beginPath(); x.moveTo(6, -9); x.lineTo(-14, -9); x.quadraticCurveTo(-26, -8, -27, 2); x.lineTo(-27, 7); x.lineTo(8, 7); x.closePath(); x.fill(); x.stroke();
+  x.fillStyle = '#ffffff'; x.strokeStyle = '#9a9a96'; x.beginPath(); x.moveTo(-28, 6); x.lineTo(9, 6); x.lineTo(9, 11); x.quadraticCurveTo(-12, 13, -28, 10); x.closePath(); x.fill(); x.stroke();
+  x.strokeStyle = '#ffffff'; x.lineWidth = 1.4; for (let i = 0; i < 3; i++){ x.beginPath(); x.moveTo(-10 + i * 5, -8); x.lineTo(-7 + i * 5, -2); x.stroke(); } x.restore(); }
 function sdPinchEnd(q, now){ const s = sdPinchS(q, now); SIDE.pinch = null; SIDE.marks.push({ side: q.s, s, t: now }); SIDE.wob.push({ side: q.s, s, t: now }); if (s > 0.7) SIDE.tear = Math.max(SIDE.tear, 0.6); SIDE.ouch = now + 0.2 + s * 0.4;
   SIDE.pops.push({ x: q.ax, y: q.ay - 14, t: now, s, txt: s > 0.7 ? '띠요옹!' : '띠용!' });
   sdSay(pickOne(s < 0.35 ? ['간지러워~', '볼이 말랑하지?'] : s < 0.7 ? ['아야야야!', '볼 늘어나!'] : s < 0.95 ? ['볼 떨어지겠어!!', '찹쌀떡 아니라고!'] : ['으아아 놔줘!!', '볼이 귀까지 늘어났어!']), now);
@@ -7484,6 +7514,9 @@ function sdUpdate(dt, now){ SIDE.heat = Math.max(0, SIDE.heat - dt * 0.03); SIDE
   SIDE.puffs = SIDE.puffs.filter(p => now - p.t < 1.1).slice(-30); SIDE.fly = SIDE.fly.filter(q => now - q.t < 1.1); SIDE.dots = SIDE.dots.filter(q => now - q.t < 2.5);
   for (const h of SIDE.hairs) if (h.back && now >= h.back && h.grow === h.back) h.grow = now;
   SIDE.tiltV += (-140 * SIDE.tilt - 9 * SIDE.tiltV) * dt; SIDE.tilt += SIDE.tiltV * dt;
+  /* 주먹 · 발차기 반동: 머리(kx · ky)와 몸 전체(jy)가 스프링처럼 밀렸다가 돌아온다 */
+  SIDE.kxV += (-120 * SIDE.kx - 8 * SIDE.kxV) * dt; SIDE.kx += SIDE.kxV * dt; SIDE.kyV += (-120 * SIDE.ky - 8 * SIDE.kyV) * dt; SIDE.ky += SIDE.kyV * dt; SIDE.jyV += (-90 * SIDE.jy - 7 * SIDE.jyV) * dt; SIDE.jy += SIDE.jyV * dt;
+  SIDE.hits = SIDE.hits.filter(h => now - h.t0 < 0.45); { const ch = SIDE.charge; if (ch && sdFlickC(ch, now) > 0.55 && !ch.said){ ch.said = true; sdSay(ch.kind === 'kick' ? '발은 왜 들어?!' : '주먹은 왜 쥐어?!', now); } }
   SIDE.bumps = SIDE.bumps.filter(b => now - b.t < 6 + b.s * 10); SIDE.marks = SIDE.marks.filter(m => now - m.t < 4 + m.s * 6); SIDE.wob = SIDE.wob.filter(w => now - w.t < 1.4); SIDE.pops = SIDE.pops.filter(q => now - q.t < 0.9);
   const fl = SIDE.flick; if (fl && sdFlickC(fl, now) > 0.55 && !fl.said){ fl.said = true; sdSay('잠깐, 뭐 하려고?!', now); }
   const pq = SIDE.pinch; if (pq){ if (Math.hypot(pq.px - pq.ax, pq.py - pq.ay) > 78) sdPinchEnd(pq, now); else if (sdPinchS(pq, now) > 0.5) SIDE.ouch = Math.max(SIDE.ouch, now + 0.05); } }
@@ -7497,6 +7530,7 @@ function sdDrawFood(x, id, cx, cy, s = 1){ x.save(); x.translate(cx, cy); x.scal
 function sideDraw(){ const c = $('#sdBoss'); if (!c) return; const x = c.getContext('2d'), now = performance.now() / 1000, dt = Math.min(0.05, now - (SIDE.last || now)); SIDE.last = now; sdUpdate(dt, now);
   const L = SIDE.look, G = sdGeo(), fd = getComputedStyle(document.documentElement).getPropertyValue('--display').trim() || 'sans-serif';
   x.setTransform(SIDE.dpr, 0, 0, SIDE.dpr, 0, 0); x.clearRect(0, 0, 260, 270);
+  x.save(); x.translate(0, Math.max(-16, Math.min(8, SIDE.jy)));   /* 발차기에 몸 전체가 붕 뜬다 */
   const ouch = now < SIDE.ouch || SIDE.nose > 0.55, sneeze = now < SIDE.sneeze, shake = (ouch || sneeze || SIDE.heat > 0.9) ? Math.sin(now * 70) * (sneeze ? 3 : 1.6) : 0;
   /* --- 몸: 양복(그라데이션) · 접힌 깃 · 셔츠 깃 · 넥타이(매듭 · 사선 무늬) · 사원증 --- */
   const sh = (c, k) => new THREE.Color(c).multiplyScalar(k).getStyle(), hairC = SD_HAIRC[L.grey || 0][0];
@@ -7529,7 +7563,7 @@ function sideDraw(){ const c = $('#sdBoss'); if (!c) return; const x = c.getCont
   x.strokeStyle = 'rgba(30,60,120,.6)'; x.lineWidth = 1.2; x.beginPath(); x.moveTo(146, 182); x.lineTo(160, 206); x.moveTo(152, 181); x.lineTo(164, 206); x.stroke();     /* 사원증 줄 */
   x.fillStyle = '#ffffff'; x.strokeStyle = 'rgba(0,0,0,.2)'; x.beginPath(); if (x.roundRect) x.roundRect(152, 205, 22, 15, 2); else x.rect(152, 205, 22, 15); x.fill(); x.stroke();
   x.fillStyle = '#1d6f9a'; x.fillRect(152, 205, 22, 4); x.fillStyle = '#c9d2da'; x.fillRect(155, 211, 6, 6); x.fillStyle = '#2b2a30'; x.font = `5px ${fd}`; x.fillText(L.title.replace('님', ''), 162, 216);
-  x.save(); x.translate(shake, sneeze ? Math.sin((SIDE.sneeze - now) * 10) * 4 : 0); x.translate(G.cx, G.cy + G.ry); x.rotate(-SIDE.tilt); x.translate(-G.cx, -(G.cy + G.ry));
+  x.save(); x.translate(shake + Math.max(-30, Math.min(30, SIDE.kx)), (sneeze ? Math.sin((SIDE.sneeze - now) * 10) * 4 : 0) + Math.max(-26, Math.min(12, SIDE.ky))); x.translate(G.cx, G.cy + G.ry); x.rotate(-SIDE.tilt); x.translate(-G.cx, -(G.cy + G.ry));
   /* --- 목: 턱 밑 그림자 --- */
   const sk = new THREE.Color(SD_SKINS[L.skin]).lerp(new THREE.Color('#ff5a4a'), Math.min(1, SIDE.heat) * 0.7).getStyle();
   g = x.createLinearGradient(0, G.cy + G.ry - 16, 0, 188); g.addColorStop(0, sh(sk, 0.72)); g.addColorStop(0.5, sh(sk, 0.88)); g.addColorStop(1, sh(sk, 0.94)); x.fillStyle = g;
@@ -7599,6 +7633,7 @@ function sideDraw(){ const c = $('#sdBoss'); if (!c) return; const x = c.getCont
   const closed = ouch || sneeze || now < SIDE.blink;
   for (const s of [-1, 1]){ const ex = G.cx + s * G.eyeDX, ey = G.eyeY;
     x.fillStyle = 'rgba(80,40,20,.12)'; x.beginPath(); x.ellipse(ex, ey - 2, 11, 7, 0, Math.PI, 0); x.fill();
+    if (now < SIDE.dizzy){ x.strokeStyle = '#2b2220'; x.lineWidth = 1.6; x.beginPath(); for (let k = 0; k <= 40; k++){ const a = k / 40 * Math.PI * 5 + now * 6 * s, r = k / 40 * 8; k ? x.lineTo(ex + Math.cos(a) * r, ey + Math.sin(a) * r * 0.8) : x.moveTo(ex, ey); } x.stroke(); continue; }   /* 세게 맞으면 눈이 빙글빙글 */
     if (closed){ x.strokeStyle = '#2b2220'; x.lineWidth = 2.4; x.beginPath(); if (ouch || sneeze){ const o = s * 1; x.moveTo(ex - 8 * o, ey - 4); x.lineTo(ex + 2 * o, ey); x.lineTo(ex - 8 * o, ey + 4); } else { x.moveTo(ex - 9, ey); x.quadraticCurveTo(ex, ey + 4, ex + 9, ey); } x.stroke(); continue; }
     const sq = L.mood === 'smile' ? 1 : 0, eye = () => { x.beginPath(); x.moveTo(ex - 9, ey + 0.5); x.quadraticCurveTo(ex - 1, ey - 8 + sq * 0.8, ex + 9, ey - 0.5); x.quadraticCurveTo(ex + 1, ey + 6.5 - sq * 3, ex - 9, ey + 0.5); x.closePath(); };
     eye(); g = x.createLinearGradient(0, ey - 7, 0, ey + 6); g.addColorStop(0, '#e9e4dc'); g.addColorStop(0.4, '#fbfaf6'); g.addColorStop(1, '#f1ece4'); x.fillStyle = g; x.fill();
@@ -7657,7 +7692,7 @@ function sideDraw(){ const c = $('#sdBoss'); if (!c) return; const x = c.getCont
     x.fillStyle = sk; x.beginPath(); x.ellipse(pq.ax, pq.ay, w0, w0 * 0.85, 0, 0, 7); x.fill(); shape(); x.fill(); x.fillStyle = `rgba(255,70,85,${0.12 + ps * 0.45})`; shape(); x.fill();
     x.fillStyle = '#f3c9a8'; x.strokeStyle = '#c99a7a'; x.lineWidth = 1.2; for (const sg of [-1, 1]){ x.beginPath(); x.ellipse(pq.px + nx * (w1 + 3) * sg, pq.py + ny * (w1 + 3) * sg, 6, 4, Math.atan2(ny, nx), 0, 7); x.fill(); x.stroke(); }
     x.fillStyle = '#2b2a30'; x.font = `12px ${fd}`; x.textAlign = 'center'; x.fillText(`꼬집기 ${Math.round(ps * 100)}%`, pq.px, pq.py - w1 - 10); x.textAlign = 'left'; }
-  x.restore();
+  x.restore(); x.restore();
   /* 딱밤 모으는 중: 손가락이 점점 뒤로 젖혀지며 떨리고, 원이 노랑→빨강으로 찬다 */
   const fl = SIDE.flick; if (fl){ const c = sdFlickC(fl, now), tr = Math.sin(now * 60) * (0.5 + c * 2.5), col = new THREE.Color('#ffd23a').lerp(new THREE.Color('#e2442f'), c).getStyle();
     x.lineWidth = 4; x.strokeStyle = 'rgba(0,0,0,.12)'; x.beginPath(); x.arc(fl.px, fl.py, 16, 0, 7); x.stroke(); x.strokeStyle = col; x.beginPath(); x.arc(fl.px, fl.py, 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * c); x.stroke();
@@ -7676,18 +7711,28 @@ function sideDraw(){ const c = $('#sdBoss'); if (!c) return; const x = c.getCont
   /* 쟁반: 와사비 · 겨자 · 청양고추 · 매운 떡볶이 · 우유 */
   x.fillStyle = '#f1ece2'; x.fillRect(4, 230, 252, 36); SD_FOODS.forEach((it, i) => { const [tx, ty] = sdTray(i); if (SIDE.food?.i === i) return; sdDrawFood(x, it.id, tx, ty - 4, 0.85); x.fillStyle = '#6b6152'; x.font = `10px ${fd}`; x.textAlign = 'center'; x.fillText(it.name, tx, ty + 16); x.textAlign = 'left'; });
   if (SIDE.food) sdDrawFood(x, SD_FOODS[SIDE.food.i].id, SIDE.food.x, SIDE.food.y, 1);
+  /* 주먹 · 발차기: 모으는 동안 뒤로 당겨 떨리고, 떼면 날아가 맞힌 뒤 돌아간다 */
+  { const ch = SIDE.charge; if (ch){ const c = sdFlickC(ch, now), tr = Math.sin(now * 60) * (0.5 + c * 2.5), col = new THREE.Color('#ffd23a').lerp(new THREE.Color('#e2442f'), c).getStyle();
+      x.lineWidth = 4; x.strokeStyle = 'rgba(0,0,0,.12)'; x.beginPath(); x.arc(ch.px, ch.py, 16, 0, 7); x.stroke(); x.strokeStyle = col; x.beginPath(); x.arc(ch.px, ch.py, 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * c); x.stroke();
+      const fs = ch.px < sdGeo().cx ? -1 : 1; if (ch.kind === 'fist') sdGlove(x, ch.px + fs * (30 + c * 14) + tr, ch.py + 14 + c * 6, -0.3, 0.85 + c * 0.25, fs); else sdShoe(x, ch.px + 22 + c * 10 + tr, ch.py + 34 + c * 10, -0.5 - c * 0.3, 0.8 + c * 0.2);
+      x.fillStyle = '#2b2a30'; x.font = `12px ${fd}`; x.textAlign = 'center'; x.fillText(c >= 1 ? '최대!' : `꾹… ${Math.round(c * 100)}%`, ch.px, ch.py - 22); x.textAlign = 'left'; }
+    for (const h of SIDE.hits){ const a = (now - h.t0) / 0.45, k = a < 0.25 ? a / 0.25 : 1 - (a - 0.25) / 0.75, fx = h.kind === 'fist' ? h.x + h.side * 70 : h.x + 50, fy = h.kind === 'fist' ? h.y + 40 : 280, gx = fx + (h.x + (h.kind === 'fist' ? h.side * 10 : 10) - fx) * k, gy = fy + (h.y + 6 - fy) * k;
+      if (a < 0.3){ x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 2; for (let i = 0; i < 6; i++){ const t = i / 6 * Math.PI * 2, r0 = 10 + a * 40, r1 = r0 + 8 + h.s * 10; x.beginPath(); x.moveTo(h.x + Math.cos(t) * r0, h.y + Math.sin(t) * r0); x.lineTo(h.x + Math.cos(t) * r1, h.y + Math.sin(t) * r1); x.stroke(); } }
+      if (h.kind === 'fist') sdGlove(x, gx, gy, -0.3, 0.95 + h.s * 0.25, h.side); else sdShoe(x, gx, gy, -0.5 + (1 - k) * 0.5, 0.9 + h.s * 0.2); } }
   if (SIDE.say && now < SIDE.sayT){ x.font = `14px ${fd}`; const w = x.measureText(SIDE.say).width + 16, bx = Math.min(254 - w, Math.max(6, G.cx + 34)); x.fillStyle = '#fff'; x.strokeStyle = '#2b2a30'; x.lineWidth = 1.5; x.beginPath(); if (x.roundRect) x.roundRect(bx, 6, w, 24, 10); else x.rect(bx, 6, w, 24); x.fill(); x.stroke(); x.fillStyle = '#2b2a30'; x.fillText(SIDE.say, bx + 8, 23); } }
 function sideLoop(){ if (!SIDE.open){ SIDE.raf = 0; return; } sideDraw(); SIDE.raf = requestAnimationFrame(sideLoop); }
 function sdPos(ev){ const r = $('#sdBoss').getBoundingClientRect(); return [(ev.clientX - r.left) * 260 / r.width, (ev.clientY - r.top) * 270 / r.height]; }
 function sdDown(ev){ ev.preventDefault(); ev.stopPropagation(); const [px, py] = sdPos(ev), now = performance.now() / 1000; SIDE.eye = [px, py];
   if (py > 228){ const i = SD_FOODS.findIndex((_, k) => Math.abs(sdTray(k)[0] - px) < 24); if (i >= 0 && !SIDE.eat && !SIDE.food){ SIDE.food = { i, x: px, y: py, sx: px, sy: py, drag: true }; $('#sdBoss').setPointerCapture?.(ev.pointerId); } return; }
+  if (SIDE.tool !== 'hand'){ if (!SIDE.charge){ SIDE.charge = { kind: SIDE.tool, px, py, t0: now }; $('#sdBoss').setPointerCapture?.(ev.pointerId); } return; }
   if (SIDE.yank) return; const z = sdZone(px, py), hc = sdHit(px, py, now, 6);
   if (!hc && z?.k === 'cheek'){ SIDE.pinch = { s: z.s, ax: z.ax, ay: z.ay, px, py, t0: now }; $('#sdBoss').setPointerCapture?.(ev.pointerId); return; }
   if (!hc && z?.k === 'brow'){ SIDE.flick = { px, py, t0: now }; $('#sdBoss').setPointerCapture?.(ev.pointerId); return; }
   const h = sdHit(px, py, now); if (!h){ if (now > SIDE.sayT) sdSay(pickOne(['어딜 만져!', '거기 털 없어~', '일은 다 했나?', '커피 한 잔 타 와요']), now); return; }
   SIDE.grab = { h, gx: px, gy: py, px, py, t0: now }; $('#sdBoss').setPointerCapture?.(ev.pointerId); }
-function sdMove(ev){ const [px, py] = sdPos(ev); SIDE.eye = [px, py]; const g = SIDE.grab, f = SIDE.food; if (SIDE.pinch){ SIDE.pinch.px = px; SIDE.pinch.py = py; } if (g){ g.px = px; g.py = py; if (Math.hypot(px - g.gx, py - g.gy) > 30){ sdPluck(g.h, performance.now() / 1000); SIDE.grab = null; } } if (f?.drag){ f.x = px; f.y = py; } }
+function sdMove(ev){ const [px, py] = sdPos(ev); SIDE.eye = [px, py]; const g = SIDE.grab, f = SIDE.food; if (SIDE.charge){ SIDE.charge.px = px; SIDE.charge.py = Math.min(222, py); } if (SIDE.pinch){ SIDE.pinch.px = px; SIDE.pinch.py = py; } if (g){ g.px = px; g.py = py; if (Math.hypot(px - g.gx, py - g.gy) > 30){ sdPluck(g.h, performance.now() / 1000); SIDE.grab = null; } } if (f?.drag){ f.x = px; f.y = py; } }
 function sdUp(ev){ const now = performance.now() / 1000, g = SIDE.grab, f = SIDE.food;
+  if (SIDE.charge){ const ch = SIDE.charge; SIDE.charge = null; sdStrike(ch.kind, ch.px, ch.py, sdFlickC(ch, now), now); return; }
   if (SIDE.flick){ const fl = SIDE.flick; SIDE.flick = null; sdFlickHit(fl.px, fl.py, sdFlickC(fl, now), now); return; }
   if (SIDE.pinch){ sdPinchEnd(SIDE.pinch, now); return; }
   if (g){ SIDE.grab = null; const mv = Math.hypot(g.px - g.gx, g.py - g.gy); if (mv < 6){ const h = g.h, dx = h.t[0] - h.r[0], dy = h.t[1] - h.r[1], l = Math.hypot(dx, dy) || 1; SIDE.yank = { h, gx: g.gx, gy: g.gy, px: g.gx, py: g.gy, dx: dx / l, dy: dy / l, t0: now }; } else sdSay('휴… 놓쳤네', now); }
@@ -7714,7 +7759,9 @@ function sideInit(){ const s = $('#side'); if (!s) return; $('#sdPill').onclick 
   for (const id of ['#sdIn', '#sdOut']) $(id).addEventListener('change', () => { Object.assign(SIDE.work, { in: $('#sdIn').value || '09:00', out: $('#sdOut').value || '18:00' }); saveLS('pp_work', SIDE.work); sideTick(); });
   $('#sdOffT').addEventListener('input', () => { SIDE.work.off = $('#sdOffT').value.trim().slice(0, 8) || '쉬는 날'; saveLS('pp_work', SIDE.work); sideTick(); });
   $('#sdToday').onclick = () => { const k = sdYmd(new Date()); SIDE.work.extra = SIDE.work.extra === k ? '' : k; saveLS('pp_work', SIDE.work); sideTick(); };
-  const c = $('#sdBoss'); c.addEventListener('pointerdown', sdDown); c.addEventListener('pointermove', sdMove); c.addEventListener('pointerup', sdUp); c.addEventListener('pointercancel', () => { SIDE.grab = null; SIDE.flick = null; SIDE.pinch = null; if (SIDE.food?.drag) SIDE.food = null; });
+  const SD_TIPS = { hand: $('#sdTip').textContent, fist: '주먹: 얼굴이나 몸을 꾹 눌렀다 떼면 퍽! 오래 누를수록 세져요 · 세게 맞으면 별이 돌고 눈이 빙글빙글 · 음식은 그대로', kick: '발차기: 몸이나 얼굴을 꾹 눌렀다 떼면 뻥! 세게 차면 몸이 붕 떠요 · 음식은 그대로' };
+  for (const b of document.querySelectorAll('#sdTools button')) b.onclick = () => { SIDE.tool = b.dataset.t; SIDE.charge = null; for (const q of document.querySelectorAll('#sdTools button')) q.setAttribute('aria-pressed', String(q === b)); $('#sdTip').textContent = SD_TIPS[SIDE.tool]; };
+  const c = $('#sdBoss'); c.addEventListener('pointerdown', sdDown); c.addEventListener('pointermove', sdMove); c.addEventListener('pointerup', sdUp); c.addEventListener('pointercancel', () => { SIDE.charge = null; SIDE.grab = null; SIDE.flick = null; SIDE.pinch = null; if (SIDE.food?.drag) SIDE.food = null; });
   for (const ev of ['pointerdown', 'touchstart', 'wheel']) s.addEventListener(ev, e => e.stopPropagation(), { passive: true });
   if (!SIDE.work.in || !SIDE.work.out) $('#sdCfg').classList.remove('hidden');
   sideTick(); setInterval(sideTick, 1000); }
@@ -8135,7 +8182,7 @@ function seaFun(dt){
   { const tb = $('#tourBtn'), on = !!SEA.boat?.on && SEA.whales.length > 0 && !seaPanel(); tb.classList.toggle('hidden', !on); if (on){ const t = SEA.tour ? '투어 멈추기' : '고래 보러 가기'; if (tb.textContent !== t) tb.textContent = t; } }
   if (SEA.menu && (seaPanel() || !onSand() || P.sit || P.moving)) openSandMenu(false);
 }
-const SEATEST = { SEA, BIGW, SMASH, LG, FW, SKYST, MARKS, STAMPS, PHOTO, SIDE, TRACK, get JN(){ jnEnsure(); return JN; }, jnDo, markHit, markCheck, photoSnap, sideOpen, sdPluck, sdHit, sdEffect, sdGeo, sdZone, sdCheek, sdFlickHit, sdPinchEnd, sideHairs, sideTick, sideTime, sdDown, sdMove, sdUp, openNote, renderNote, fwSim, fwPresence, setPeerFw(pid, fw){ const Rm = NET.peers.get(pid); if (Rm){ Rm.sea = Rm.sea || {}; Rm.sea.fw = fw; } }, fwUpdate, fwJoin, fwLeaveQueue, fwPrompt, fwPivot, fwT, get fw(){ return { on: FW.on, me: FW.me && { ...FW.me }, q: FW.q.map(e => e.kind === 'me' ? 'ME' : e.kind === 'peer' ? 'P:' + e.pid : e.names.join('+')), cab: FW.cab.map(c => c ? (c.npc ? c.npc.join('+') : c.real.join('+')) : null), staff: FW.staff.map(s => ({ name: s.rq.tag.n.textContent, vis: s.rq.rig.root.visible, x: s.x, z: s.z, bub: s.rq.tag.b.classList.contains('hidden') ? '' : s.rq.tag.b.textContent })), leave: FW.leave.length, th: FW.w?.rotation.z }; }, smashTarget, smashPrompt, doSmash, get lg(){ return LG.list.map(q => ({ x: q.rig.root.position.x, y: q.rig.root.position.y, z: q.rig.root.position.z, yaw: q.rig.root.rotation.y, name: q.tag.n.textContent, vis: q.rig.root.visible, bub: q.tag.b.classList.contains('hidden') ? '' : q.tag.b.textContent })); }, get cliffs(){ return SEA.cliffs.map(c => ({ x: c.sx, z: c.sz, h: c.top, a: c.a })); }, get sharks(){ return SEA.sharks.map(s => ({ x: s.x, z: s.z, y: s.y, st: s.st, c: s.c })); },
+const SEATEST = { SEA, BIGW, SMASH, LG, FW, SKYST, MARKS, STAMPS, PHOTO, SIDE, TRACK, get JN(){ jnEnsure(); return JN; }, jnDo, markHit, markCheck, photoSnap, sideOpen, sdPluck, sdHit, sdEffect, sdGeo, sdZone, sdCheek, sdFlickHit, sdPinchEnd, sdStrike, sideDraw, sideHairs, sideTick, sideTime, sdDown, sdMove, sdUp, openNote, renderNote, fwSim, fwPresence, setPeerFw(pid, fw){ const Rm = NET.peers.get(pid); if (Rm){ Rm.sea = Rm.sea || {}; Rm.sea.fw = fw; } }, fwUpdate, fwJoin, fwLeaveQueue, fwPrompt, fwPivot, fwT, get fw(){ return { on: FW.on, me: FW.me && { ...FW.me }, q: FW.q.map(e => e.kind === 'me' ? 'ME' : e.kind === 'peer' ? 'P:' + e.pid : e.names.join('+')), cab: FW.cab.map(c => c ? (c.npc ? c.npc.join('+') : c.real.join('+')) : null), staff: FW.staff.map(s => ({ name: s.rq.tag.n.textContent, vis: s.rq.rig.root.visible, x: s.x, z: s.z, bub: s.rq.tag.b.classList.contains('hidden') ? '' : s.rq.tag.b.textContent })), leave: FW.leave.length, th: FW.w?.rotation.z }; }, smashTarget, smashPrompt, doSmash, get lg(){ return LG.list.map(q => ({ x: q.rig.root.position.x, y: q.rig.root.position.y, z: q.rig.root.position.z, yaw: q.rig.root.rotation.y, name: q.tag.n.textContent, vis: q.rig.root.visible, bub: q.tag.b.classList.contains('hidden') ? '' : q.tag.b.textContent })); }, get cliffs(){ return SEA.cliffs.map(c => ({ x: c.sx, z: c.sz, h: c.top, a: c.a })); }, get sharks(){ return SEA.sharks.map(s => ({ x: s.x, z: s.z, y: s.y, st: s.st, c: s.c })); },
   get whales(){ return SEA.whales.map(a => ({ kind: a.kind, x: a.x, z: a.z, y: a.y, st: a.st })); }, boardRide, leaveRide, startTour, stopTour, startSlide, slideGo, slideCancel, structDist, get guard(){ const G0 = SLIDE.guard; return G0 && { on: G0.on, name: G0.tag.n.textContent, bub: G0.tag.b.classList.contains('hidden') ? '' : G0.tag.b.textContent, x: G0.rig.root.position.x, y: G0.rig.root.position.y, z: G0.rig.root.position.z, vis: G0.rig.root.visible }; }, get slide(){ const S0 = SEA.slide; return S0 && { x: S0.x, z: S0.z, lx: S0.lx, lz: S0.lz, len: S0.len, top: S0.top, lv: S0.lv, Lr: S0.Lr, float: S0.float, a: Math.atan2(S0.fx, S0.fz), sd: structDist(S0.x, S0.z) }; }, get slideDiag(){ return SLIDE.diag; }, timeFind(){ const t = performance.now(); findSlideSpot(); return performance.now() - t; }, get sl(){ return SEA.sl && { stage: SEA.sl.stage, d: SEA.sl.d, v: SEA.sl.v, lat: SEA.sl.lat, climb: SEA.sl.climb }; }, get yb(){ return { stage: YB.stage, idx: YB.idx, gs: YB.gs, ptT: YB.ptT, photos: YB.photos.length, warn: YB.warn, booth: YB.booth, used: ybUsed(), ready: ybReady(), card: YB.card, origin: YB.origin, guide: YB.guide && { on: YB.guide.on, x: YB.guide.x, z: YB.guide.z, name: YB.guide.tag.n.textContent, bub: YB.guide.tag.b.classList.contains('hidden') ? '' : YB.guide.tag.b.textContent }, boat: YB.boat && { x: YB.boat.x, z: YB.boat.z } }; }, ybReset(){ localStorage.removeItem('pp_yabiji_day'); YB.resv = ''; }, ybClock(ms){ YB.clockOff = ms; }, get ybSlot(){ return Object.assign(ybSlot(), { resv: YB.resv }); }, ybDiag(){ const s = SPOT.start, c = { n: 0, h: 0, ring: 0, struct: 0, poi: 0, slide: 0, ok: 0 }; for (let r = 4; r <= 18; r += 1.5) for (let a = 0; a < 28; a++){ const ang = a / 28 * Math.PI * 2, x = s.x + Math.sin(ang) * r, z = s.z + Math.cos(ang) * r, gh = groundH(x, z); c.n++; if (gh < 0.35 || gh > 4 || gh - terrainH(x, z) > 0.05 || rockAt(x, z) > 0.25){ c.h++; continue; } let bad = false; for (let k = 0; k < 8 && !bad; k++){ const qa = k * Math.PI / 4, q = groundH(x + Math.sin(qa) * 2.4, z + Math.cos(qa) * 2.4); if (Math.abs(q - gh) > 0.5 || q < 0.25 || rockAt(x + Math.sin(qa) * 2.4, z + Math.cos(qa) * 2.4) > 0.3) bad = true; } if (bad){ c.ring++; continue; } if (structDist(x, z) < 3.2){ c.struct++; continue; } if (POIS.some(p => Math.hypot(p.x - x, p.z - z) < 5) || SEATS.some(p => Math.hypot(p.x - x, p.z - z) < 3.2)){ c.poi++; continue; } if (SEA.slide && Math.hypot(SEA.slide.x - x, SEA.slide.z - z) < 8){ c.slide++; continue; } c.ok++; } return c; }, ybFree(v){ YB.free = !!v; }, ybDepart, ybSkip, ybOpenCard, ybWarp(){ const G0 = YB.guide; if (!G0) return; if (YB.stage === 'home'){ const q = ybLocal(0.7, -6.6); G0.x = q.x; G0.z = q.z; return; } const p = YB_POINTS[YB.idx]; if (p){ G0.x = p.x + 0.5; G0.z = p.z + 0.5; } if (YB.gs === 'at') YB.ptT = Math.min(YB.ptT, YB.snapDone ? 0.2 : 13.2); }, ybPoints: YB_POINTS, ybOnBoat, ybGoHome, get trk(){ const T = SEA.trk; return T && { cur: T.cur, p: T.p, list: T.list.slice(), score: T.score }; }, trickPress(k){ const T = SEA.trk; if (!T) return false; if (!T.cur){ T.cur = k; T.p = 0; trickSend(k); } else if (!T.q) T.q = k; return true; }, get slEnd(){ return SEA.slEnd; }, get ride(){ const r = SEA.ride; return r && { kind: r.a.kind, x: r.a.x, z: r.a.z, v: r.a.v, y: r.a.y }; }, get tour(){ return SEA.tour && { arrived: SEA.tour.arrived }; }, get far(){ return FARN.body ? FARN.body.count : -1; },
   get walls(){ return SEA.walls.map(w => ({ id: w.id, n: w.pts.length, segs: w.segs.length, towers: w.towers.length, len: wallLen(w), broken: [...w.broken] })); }, get castles(){ return SEA.castles.map(c => ({ x: c.x, z: c.z, gh: c.gh, stage: c.stage, style: c.seed % 3, r: c.r, e: c.erode || 0, wet: c.wet || 0 })); }, SWASH, swashAt, swashUpdate, seaErode, seaCastles, get sw(){ return { on: SWASH.on, ok: SWASH.cols.filter(c => c.ok).length, n: SWASH.cols.length, cols: SWASH.cols.filter(c => c.ok).map(c => [c.x, Math.round(c.zw * 100) / 100]) }; }, SRV, startWall, stopWall, startCastle, seaSolidAt, seaWalls, seaSolid, slideDrive, seaSlide, slideAt,
   get boat(){ const b = SEA.boat; return b && { x: b.x, z: b.z, yaw: b.yaw, on: b.on, v: b.v }; }, tap: seaTap, startGoto, boardBoat, leaveBoat, sandChoose, openSandMenu, cliffJump: i => cliffJump(SEA.cliffs[i]), onSand, bigWaveH, shoreAt, seaScreen, seatTaken,
