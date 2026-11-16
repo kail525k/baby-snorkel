@@ -8435,6 +8435,7 @@ body.clean #showChip{visibility:hidden}
 #bDex.rw{position:relative}#bDex.rw::after{content:"";position:absolute;top:3px;right:3px;width:10px;height:10px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 0 2px #fff}
 .tag .nm[data-tt]::before{content:attr(data-tt);display:block;font-size:10.5px;line-height:1.15;opacity:.88;text-align:center}
 body.touch #bCam2{right:144px;bottom:152px}
+@media (max-width:600px){#dex header{flex-wrap:wrap;row-gap:8px}#dex header h2{flex:1 1 calc(100% - 90px);font-size:20px;line-height:1.2}#dex .seg{order:3;flex:1 1 100%;margin-left:0}#dex .seg button{flex:1;white-space:nowrap;padding:6px 8px}}
 `; document.head.appendChild(st);
   /* 시작 화면 알림 줄 */
   const hd = $('#start .shead'); if (hd){ const n = el('div', 'hidden'); n.id = 'sNote'; hd.after(n); }
