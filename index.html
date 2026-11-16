@@ -3860,10 +3860,11 @@ function checkDiscover(){
 function discover(id){
   if (FOUND.has(id) || !SPOT.dex.includes(id)) return; const first = !foundAll().has(id); FOUND.add(id); saveLS('pp_found_' + SPOT.id, [...FOUND]); FOUND_ALL = null; NET.fd = id;
   const sp = SPEC[id], pr = addPearl(first ? 15 : 5); toast((id === 'turtle' ? `행운이에요! ${josa(sp.name, '을', '를')} 만났어요` : first ? `새 친구 발견! ${sp.name}` : `${SPOT.short}에서도 만났어요! ${sp.name}`) + ` · 진주 +${pr}`, 'found', first && id !== 'turtle' ? { group: 'found', name: sp.name, pearls: pr } : {}); AudioSys.chime(); ME.X = { kind: 'ooh', el: 0, dur: 1.6, t: 0 }; updateDexCount(); if (dexOpen) renderDex();
+  dexMilestoneCheck();
   if (FOUND.size === SPOT.dex.length){ const b = addPearl(50); setTimeout(() => toast(`${SPOT.short} 도감 완성! 진주 +${b} · 다른 바다로 옮겨 가 볼까요?`, 'found'), 2600); }
 }
 let dexSeen = 0, setMenu = () => {};
-function updateMenuDot(){ const d = $('#bMenu .dot'); if (d) d.classList.toggle('hidden', FOUND.size <= dexSeen); }
+function updateMenuDot(){ const d = $('#bMenu .dot'); if (d) d.classList.toggle('hidden', FOUND.size <= dexSeen && !dexClaimableSafe()); }
 function updateDexCount(){ $('#dexN').textContent = `${FOUND.size}/${SPOT.dex.length}`; updateMenuDot(); }
 function drawIcon(cv, sp, found){
   const x = cv.getContext('2d'), W = cv.width, H = cv.height; x.clearRect(0, 0, W, H); x.save(); x.translate(W / 2, H / 2);
@@ -3950,7 +3951,7 @@ function drawIcon(cv, sp, found){
 }
 let dexMode = 'here';
 function renderDex(){
-  const grid = $('#dGrid'); grid.innerHTML = ''; const all = dexMode === 'all', FA = foundAll();
+  const grid = $('#dGrid'); grid.innerHTML = ''; dexRewardsUI(); const all = dexMode === 'all', FA = foundAll();
   $('#dxHere').setAttribute('aria-pressed', dexMode === 'here'); $('#dxAll').setAttribute('aria-pressed', all); $('#dxRelic').setAttribute('aria-pressed', dexMode === 'relic');
   if (dexMode === 'relic'){ renderRelicDex(grid); return; } $('#dexT').textContent = all ? '모든 바다 도감' : `${SPOT.short} 바다 친구 도감`;
   $('#dexSub').textContent = all ? `${FA.size}/${SPECIES.length}종 발견` : `${FOUND.size}/${SPOT.dex.length}종 발견`;
@@ -4131,7 +4132,7 @@ function upsertPeer(p){
   Rm.tgt.set(clamp(num(pr.x), -70, 70), clamp(num(pr.y), -26, 45), clamp(num(pr.z), -80, 80));   /* 대관람차 꼭대기(약 37m)까지 */ Rm.yawT = num(pr.yaw);
   if (Rm.first){ Rm.rig.root.position.copy(Rm.tgt); Rm.rig.root.rotation.y = Rm.yawT; Rm.first = false; }
   Rm.st = STATES.has(pr.st) ? pr.st : 'idle'; Rm.vy = clamp(num(pr.vy), -5, 5); Rm.mv = !!pr.mv; Rm.ln = clamp(num(pr.ln), -0.6, 0.6); Rm.sl = clamp(num(pr.sl), -0.5, 0.5);
-  Rm.sit = Number.isInteger(pr.sit) && pr.sit >= 0 && pr.sit < SEATS.length ? pr.sit : -1; Rm.sip = !!pr.sip; Rm.wave = !!pr.wv; Rm.fc = clamp(Math.round(num(pr.fc)), 0, SPECIES.length);
+  Rm.sit = Number.isInteger(pr.sit) && pr.sit >= 0 && pr.sit < SEATS.length ? pr.sit : -1; Rm.sip = !!pr.sip; Rm.wave = !!pr.wv; Rm.fc = clamp(Math.round(num(pr.fc)), 0, SPECIES.length); Rm.tt = clamp(Math.round(num(pr.tt)), 0, 9); dexTagTitle(Rm.tag, Rm.tt);
   const gk = JSON.stringify(pr.g || {}); if (gk !== Rm.gearKey){ Rm.gearKey = gk; Rm.gear = sanitizeGear(pr.g); buildBabyInto(Rm.rig, Rm.gear); Rm.cupId = null; Rm.foodKey = null; }
   const cupId = typeof pr.cup === 'string' ? pr.cup : ''; if (cupId !== Rm.cupId){ Rm.cupId = cupId; attachCupTo(Rm.rig, DRINKS.find(d => d.id === cupId) || null); }
   const fid = typeof pr.food === 'string' && FOOD[pr.food] ? pr.food : '', fl = clamp(Math.round(num(pr.fl)), 0, BITES), fk = fid + ':' + fl; if (fk !== Rm.foodKey){ Rm.foodKey = fk; attachFoodTo(Rm.rig, FOOD[fid] || null, fl); } Rm.eat = !!pr.eat;
@@ -4178,7 +4179,7 @@ function sendPresence(dt){
   if (WORLD === 'sky'){ if (!SKYW?.active) return; const sp = SKYW.presence(), sj = JSON.stringify(sp); if (sj === NET.lastJSON) return; NET.lastJSON = sj; NET.room.presence(sp).catch(() => {}); return; }
   const r2 = v => Math.round(v * 100) / 100;
   const pr = { v: 1, x: r2(charRoot.position.x), y: r2(charRoot.position.y), z: r2(charRoot.position.z), yaw: r2(P.yaw), st: P.st, vy: Math.round(P.vy * 10) / 10, mv: P.moving ? 1 : 0, ln: r2(P.lean), sl: r2(P.slope),
-    sit: P.sit ? SEATS.indexOf(P.sit) : -1, cup: P.cup?.id || '', sip: P.sipT > 0 ? 1 : 0, wv: time < P.waveUntil ? 1 : 0, g: G, fc: FOUND.size, fd: NET.fd, dv: DIVE.on ? Math.floor(DIVE.t) : 0, bs: REC.best, sb: SREC.best, rc: NET.rc || 0, rs: NET.rs || 0, mid: NET.mid, msg: NET.msg, eid: NET.eid, emo: NET.emo, rid: NET.rid, rd: NET.rd, ws: FUN.shoot ? 1 : 0, food: P.food?.id || '', fl: P.food?.left || 0, eat: P.biteT > 0 ? 1 : 0, jid: NET.jid || 0, jd: NET.jd || 0, jp: NET.jp || 0, ffid: NET.ffid || 0, bg: BAG.length, tid: NET.tid || 0, tr: NET.tr || '', nk: NICK };
+    sit: P.sit ? SEATS.indexOf(P.sit) : -1, cup: P.cup?.id || '', sip: P.sipT > 0 ? 1 : 0, wv: time < P.waveUntil ? 1 : 0, g: G, fc: FOUND.size, fd: NET.fd, dv: DIVE.on ? Math.floor(DIVE.t) : 0, bs: REC.best, sb: SREC.best, rc: NET.rc || 0, rs: NET.rs || 0, mid: NET.mid, msg: NET.msg, eid: NET.eid, emo: NET.emo, rid: NET.rid, rd: NET.rd, ws: FUN.shoot ? 1 : 0, food: P.food?.id || '', fl: P.food?.left || 0, eat: P.biteT > 0 ? 1 : 0, jid: NET.jid || 0, jd: NET.jd || 0, jp: NET.jp || 0, ffid: NET.ffid || 0, bg: BAG.length, tid: NET.tid || 0, tr: NET.tr || '', nk: NICK, tt: dexTier() };
   Object.assign(pr, seaPresence());
   const js = JSON.stringify(pr); if (js === NET.lastJSON) return; NET.lastJSON = js;
   NET.room.presence(pr).catch(() => {});
@@ -4273,7 +4274,7 @@ function openFriends(v){ friendsOpen = v; $('#friends').classList.toggle('hidden
 function renderFriendsSky(){
   const list = $('#fList'); list.innerHTML = ''; const names = SKYW?.peerNames() || [];
   $('#frSub').textContent = NET.status === 'on' ? `이 하늘 ${names.length + 1}명` + (LOBBY.total ? ` · 전체 ${LOBBY.total + 1}명` : '') : '';
-  { const w = $('#fWhere') || (() => { const e = document.createElement('div'); e.id = 'fWhere'; e.className = 'fwhere'; list.parentNode.insertBefore(e, list); return e; })(); w.innerHTML = '';
+  { const w = $('#fWhere') || (() => { const e = document.createElement('div'); e.id = 'fWhere'; e.className = 'fwhere'; list.parentNode.insertBefore(e, list); return e; })(); w.innerHTML = ''; inviteRow(w);
     w.appendChild(el('div', 'npcrow', 'AI 패러글라이더 · 마을 사람 · 튼튼이는 이름표에 AI라고 써 있어요. 접속한 사람 수에는 세지 않아요.'));
     const elsewhere = Object.entries(LOBBY.counts).filter(([id]) => id !== placeId()).sort((a, b) => b[1] - a[1]);
     if (elsewhere.length){ w.appendChild(el('b', '', '다른 곳에서 노는 친구')); for (const [id, n] of elsewhere){ const d = placeById(id); if (!d) continue; const b = el('button', 'btn'); b.type = 'button'; b.textContent = `${d.short} ${n}명 · 가기`; b.onclick = () => { openFriends(false); switchSpot(id); }; w.appendChild(b); } } }
@@ -4286,7 +4287,7 @@ function renderFriends(){
   if (WORLD === 'sky'){ renderFriendsSky(); return; }
   const list = $('#fList'); list.innerHTML = ''; const peers = visiblePeers();
   $('#frSub').textContent = NET.status === 'on' ? `이 바다 ${peers.length + 1}명` + (LOBBY.total ? ` · 전체 ${LOBBY.total + 1}명` : '') : '';
-  { const w = $('#fWhere') || (() => { const e = document.createElement('div'); e.id = 'fWhere'; e.className = 'fwhere'; list.parentNode.insertBefore(e, list); return e; })(); w.innerHTML = '';
+  { const w = $('#fWhere') || (() => { const e = document.createElement('div'); e.id = 'fWhere'; e.className = 'fwhere'; list.parentNode.insertBefore(e, list); return e; })(); w.innerHTML = ''; inviteRow(w);
     const elsewhere = Object.entries(LOBBY.counts).filter(([id]) => id !== SPOT.id).sort((a, b) => b[1] - a[1]);
     { const row = el('div', 'npcrow'); row.appendChild(el('span', '', NPC.on ? `바다 친구(컴퓨터 아기) ${NPC.list.length}명도 같이 놀고 있어요. 접속한 사람 수에는 세지 않아요.` : '바다 친구(컴퓨터 아기)를 숨겼어요.'));
       const tb = el('button', 'btn'); tb.type = 'button'; tb.textContent = NPC.on ? '숨기기' : '보이기'; tb.onclick = () => { setNPC(!NPC.on); renderFriends(); }; row.appendChild(tb); w.appendChild(row); }
@@ -4295,9 +4296,9 @@ function renderFriends(){
     : NET.status === 'connecting' ? '연결하는 중이에요. 잠시만 기다려 주세요.'
     : peers.length ? `지금 ${SPOT.short}에 함께 있는 친구들이에요. 파도는 모두에게 똑같이 보이고, 물고기 무리도 거의 같은 곳에 있어요. 다른 바다에 있는 친구는 같은 바다로 옮겨야 만나요.` : `아직 ${SPOT.short}에는 아무도 없어요. 이 페이지를 공유하고 친구에게 지금 열어서 같은 바다를 골라 달라고 해 보세요. 같은 시간에 같은 바다에 있어야 만나요.`;
   const row = (color, name, status, btn) => { const r = document.createElement('div'); r.className = 'fr'; const d = document.createElement('i'); d.className = 'dot'; d.style.background = color; const w = document.createElement('div'); w.className = 'who'; const b = document.createElement('b'); b.textContent = name; const s = document.createElement('small'); s.textContent = status; w.append(b, s); r.append(d, w); if (btn) r.append(btn); list.appendChild(r); };
-  row(NET.myColor, myName() ? `나 (${myName()})` : '나', `${P.surf ? '서핑 중!' : ST_LABEL[P.st] || ''} · 도감 ${FOUND.size}/${SPOT.dex.length}` + (REC.best ? ` · 잠수 최고 ${fmtS(REC.best)}` : '') + (SREC.best ? ` · 서핑 최고 ${SREC.best}점` : ''));
+  row(NET.myColor, myName() ? `나 (${myName()})` : '나', (dexTitle(dexTier()) ? dexTitle(dexTier()) + ' · ' : '') + `${P.surf ? '서핑 중!' : ST_LABEL[P.st] || ''} · 도감 ${FOUND.size}/${SPOT.dex.length}` + (REC.best ? ` · 잠수 최고 ${fmtS(REC.best)}` : '') + (SREC.best ? ` · 서핑 최고 ${SREC.best}점` : ''));
   for (const Rm of peers){ const b = document.createElement('button'); b.className = 'btn'; b.textContent = '옆으로 가기'; b.onclick = () => goToPeer(Rm);
-    row((Rm.by && NET.colors[Rm.by]) || '#7c8789', nameOf(Rm), `${(Rm.st === 'swim' && Rm.tgt.y < -0.5) ? '잠수 중' : ST_LABEL[Rm.st] || ''} · 도감 ${Rm.fc || 0}/${SPOT.dex.length}` + (Rm.bs ? ` · 잠수 최고 ${fmtS(Rm.bs)}` : '') + (Rm.sb ? ` · 서핑 최고 ${Rm.sb}점` : ''), b); }
+    row((Rm.by && NET.colors[Rm.by]) || '#7c8789', nameOf(Rm), (dexTitle(Rm.tt) ? dexTitle(Rm.tt) + ' · ' : '') + `${(Rm.st === 'swim' && Rm.tgt.y < -0.5) ? '잠수 중' : ST_LABEL[Rm.st] || ''} · 도감 ${Rm.fc || 0}/${SPOT.dex.length}` + (Rm.bs ? ` · 잠수 최고 ${fmtS(Rm.bs)}` : '') + (Rm.sb ? ` · 서핑 최고 ${Rm.sb}점` : ''), b); }
 }
 function openChat(v){ chatOpen = v; $('#chat').classList.toggle('hidden', !v); if (v){ for (const k in keys) keys[k] = false; JOY.x = JOY.y = 0; $('#cInput').focus(); } else $('#cInput').blur(); refreshHUD(); }
 { const q = $('#cQuick');
@@ -5258,7 +5259,7 @@ canvas.addEventListener('wheel', e => { e.preventDefault(); if (WORLD === 'sky')
 function hold(id, key){ const el = $(id); const on = e => { e.preventDefault(); BTN[key] = true; el.classList.add('press'); AudioSys.ctx?.resume?.(); }, off = () => { BTN[key] = false; el.classList.remove('press'); }; el.addEventListener('pointerdown', on); el.addEventListener('pointerup', off); el.addEventListener('pointercancel', off); el.addEventListener('pointerleave', off); }
 hold('#bUp', 'up'); hold('#bDown', 'down'); hold('#bGun', 'shoot');
 let playT = 0;
-function setPlay(v){ const A = $('#actions'); A.classList.toggle('open', v); $('#bPlay').setAttribute('aria-expanded', String(v)); playT = performance.now(); if (v) hintOnce('playfan', '놀기에서 물총 · 뽀글 · 말하기를 쓸 수 있어요. 1인칭은 오른쪽 위 버튼이에요'); }
+function setPlay(v){ const A = $('#actions'); A.classList.toggle('open', v); $('#bPlay').setAttribute('aria-expanded', String(v)); playT = performance.now(); if (v) hintOnce('playfan', '놀기에서 물총 · 뽀글 · 말하기 · 사진을 쓸 수 있어요. 1인칭은 오른쪽 위 버튼이에요'); }
 $('#bPlay').onclick = () => setPlay(!$('#actions').classList.contains('open'));
 for (const id of ['#bGun', '#bFart', '#bChat2', '#bFp']) $(id).addEventListener('pointerdown', () => { playT = performance.now(); });
 for (const id of ['#bFart', '#bChat2', '#bFp']) $(id).addEventListener('click', () => setTimeout(() => setPlay(false), 250));
@@ -5280,7 +5281,7 @@ $('#sNext').innerHTML = '<b>준비 중인 바다</b> · ' + NEXT_SPOTS.map(s => 
 function resetJoy(){ const j = $('#joy'); j.style.left = '96px'; j.style.top = (innerHeight - 120) + 'px'; }
 addEventListener('resize', () => { if (JOY.id === null) resetJoy(); SKYW?.resize(); });
 function startGame(withGear){
-  track('start');
+  track('start'); if (INV && !INV.st){ INV.st = true; track('invited'); }
   if (started) return; started = true; AudioSys.init(); $('#start').classList.add('hidden');
   resetJoy();
   if (WORLD === 'sky' && SKYW?.active){ SKYW.setStarted(true); refreshHUD(); lobbyTell(); if (withGear){ gearTab = GEAR_UI.findIndex(g => g.tab === '하늘 장비'); openGear(true); } else setTimeout(() => toast(TOUCH ? '[이륙!] 버튼을 누르면 달려서 이륙해요. 왼쪽 화면을 끌면 걸어요' : 'Space를 누르면 달려서 이륙해요. W A S D로 걸어요'), 600); return; }
@@ -6461,7 +6462,7 @@ function seaSharks(dt){
   for (const s of SEA.sharks){ s.t += dt; if (s.st === 'ride'){ s.poi.r = 0; placeAnimal(s, dt, 1 + s.v * 0.3); continue; } const pp = sharkPatrolPos(s), dMe = Math.hypot(s.x - me.x, s.z - me.z);
     if (s.st === 'patrol'){ s.x = lerp(s.x, pp.x, 1 - Math.exp(-dt * 3)); s.z = lerp(s.z, pp.z, 1 - Math.exp(-dt * 3)); s.yaw = lerpAngle(s.yaw, pp.yaw, 1 - Math.exp(-dt * 4)); s.ty = -0.65;
       if (!SEA.sharkSeen && started && dMe < 30 && (P.mode === 'swim' || SEA.boat?.on)){ SEA.sharkSeen = true; toast('저기 상어 지느러미가 보여요! 가까이 오면 물총으로 쫓아내요', 'found'); }
-      if (swimming && dMe < 14 && time > s.cool && groundH(P.x, P.z) < -1.4 && !sharkThreat()){ s.st = 'stalk'; s.t = 0; s.ring = Math.atan2(s.x - me.x, s.z - me.z); s.hit = 0;
+      if (swimming && dMe < 14 && time > s.cool && groundH(P.x, P.z) < -1.4 && !sharkThreat() && !SHOW.calm){ s.st = 'stalk'; s.t = 0; s.ring = Math.atan2(s.x - me.x, s.z - me.z); s.hit = 0;
         toast('상어가 다가와요! 물총으로 쫓아내요', 'found'); AudioSys.blip(180, 140, 0.4, 'sawtooth', 0.05);
         hintOnce('sharkhow', TOUCH ? '빨간 물총 버튼을 꾹 누르면 상어 쪽으로 물총을 쏴요!' : 'X를 꾹 누르면 상어 쪽으로 물총을 쏴요!'); } }
     else if (s.st === 'stalk'){ s.ring += dt * 0.9; const tx = me.x + Math.sin(s.ring) * 6, tz = me.z + Math.cos(s.ring) * 6; sharkMoveTo(s, tx, tz, 3.4, dt, 4); s.ty = -0.65;
@@ -8213,6 +8214,247 @@ body.clean #ybChip{visibility:hidden}
 
 function ybStateText(){ if (!SPOT?.tour) return ''; return { cruise: '배 타고 야비지로 가는 중', back: '미야코로 돌아가는 중', result: '야비지 투어 끝!', swim: `야비지 투어 · 포인트 ${Math.min(YB.idx + 1, 3)}/3`, home: '야비지 투어 · 배로 돌아가요' }[YB.stage] || ''; }
 
+/* ============================== 친구 데려오기 · 매일 다시 올 이유 ==============================
+   1) 같이 수영하자 링크: 누르면 친구가 내가 있는 바다로 들어오고, 내가 보이면 바로 옆으로 간다
+   2) 물속 사진 카드: 기념사진을 인스타 스토리 크기(1080×1920) 카드로 만들어 저장 · 공유
+   3) 매일 저녁 7시(한국 시간) 고래 쇼: 엄마 · 아기 혹등고래가 해변 앞바다에서 뛰어오르고 물을 뿜는다(서버 시계라 모두 같이 본다)
+   4) 도감 보상: 모든 바다 도감 종 수에 따라 진주 + 칭호(이름표 위에 보인다) */
+const GAME_URL = 'https://baby-snorkel.vercel.app/';
+const INV = (() => { try { const q = new URLSearchParams(location.search), w = (q.get('w') || '').toLowerCase(); if (!/^[0-9a-f]{8}$/.test(w)) return null;
+  const from = cleanNick(q.get('from') || ''); try { history.replaceState(null, '', location.pathname + location.hash); } catch (e){} return { w, from, t: 0, met: false, told: false, st: false }; } catch (e){ return null; } })();
+function inviteURL(){ if (!SB.id) sbIdent(); const own = /^https?:$/.test(location.protocol) && !/claude|localhost|127\.0\.0\.1/.test(location.hostname);
+  const q = new URLSearchParams({ w: SB.id.slice(0, 8) }); if (NICK) q.set('from', NICK); return `${own ? location.origin + '/' : GAME_URL}?${q}#${placeId()}`; }
+function inviteText(){ const sky = WORLD === 'sky', place = sky ? (SKYSPOT?.short || '하늘') : SPOT.short;
+  return `${NICK ? josa(NICK, '이', '가') + ' ' : ''}${place}에서 같이 ${sky ? '날자' : '수영하자'}고 불렀어요! 링크를 누르면 바로 옆으로 가요`; }
+async function shareInvite(){
+  const url = inviteURL(), text = inviteText(); track('invite');
+  const inp = $('#invUrl'); if (inp){ inp.value = url; inp.parentNode.classList.remove('hidden'); }
+  try { if (navigator.share){ await navigator.share({ title: '아기 스노클링 바다 여행', text, url }); toast('초대 링크를 보냈어요. 친구가 누르면 내 옆으로 와요', 'found'); return; } } catch (e){ if (e?.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(`${text}\n${url}`); toast('초대 링크를 복사했어요. 카톡이나 문자에 붙여 넣어 보내요', 'found'); }
+  catch (e){ if (inp){ inp.focus(); inp.select(); } toast('아래 링크를 길게 눌러 복사해서 보내요'); }
+}
+function inviteRow(w){
+  /* 친구 목록은 1초마다 다시 그려지니, 초대 줄은 한 번만 만들어 목록 위에 붙여 둔다(누르는 중에 사라지지 않게) */
+  let box = $('#invRow');
+  if (!box){ box = el('div', 'invrow'); box.id = 'invRow'; const b = el('button', 'btn primary'); b.type = 'button'; b.id = 'invBtn'; b.onclick = shareInvite;
+    box.appendChild(b); box.appendChild(el('small', '', '친구가 링크를 누르면 내가 있는 곳으로 와서 바로 옆에 나타나요'));
+    const lr = el('div', 'invurl hidden'), inp = document.createElement('input'); inp.id = 'invUrl'; inp.readOnly = true; inp.setAttribute('aria-label', '초대 링크'); inp.onfocus = () => inp.select(); lr.appendChild(inp); box.appendChild(lr);
+    w.parentNode.insertBefore(box, w); }
+  const t = WORLD === 'sky' ? '같이 날자 링크 보내기' : '같이 수영하자 링크 보내기', b = $('#invBtn'); if (b.textContent !== t) b.textContent = t;
+}
+/* 초대받아 들어온 사람: 부른 친구가 보이면 바로 옆으로 */
+function inviteTick(dt){
+  if (!INV || INV.met || !started || WORLD === 'sky') return; INV.t += dt;
+  const Rm = [...NET.peers.values()].find(r => r.visible && typeof r.key === 'string' && r.key.startsWith(INV.w));
+  if (Rm){ INV.met = true; goToPeer(Rm); showEmote(myTag, '👋'); AudioSys.chime(); track('invite_met'); return; }
+  if (!INV.told && INV.t > 15){ INV.told = true; toast(`${INV.from ? INV.from + ' 님은' : '부른 친구는'} 아직 이 바다에 없어요. 들어오면 바로 옆으로 데려다줄게요`); }
+  if (INV.t > 900) INV.met = true;
+}
+/* 혼자 오래 놀면 한 번만 살짝 권하기 */
+const ALONE = { t: 0, said: false };
+function aloneTick(dt){ if (ALONE.said || !started || WORLD === 'sky' || NET.status !== 'on' || INV) return; if (visiblePeers().length) { ALONE.t = 0; return; } ALONE.t += dt;
+  if (ALONE.t > 150){ ALONE.said = true; toast(`혼자 놀고 있네요. 친구 메뉴의 '같이 수영하자 링크'로 친구를 불러 볼까요?`); } }
+
+/* ---------- 사진 찍기 + 인스타 스토리 카드 ---------- */
+let camLast = 0;
+function camSnap(){
+  if (!started) return; if (WORLD === 'sky'){ toast('사진은 바다에서 찍을 수 있어요'); return; }
+  if (performance.now() - camLast < 1500) return; camLast = performance.now();
+  const under = P.mode === 'swim' && P.body < -0.6;
+  photoSnap({ title: under ? `${SPOT.short} 물속에서 찰칵` : `${SPOT.short}에서 찰칵`, sub: `${myName() || '바다 아기'} · ${SPOT.label} · 도감 ${FOUND.size}/${SPOT.dex.length}`,
+    cam: P.mode === 'swim' && !SEA.boat?.on && !SEA.ride ? (c, py) => { const a = P.yaw + 0.45, fx = Math.sin(P.yaw), fz = Math.cos(P.yaw); c.position.set(P.x + Math.sin(a) * 2.1, Math.min(py - 0.3, -0.35), P.z + Math.cos(a) * 2.1); c.lookAt(P.x + fx * 0.25, Math.min(py, -0.1), P.z + fz * 0.25); } : undefined });
+  setTimeout(() => hintOnce('storytip', '사진 카드의 "스토리"를 누르면 인스타 스토리 크기 카드로 만들어 줘요'), 1500);
+}
+const loadImg = u => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = u; });
+function roundRectPath(x, X, Y, W, H, R){ x.beginPath(); x.moveTo(X + R, Y); x.arcTo(X + W, Y, X + W, Y + H, R); x.arcTo(X + W, Y + H, X, Y + H, R); x.arcTo(X, Y + H, X, Y, R); x.arcTo(X, Y, X + W, Y, R); x.closePath(); }
+async function storyCard(item){
+  const W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#9be7f4'); g.addColorStop(0.42, '#30b7d4'); g.addColorStop(1, '#0a5a80'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.save(); x.globalAlpha = 0.1; x.fillStyle = '#fff';
+  for (const [a, w] of [[-0.3, 110], [0.02, 70], [0.28, 130]]){ const x0 = W / 2 + a * W; x.beginPath(); x.moveTo(x0, 0); x.lineTo(x0 + w, 0); x.lineTo(x0 + a * W * 1.6 + w * 2.2, H * 0.8); x.lineTo(x0 + a * W * 1.6 - w, H * 0.8); x.closePath(); x.fill(); } x.restore();
+  const rr = mulberry32(hashStr(item.d || item.t || 'b'));
+  for (let i = 0; i < 40; i++){ const bx = rr() * W, by = rr() * H, br = 8 + rr() * 24; if ((by > 130 && by < 320) || (by > 1180 && by < 1640)) continue; x.beginPath(); x.arc(bx, by, br, 0, Math.PI * 2); x.fillStyle = 'rgba(255,255,255,.12)'; x.fill(); x.lineWidth = 4; x.strokeStyle = 'rgba(255,255,255,.5)'; x.stroke();
+    x.beginPath(); x.arc(bx - br * 0.35, by - br * 0.35, br * 0.22, 0, Math.PI * 2); x.fillStyle = 'rgba(255,255,255,.6)'; x.fill(); }
+  const cs = getComputedStyle(document.documentElement), fd = cs.getPropertyValue('--display').trim() || 'sans-serif', fb = cs.getPropertyValue('--body').trim() || 'sans-serif';
+  x.textAlign = 'center'; x.fillStyle = '#fff'; x.shadowColor = 'rgba(0,40,60,.35)'; x.shadowBlur = 14;
+  x.font = `54px ${fd}`; x.fillText('아기 스노클링 바다 여행', W / 2, 220);
+  const tt = dexTitle(dexTier()); x.font = `36px ${fb}`; x.fillText((tt ? tt + ' · ' : '') + (myName() || '바다 아기'), W / 2, 284);
+  const img = await loadImg(item.u), pw = 900, ph = Math.round(pw * img.height / img.width), py0 = 360;
+  x.save(); x.translate(W / 2, py0 + ph / 2); x.rotate(-0.035); x.shadowColor = 'rgba(0,30,50,.45)'; x.shadowBlur = 40; x.shadowOffsetY = 18; x.drawImage(img, -pw / 2, -ph / 2, pw, ph); x.restore();
+  const y0 = py0 + ph + 150; x.shadowColor = 'rgba(0,40,60,.4)'; x.shadowBlur = 14; x.fillStyle = '#fff'; x.font = `78px ${fd}`; x.fillText('같이 수영할 친구 구해요!', W / 2, y0);
+  x.shadowBlur = 0; const url = GAME_URL.replace(/^https:\/\//, '').replace(/\/$/, ''); x.font = `50px ${fd}`; const tw = x.measureText(url).width + 96;
+  x.fillStyle = '#fff'; roundRectPath(x, W / 2 - tw / 2, y0 + 48, tw, 104, 52); x.fill(); x.fillStyle = '#0a5a80'; x.fillText(url, W / 2, y0 + 118);
+  x.fillStyle = '#e6fbff'; x.font = `38px ${fb}`; x.fillText('매일 저녁 7시 고래 쇼 · 로그인 없이 바로 놀아요', W / 2, y0 + 222);
+  return c.toDataURL('image/jpeg', 0.9);
+}
+async function storyShare(item){
+  let u; try { u = await storyCard(item); } catch (e){ console.warn('story', e); toast('스토리 카드를 만들지 못했어요'); return; }
+  const it2 = { u, t: '스토리_' + item.t }; track('story');
+  try { const f = photoFile(it2); if (navigator.canShare?.({ files: [f] })){ await navigator.share({ files: [f], title: '아기 스노클링 바다 여행', text: '같이 수영해요! ' + GAME_URL }); return; } } catch (e){ if (e?.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = u; a.download = photoFile(it2).name; document.body.appendChild(a); a.click(); a.remove();
+  toast('스토리 카드를 저장했어요. 인스타 스토리에 올리고 링크 스티커로 주소를 붙여 보세요', 'found');
+}
+
+/* ---------- 매일 저녁 7시 고래 쇼 (한국 시간 19:00 ~ 19:20) ---------- */
+const SHOW = { h: 19, len: 20 * 60e3, list: [], c: null, was: false, told: false, near: 0, key: '', calm: false };
+const showNow = () => netNow() + (DBG.showOff || 0);
+function showPhase(){ const t = showNow() + 9 * 3600e3, ms = ((t % 86400e3) + 86400e3) % 86400e3, s0 = SHOW.h * 3600e3;
+  if (ms >= s0 && ms < s0 + SHOW.len) return { on: true, el: ms - s0, left: s0 + SHOW.len - ms };
+  return { on: false, until: ms < s0 ? s0 - ms : 86400e3 - ms + s0 }; }
+function showSpot(){
+  /* 해변 앞바다에서: 깊고(고래가 뛰어도 될 만큼) · 상어 · 다른 고래 길과 겹치지 않고 · 구경할 자리(시작점 쪽)도 물인 곳. 가까운 곳부터.
+     얕은 산호 바다는 부표 밖 먼바다에서 쇼를 하고, 부표 안쪽 끝에서 구경한다 */
+  const s = SPOT.start, B = SPOT.bounds, R = 7, deep = (x, z, d) => groundH(x, z) < d, inB = (x, z, m) => x > B.minX + m && x < B.maxX - m && z > B.minZ + m && z < B.maxZ - m;
+  for (const pass of ['strict', 'loose', 'far']) for (let r = 18; r <= (pass === 'far' ? 120 : 72); r += 2) for (let k = 0; k < 24; k++){
+    const a = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 12, x = s.x + Math.sin(a) * r, z = s.z + Math.cos(a) * r;
+    if ((pass !== 'far' && !inB(x, z, R + 4)) || !deep(x, z, -3)) continue;
+    if (pass === 'strict' && (SEA.whales.some(w => Math.hypot(w.c.x - x, w.c.z - z) < w.c.r + R + 2) || SEA.sharks.some(q => Math.hypot(q.c.x - x, q.c.z - z) < R + 10))) continue;
+    let ok = true; for (let q = 0; q < 16 && ok; q++){ const t = q / 16 * Math.PI * 2; if (!deep(x + Math.sin(t) * (R + 2.6), z + Math.cos(t) * (R + 2.6), -2.2) || !deep(x + Math.sin(t) * R, z + Math.cos(t) * R, -2.8)) ok = false; }
+    if (!ok) continue;
+    const va = Math.atan2(s.x - x, s.z - z); let vx = x + Math.sin(va) * (R + 6), vz = z + Math.cos(va) * (R + 6);
+    if (pass === 'far'){ vx = clamp(vx, B.minX + 3, B.maxX - 3); vz = clamp(vz, B.minZ + 3, B.maxZ - 3); if (Math.hypot(vx - x, vz - z) > 22) continue; }
+    if (!deep(vx, vz, -1.2) || !inB(vx, vz, 2)) continue;
+    return { x, z, r: R, vx, vz, src: pass }; }
+  return null;
+}
+function showBuild(){
+  SHOW.list = []; SHOW.c = null; SHOW.was = false; SHOW.near = 0; if (SPOT.tour || !SEA.root) return;
+  const C = showSpot(); if (!C) return; SHOW.c = C;
+  const mk = (sc, i, o) => { const g = makeHump(SEA.root); g.scale.setScalar(sc); g.visible = false; return Object.assign({ kind: 'hump', g, sc, i, x: C.x, z: C.z, y: -2, yaw: 0, pitch: 0, lastB: -1, lastS: -1 }, o); };
+  SHOW.list = [mk(1.12, 7, { boff: 0, bper: 16, bdur: 3.2, bh: 4.2, sper: 6, near: 0, lag: 0 }), mk(0.55, 8, { boff: 8, bper: 16, bdur: 2.3, bh: 2.6, sper: 8, near: 2.2, lag: 0.25 })];
+}
+function showUpdate(dt){
+  if (!SHOW.list.length) return; const ph = showPhase(), on = ph.on && WORLD !== 'sky';
+  if (!on){ SHOW.told = false; SHOW.calm = false; if (SHOW.was){ SHOW.was = false; for (const a of SHOW.list) a.g.visible = false; } return; }
+  const C = SHOW.c, Ts = ph.el / 1000;
+  if (!SHOW.was){ SHOW.was = true; SHOW.near = 0; }
+  if (started && !SHOW.told){ SHOW.told = true; toast(Ts < 30 ? '저녁 7시 고래 쇼가 시작됐어요! 위쪽 알림을 누르면 보러 가요' : '지금 저녁 7시 고래 쇼 하는 중이에요! 위쪽 알림을 누르면 보러 가요', 'found'); AudioSys.chime(); }
+  /* 쇼 하는 동안: 쇼 자리 가까이 지나가는 다른 고래 · 상어는 잠깐 숨고(자리 비켜 주기), 구경하는 아기에게 상어가 오지 않는다 */
+  for (const w of SEA.whales) if (w.st !== 'ride' && Math.hypot(w.x - C.x, w.z - C.z) < C.r + 13){ w.g.visible = false; w.poi.r = 0; }
+  for (const q of SEA.sharks) if (q.st === 'patrol' && Math.hypot(q.x - C.x, q.z - C.z) < C.r + 10){ q.g.visible = false; q.poi.r = 0; }
+  SHOW.calm = started && Math.hypot(P.x - C.x, P.z - C.z) < C.r + (C.src === 'far' ? 40 : 32);
+  /* 구경하는 자리 앞에서 옆으로 긴 타원을 그리며 헤엄친다(늘 앞쪽에서 크게 보이게) */
+  const vx = C.vx - C.x, vz = C.vz - C.z, vl = Math.hypot(vx, vz) || 1, ux = vx / vl, uz = vz / vl, px = uz, pz = -ux, L = C.r, Wd = 2.6, th0 = Ts * 0.23;
+  for (const a of SHOW.list){
+    const th = th0 - a.lag, sx = Math.sin(th), cx = Math.cos(th), off = Wd * cx + a.near;
+    a.x = C.x + px * L * sx + ux * off; a.z = C.z + pz * L * sx + uz * off;
+    const dx = px * L * cx - ux * Wd * sx, dz = pz * L * cx - uz * Wd * sx; a.yaw = Math.atan2(dx, dz);
+    const bt = (Ts + a.boff) % a.bper, u = bt < a.bdur ? bt / a.bdur : -1; let jy = 0, pitch = 0;
+    if (u >= 0){ jy = Math.sin(Math.PI * u) * a.bh; pitch = Math.cos(Math.PI * u) * 0.75; const key = Math.floor((Ts + a.boff) / a.bper);
+      if (u > 0.9 && a.lastB !== key){ a.lastB = key; splashAt(a.x, a.z, 3 * a.sc); dropBurst(a.x, a.z, Math.round(50 * a.sc), 2 * a.sc); if (Math.hypot(a.x - P.x, a.z - P.z) < 60) AudioSys.splash(true); } }
+    const sk = Math.floor((Ts + a.boff * 1.3) / a.sper); if (sk !== a.lastS){ a.lastS = sk; if (u < 0 && Math.hypot(a.x - camera.position.x, a.z - camera.position.z) < 120) spout(a, a.sc > 0.8); }
+    a.y = waveH(a.x, a.z) + (RIDE.hump.depth - 0.15) * a.sc + jy + Math.sin(time * 0.9 + a.i) * 0.05; a.pitch = pitch; placeAnimal(a, dt);
+  }
+  if (started){ if (Math.hypot(P.x - C.x, P.z - C.z) < C.r + (C.src === 'far' ? 34 : 18)) SHOW.near += dt;
+    if (SHOW.near > 10 && loadLS('pp_show_day', '') !== kstDate().day){ saveLS('pp_show_day', kstDate().day); const pr = addPearl(10); surfPop('고래 쇼!', true); AudioSys.chime();
+      toast(`엄마 · 아기 혹등고래 쇼를 봤어요! 진주 +${pr} · 기념사진 찰칵`, 'found'); track('whale_show');
+      setTimeout(() => { const m = SHOW.list[0]; if (!m || WORLD === 'sky') return; photoSnap({ title: '저녁 7시 고래 쇼', sub: `${SPOT.label} · 엄마 · 아기 혹등고래`,
+        cam: (c, py) => { const dx = m.x - P.x, dz = m.z - P.z, d = Math.hypot(dx, dz) || 1; c.position.set(P.x - dx / d * 4.5, Math.max(0.9, py + 1.7), P.z - dz / d * 4.5); c.lookAt((P.x + m.x) / 2, 0.8, (P.z + m.z) / 2); } }); }, 700); } }
+}
+function showGo(){
+  const C = SHOW.c; if (!C || !started || WORLD === 'sky') return; if (P.sit) standUp(); if (SEA.boat?.on) leaveBoat(true); if (SEA.ride) leaveRide(true); if (P.surf) P.surf = null; SEA.goto = null;
+  P.x = C.vx; P.z = C.vz; P.mode = 'swim'; P.bed = false; P.body = hasBoard(G) ? 0.16 : -0.2; P.vy = 0; P.yaw = Math.atan2(C.x - P.x, C.z - P.z);
+  CAM.yaw = P.yaw; CAM.dragT = -99; CAM.dist = Math.max(CAM.dist, 5); splashAt(P.x, P.z, 1); track('show_go');
+  toast(C.src === 'far' ? '부표 끝 구경 자리로 왔어요! 고래는 부표 밖 먼바다에서 뛰어올라요' : '고래 쇼 앞자리로 왔어요! 진짜 고래는 가까이 가면 안 돼요. 여기서 구경해요');
+}
+const hmText = ms => { const m = Math.ceil(ms / 60e3); return m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60 ? (m % 60) + '분' : ''}`.trim() : `${m}분`; };
+const mmss = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+function showUI(){
+  const ph = showPhase(), chip = $('#showChip');
+  if (chip){ const can = started && WORLD !== 'sky' && !!SHOW.c && !SPOT?.tour, pre = !ph.on && ph.until <= 3600e3, vis = can && (ph.on || pre);
+    chip.classList.toggle('hidden', !vis); chip.classList.toggle('on', ph.on);
+    if (vis){ const t = ph.on ? `고래 쇼 하는 중! 보러 가기 · ${mmss(ph.left)}` : `저녁 7시 고래 쇼 · ${mmss(ph.until)} 뒤`; if (chip.textContent !== t) chip.textContent = t;
+      const yb = $('#ybChip'), tb = $('#topbar'), base = TOUCH ? 0 : Math.max(0, (tb?.getBoundingClientRect().bottom || 0) + 10 - 76); chip.style.marginTop = (base + (yb && !yb.classList.contains('hidden') ? 46 : 0)) + 'px'; } }
+  const n = $('#sNote'); if (!n) return;
+  const lines = []; if (INV) lines.push(['inv', `${INV.from ? INV.from + ' 님이' : '친구가'} 같이 수영하자고 불렀어요! 시작하면 바로 옆으로 가요`]);
+  lines.push(['show', ph.on ? '지금 저녁 7시 고래 쇼 하는 중! 들어가서 위쪽 알림을 눌러요' : ph.until <= 3 * 3600e3 ? `오늘 저녁 7시 고래 쇼 · ${hmText(ph.until)} 뒤` : '매일 저녁 7시, 엄마 · 아기 혹등고래 쇼가 열려요']);
+  const key = lines.map(l => l[1]).join('|') + (ph.on ? 1 : 0); if (key === SHOW.key) return; SHOW.key = key; n.innerHTML = '';
+  for (const [k, t] of lines){ const p = el('p', k + (k === 'show' && ph.on ? ' on' : ''), t); n.appendChild(p); } n.classList.remove('hidden');
+}
+
+/* ---------- 도감 보상: 모든 바다 도감 종 수 → 진주 + 칭호 ---------- */
+const DEXR = (() => { const T = ['새내기 탐험가', '바다 친구', '물고기 수집가', '물고기 박사', '산호 지킴이', '바다 박사', '바다 탐험 대장', '바다의 전설'], Pp = [10, 20, 30, 50, 70, 100, 150, 300];
+  const N = SPECIES.length, ns = [5, 10, 20, 35, 50, 75, 100].filter(n => n < N).concat([N]);
+  return ns.map((n, i) => { const last = i === ns.length - 1; return { n, t: last ? T[T.length - 1] : T[i], p: last ? Pp[Pp.length - 1] : Pp[i] }; }); })();
+const DEXC = new Set((() => { const a = loadLS('pp_dexr', []); return Array.isArray(a) ? a.filter(n => Number.isInteger(n)) : []; })());
+function dexTier(){ let t = 0; DEXR.forEach((r, i) => { if (DEXC.has(r.n)) t = i + 1; }); return t; }
+function dexTitle(t){ return t > 0 && DEXR[t - 1] ? DEXR[t - 1].t : ''; }
+function dexClaimable(){ const n = foundAll().size; return DEXR.some(r => n >= r.n && !DEXC.has(r.n)); }
+function dexClaimableSafe(){ try { return dexClaimable(); } catch (e){ return false; } }
+function dexTagTitle(tag, t){ const s = dexTitle(t); if (!tag?.n) return; if (s) tag.n.dataset.tt = s; else delete tag.n.dataset.tt; }
+function dexDot(){ $('#bDex')?.classList.toggle('rw', dexClaimable()); }
+function dexClaim(r){
+  if (DEXC.has(r.n) || foundAll().size < r.n) return; DEXC.add(r.n); saveLS('pp_dexr', [...DEXC]);
+  const pr = addPearl(r.p); AudioSys.chime(); surfPop('도감 보상!', true); toast(`도감 ${r.n}종 보상! 진주 +${pr} · 칭호 '${r.t}'`, 'found'); track('dex_reward', r.n);
+  NET.lastJSON = ''; dexTagTitle(myTag, dexTier()); updateMenuDot(); dexDot(); dexRewardsUI(); if (friendsOpen) renderFriends();
+}
+function dexMilestoneCheck(){ const n = foundAll().size, r = DEXR.find(q => q.n === n); if (r && !DEXC.has(r.n)) setTimeout(() => toast(`도감 ${r.n}종 달성! 도감에서 보상을 받아요 · 진주 ${r.p}개 + 칭호`, 'found'), 2200); dexDot(); }
+function dexRewardsUI(){
+  let box = $('#dexRw'); if (!box){ box = el('div', 'dexrw'); box.id = 'dexRw'; $('#dGrid').before(box); }
+  if (dexMode === 'relic'){ box.classList.add('hidden'); return; } box.classList.remove('hidden'); box.innerHTML = '';
+  const n = foundAll().size, N = SPECIES.length, next = DEXR.find(r => n < r.n), tier = dexTier();
+  const top = el('div', 'dxt'); top.appendChild(el('b', '', `모든 바다 도감 ${n}/${N}종`)); top.appendChild(el('span', tier ? 'tt' : '', tier ? `내 칭호 · ${dexTitle(tier)}` : '보상을 받으면 칭호가 생겨요')); box.appendChild(top);
+  const bar = el('i', 'dxbar'), fill = el('em'); fill.style.width = Math.min(100, n / N * 100).toFixed(1) + '%'; bar.appendChild(fill); box.appendChild(bar);
+  const row = el('div', 'dxr');
+  for (const r of DEXR){ const got = DEXC.has(r.n), can = !got && n >= r.n, b = el('button', 'dxc' + (got ? ' got' : can ? ' can' : '')); b.type = 'button';
+    b.appendChild(el('b', '', `${r.n}종`)); b.appendChild(el('small', '', got ? r.t : can ? '받기!' : `진주 ${r.p}`)); b.setAttribute('aria-label', `${r.n}종 보상: 진주 ${r.p}개, 칭호 ${r.t}` + (got ? ' (받음)' : can ? ' (받을 수 있음)' : ''));
+    b.onclick = can ? () => dexClaim(r) : () => toast(got ? `받은 보상이에요 · 칭호 '${r.t}'` : `도감 ${r.n}종을 모으면 진주 ${r.p}개와 칭호 '${r.t}'를 받아요 · ${r.n - n}종 남았어요`);
+    row.appendChild(b); }
+  box.appendChild(row); box.appendChild(el('small', 'dxn', next ? `다음 보상까지 ${next.n - n}종 · 바다마다 사는 친구가 달라요` : '모든 바다 친구를 다 만났어요! 바다의 전설이에요'));
+}
+
+/* ---------- 화면 붙이기 ---------- */
+(() => {
+  const st = document.createElement('style'); st.textContent = `
+#showChip{position:fixed;z-index:6;left:50%;transform:translateX(-50%);top:calc(max(12px,env(safe-area-inset-top)) + 64px);border:0;border-radius:999px;background:#1d4e89;color:#fff;font-family:var(--display);font-size:14px;padding:8px 15px;box-shadow:0 3px 0 rgba(36,36,42,.22);white-space:nowrap;cursor:pointer;font-variant-numeric:tabular-nums}
+#showChip.on{background:#ff6b3d;box-shadow:0 3px 0 #c4461d;animation:showPulse 1s ease-out infinite}
+@keyframes showPulse{from{outline:0 solid rgba(255,107,61,.55)}to{outline:10px solid rgba(255,107,61,0)}}
+body.touch #showChip{left:auto;right:12px;transform:none;font-size:13px;max-width:calc(100vw - 150px);overflow:hidden;text-overflow:ellipsis}
+body.clean #showChip{visibility:hidden}
+#sNote{display:grid;gap:5px}
+#sNote p{margin:0;font-size:13.5px;line-height:1.35;border-radius:12px;padding:7px 11px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.25)}
+#sNote p.inv{background:#ff8a2a;box-shadow:0 3px 0 #c45f12;font-family:var(--display);font-size:15px}
+#sNote p.show.on{background:#ff6b3d;box-shadow:0 3px 0 #c4461d;font-family:var(--display)}
+@media (max-width:600px){#start .sc.mini #sNote p.show:not(.on){display:none}}
+.invrow{display:grid;gap:6px;padding:4px 0 10px;margin-bottom:8px;border-bottom:1px dashed #e7d7b6}
+.invrow .btn{font-size:16px;padding:11px 14px}
+.invrow small{font-size:12.5px;color:#6b6152}
+.invurl input{width:100%;box-sizing:border-box;font:inherit;font-size:13px;padding:7px 10px;border-radius:10px;border:1.5px solid #eadcc0;background:#fff;color:#2b2a30}
+.dexrw{display:grid;gap:7px;margin:0 0 10px;padding:10px 12px;border-radius:14px;background:#fff7e8;border:1.5px solid #f0dcb4}
+.dexrw .dxt{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.dexrw .dxt b{font-family:var(--display);font-weight:400;font-size:16px;color:#2b2a30}
+.dexrw .dxt span{font-size:12.5px;color:#7a6f5c}.dexrw .dxt span.tt{color:#c45f12;font-weight:700}
+.dexrw .dxbar{display:block;height:9px;border-radius:9px;background:#efe3cc;overflow:hidden}.dexrw .dxbar em{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#2fd3b5,#2fa7d8)}
+.dexrw .dxr{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.dexrw .dxc{flex:0 0 auto;display:grid;gap:1px;justify-items:center;border:0;border-radius:12px;padding:6px 10px;background:#fff;box-shadow:inset 0 0 0 1.5px #ead9b8;color:#7a6f5c;font:inherit;cursor:pointer;min-width:62px}
+.dexrw .dxc b{font-family:var(--display);font-weight:400;font-size:15px;color:#2b2a30}.dexrw .dxc small{font-size:11px;white-space:nowrap}
+.dexrw .dxc.got{background:#e6faf5;box-shadow:inset 0 0 0 1.5px #2fd3b5}.dexrw .dxc.got small{color:#127a6e;font-weight:700}
+.dexrw .dxc.can{background:#ff8a2a;box-shadow:0 3px 0 #c45f12;color:#fff;animation:dxBob .7s ease-in-out infinite alternate}.dexrw .dxc.can b,.dexrw .dxc.can small{color:#fff;font-weight:700}
+@keyframes dxBob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+.dexrw .dxn{font-size:12px;color:#7a6f5c}
+#bDex.rw{position:relative}#bDex.rw::after{content:"";position:absolute;top:3px;right:3px;width:10px;height:10px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 0 2px #fff}
+.tag .nm[data-tt]::before{content:attr(data-tt);display:block;font-size:10.5px;line-height:1.15;opacity:.88;text-align:center}
+body.touch #bCam2{right:144px;bottom:152px}
+`; document.head.appendChild(st);
+  /* 시작 화면 알림 줄 */
+  const hd = $('#start .shead'); if (hd){ const n = el('div', 'hidden'); n.id = 'sNote'; hd.after(n); }
+  /* 고래 쇼 알림 */
+  const chip = el('button', 'hidden'); chip.id = 'showChip'; chip.type = 'button'; document.body.appendChild(chip);
+  chip.onclick = () => { const ph = showPhase(); if (ph.on) showGo(); else toast('매일 한국 시간 저녁 7시에 엄마 · 아기 혹등고래가 해변 앞바다에 와서 뛰어올라요. 20분 동안 열려요'); };
+  /* 사진 버튼: PC는 위 메뉴, 폰은 '놀기' 안 */
+  if (!TOUCH){ const c = el('button', 'chip'); c.id = 'bCam'; c.type = 'button'; c.title = '사진 찍기 · 스토리 카드 (P)';
+    c.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg><span class="lbl">사진</span>';
+    $('#bNote').after(c); c.onclick = () => camSnap(); }
+  const c2 = el('button', 'rb fan', '사진'); c2.id = 'bCam2'; c2.type = 'button'; c2.setAttribute('aria-label', '사진 찍기'); $('#bFart').after(c2);
+  RBI.cam = '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.4"/>'; if (TOUCH) rbSet(c2, 'cam', '사진');
+  c2.addEventListener('pointerdown', () => { playT = performance.now(); }); c2.onclick = () => { camSnap(); setTimeout(() => setPlay(false), 250); };
+  /* 사진 카드에 '스토리' */
+  const sv = $('#phSave'), sb = el('button', '', '스토리'); sb.id = 'phStory'; sb.type = 'button'; sv.after(sb); sb.onclick = () => PHOTO.cur && storyShare(PHOTO.cur);
+  addEventListener('keydown', e => { if (e.code !== 'KeyP' || e.repeat || !started || WORLD === 'sky') return; const t = e.target?.tagName; if (t === 'INPUT' || t === 'TEXTAREA') return; camSnap(); });
+  dexTagTitle(myTag, dexTier()); dexDot();
+  setInterval(showUI, 1000); showUI();
+})();
+
 function seaFunBuild(){
   SEA.root = new THREE.Group(); (BUILD.parent || scene).add(SEA.root);
   SEA.kb.x = SEA.kb.z = 0; SEA.leap = null; SEA.build = null; SEA.castles = []; SEA.bath = null; SEA.goto = null; SEA.rv.clear(); SEA.sharkSeen = false; SEA.tumbleT = 0; closeSeaCard(); openSandMenu(false);
@@ -8226,6 +8468,7 @@ function seaFunBuild(){
   SEA.whales = []; if (!TOUR) try { buildWhales(); } catch (e){ console.warn('whales', e); SEA.whales = []; }
   SEA.sl = null; SEA.slEnd = null; SEA.trk = null; SEA.slide = null; slideGuardHide(); if (!TOUR) try { buildSlide(); } catch (e){ console.warn('slide', e); SEA.slide = null; }
   try { ybSpotBuilt(); } catch (e){ console.warn('yabiji', e); }
+  try { showBuild(); } catch (e){ console.warn('show', e); SHOW.list = []; SHOW.c = null; }
   try { farInit(); } catch (e){ console.warn('far', e); FARN.body = null; }
 }
 function seaState(){ if (SPOT?.tour && (YB.stage === 'cruise' || YB.stage === 'back' || YB.stage === 'result')) return 'idle'; if (SEA.sl?.stage === 'ride') return 'slide'; if (SEA.trk && P.mode === 'land' && !P.grounded) return SEA.trk.cur ? 'tuck' : 'star'; if (SEA.boat?.on || SEA.ride || SEA.sl?.stage === 'wait' || FW.me?.stage === 'ride') return 'sit'; if (P.sit?.lie) return 'float'; if (time < SEA.tumbleT) return 'trip'; if (SEA.build && P.mode === 'land') return 'dig'; return ''; }
@@ -8233,10 +8476,10 @@ function seaStateText(){ return SEA.sl ? (SEA.sl.stage === 'ride' ? `워터 슬�
 function seaFun(dt){
   if (!SEA.root) return;
   bigWaveUpdate(dt); swashUpdate(dt);
-  if (!started){ seaBoatIdle(dt); seaSharks(dt); seaWhales(dt); farUpdate(); return; }
+  if (!started){ seaBoatIdle(dt); seaSharks(dt); seaWhales(dt); showUpdate(dt); farUpdate(); return; }
   if (TOUCH){ if (P.mode === 'swim' && !SEA.hUD){ SEA.hUD = true; hintOnce('updown', '물에서는 ▼잠수 버튼으로 내려가고, ▲위로 버튼으로 올라와요'); }
     SEA.playT = (SEA.playT || 0) + dt; if (SEA.playT > 30 && !SEA.hFP){ SEA.hFP = true; hintOnce('fpbtn', '오른쪽 위 1인칭 버튼을 누르면 아기 눈으로 볼 수 있어요'); } }
-  seaBumps(dt); seaSolid(); seaWalls(dt); bigWaveEffects(dt); seaSlide(dt); ybUpdate(dt); seaCliffs(dt); seaErode(dt); seaCastles(dt); smashUpdate(dt); seaBath(dt); seaSharks(dt); seaWhales(dt); seaBoatIdle(dt); seaRemotes(dt); placeSeaCard(); farUpdate();
+  seaBumps(dt); seaSolid(); seaWalls(dt); bigWaveEffects(dt); seaSlide(dt); ybUpdate(dt); seaCliffs(dt); seaErode(dt); seaCastles(dt); smashUpdate(dt); seaBath(dt); seaSharks(dt); seaWhales(dt); showUpdate(dt); inviteTick(dt); aloneTick(dt); seaBoatIdle(dt); seaRemotes(dt); placeSeaCard(); farUpdate();
   { const tb = $('#tourBtn'), on = !!SEA.boat?.on && SEA.whales.length > 0 && !seaPanel(); tb.classList.toggle('hidden', !on); if (on){ const t = SEA.tour ? '투어 멈추기' : '고래 보러 가기'; if (tb.textContent !== t) tb.textContent = t; } }
   if (SEA.menu && (seaPanel() || !onSand() || P.sit || P.moving)) openSandMenu(false);
 }
@@ -8246,7 +8489,7 @@ const SEATEST = { SEA, BIGW, SMASH, LG, FW, SKYST, MARKS, STAMPS, PHOTO, SIDE, T
   get boat(){ const b = SEA.boat; return b && { x: b.x, z: b.z, yaw: b.yaw, on: b.on, v: b.v }; }, tap: seaTap, startGoto, boardBoat, leaveBoat, sandChoose, openSandMenu, cliffJump: i => cliffJump(SEA.cliffs[i]), onSand, bigWaveH, shoreAt, seaScreen, seatTaken,
   setP(x, z, mode){ if (P.sit) standUp(); if (SEA.boat?.on) leaveBoat(true); P.x = x; P.z = z; const gh = groundH(x, z); if (mode === 'swim' || (mode !== 'land' && gh < -0.6)){ P.mode = 'swim'; P.body = -0.2; P.bed = false; } else { P.mode = 'land'; P.feet = gh; P.grounded = true; } P.vy = 0; },
   get state(){ return { x: P.x, z: P.z, mode: P.mode, body: P.body, feet: P.feet, sit: P.sit?.kind || '', st: P.st, kb: Math.hypot(SEA.kb.x, SEA.kb.z), goto: !!SEA.goto, build: SEA.build ? SEA.build.c.stage : -1, tumble: time < SEA.tumbleT, breath: P.breath, food: P.food?.id || '' }; },
-  npcs(){ return NPC.list.map(n => ({ x: n.x, y: n.y, z: n.z, name: n.name, rig: !!n.rig })); }, npcList: () => NPC.list, groundH, sharkAt(i, x, z, yaw, y = -0.65){ const q = SEA.sharks[i]; q.st = 'hold'; q.x = x; q.z = z; q.yaw = yaw; q.y = q.ty = y; }, seats(){ return SEATS.map((q, i) => { const t = seaTargetPos({ kind: 'seat', seat: q }), sc = seaScreen(t.x, t.y, t.z); return { i, kind: q.kind, x: q.x, z: q.z, sx: sc?.x, sy: sc?.y, d: sc?.dist }; }); }, boatScreen(){ const b = SEA.boat; if (!b) return null; const t = seaTargetPos({ kind: 'boat' }); return seaScreen(t.x, t.y, t.z); }, DBG, FUN, NET, get time(){ return time; } };
+  npcs(){ return NPC.list.map(n => ({ x: n.x, y: n.y, z: n.z, name: n.name, rig: !!n.rig })); }, npcList: () => NPC.list, groundH, sharkAt(i, x, z, yaw, y = -0.65){ const q = SEA.sharks[i]; q.st = 'hold'; q.x = x; q.z = z; q.yaw = yaw; q.y = q.ty = y; }, seats(){ return SEATS.map((q, i) => { const t = seaTargetPos({ kind: 'seat', seat: q }), sc = seaScreen(t.x, t.y, t.z); return { i, kind: q.kind, x: q.x, z: q.z, sx: sc?.x, sy: sc?.y, d: sc?.dist }; }); }, boatScreen(){ const b = SEA.boat; if (!b) return null; const t = seaTargetPos({ kind: 'boat' }); return seaScreen(t.x, t.y, t.z); }, DBG, FUN, NET, INV, SHOW, showPhase, showBuild, showGo, showUI, storyCard, inviteURL, shareInvite, camSnap, DEXR, DEXC, dexClaim, dexTier, dexRewardsUI, inviteTick, showSpot, get species(){ return SPECIES.map(q => q.id); }, get myTT(){ return myTag.n.dataset.tt || ''; }, get time(){ return time; } };
 BWH.f = bigWaveH;
 
 function frame(){
