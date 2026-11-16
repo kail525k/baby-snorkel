@@ -353,6 +353,28 @@ body.zen #mung,body.zen #topbar,body.zen #spotcard,body.zen #friend{opacity:0;po
 .next{font-size:12px;color:#cfe9ec;line-height:1.6;border-top:1px dashed rgba(255,255,255,.3);padding-top:8px}
 @media (max-width:560px){#start{padding:0;align-items:flex-end;background:linear-gradient(180deg,rgba(7,48,66,0) 8%,rgba(7,48,66,.55) 100%)}.sc{width:100%;max-height:90%;border-radius:22px 22px 0 0;padding:14px 14px calc(12px + env(safe-area-inset-bottom));gap:9px}#start h1{font-size:25px}.next{display:none}.sregs button{padding:7px 11px}.sregs button small{display:none}.sregs .mapbtn{padding:7px 10px}.ssel .lead{font-size:13.5px}.srow{padding:8px 11px}.srow b{font-size:17px}}
 @media (max-height:820px) and (min-width:561px){.next{display:none}}
+/* 폰: 바다 고르기 창 '작게'(기본: 바다 카드를 옆으로 넘김, 배경이 넓게 보임) ↔ '크게'(전체 목록) */
+.sgrip,.smore,#sGear .gs{display:none}
+@media (max-width:600px){
+  .sgrip{display:block;width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.5);margin:-5px auto 0;flex:0 0 auto}
+  .shead{display:flex;align-items:center;justify-content:space-between;gap:8px;touch-action:none}
+  .smore{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;border:0;border-radius:999px;padding:6px 12px 6px 13px;background:rgba(255,255,255,.16);color:#fff;font:inherit;font-size:13.5px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4);cursor:pointer;white-space:nowrap;text-shadow:none}
+  .smore svg{width:14px;height:14px}
+  #start .sc.mini h1{font-size:19px}
+  .sc.mini .skind button{padding:5px 10px}.sc.mini .skind button b{font-size:15px}.sc.mini .skind button small{font-size:11px}
+  .sc.mini .sregs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -14px;padding:2px 14px 4px}
+  .sc.mini .sregs::-webkit-scrollbar,.sc.mini .slist::-webkit-scrollbar{display:none}
+  .sc.mini .sregs button{flex:0 0 auto;padding:6px 12px}
+  .sc.mini .slist{display:flex;flex:0 0 auto;min-height:0;overflow-x:auto;overflow-y:hidden;gap:8px;scroll-snap-type:x proximity;margin:0 -14px;padding:3px 14px 6px;scrollbar-width:none;overscroll-behavior-x:contain}
+  .sc.mini .slist .shd{display:none}
+  .sc.mini .srow{flex:0 0 auto;width:156px;grid-template-columns:10px minmax(0,1fr);grid-template-rows:auto auto;gap:6px 7px;padding:9px 10px;scroll-snap-align:start}
+  .sc.mini .srow i{width:10px;height:10px}
+  .sc.mini .srow b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sc.mini .srow .tg{grid-column:1/-1;justify-content:flex-start;flex-wrap:nowrap;overflow:hidden}
+  .sc.mini .srow .tg span{font-size:10.5px;padding:1px 6px}
+  .sc.mini .nkrow{flex-wrap:nowrap;max-width:none}.sc.mini .nkrow label{display:none}.sc.mini .nkrow input{flex:1;min-width:0;padding:6px 10px}.sc.mini .nkrow .dice{padding:6px 10px}
+  .sc.mini .cta{flex-wrap:nowrap}.sc.mini .cta .btn{padding:11px 12px;font-size:15.5px}.sc.mini #sGear{flex:0 0 auto}.sc.mini #sGear .gl{display:none}.sc.mini #sGear .gs{display:inline}
+}
 /* 시작 화면 둘러보기: 뒤 배경 바다를 누르고 끌거나(PC) 밀어서(모바일) 좌우로 본다 */
 #start{touch-action:pan-y;cursor:grab}#start.grabbing{cursor:grabbing}#start .sc{cursor:auto}
 #sLook .slk{position:fixed;z-index:11;width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.75);background:rgba(7,48,66,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.22);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;transition:background .15s,transform .1s;padding:0}
@@ -728,14 +750,15 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
 
 <div id="start">
   <div class="sc" aria-label="바다 고르기">
-    <div class="shead"><div class="eyebrow"><i></i><span>아기 스노클링 바다 여행</span></div><h1 id="sH1">어느 바다로 갈까요?</h1></div>
+    <i class="sgrip" aria-hidden="true"></i>
+    <div class="shead"><div class="eyebrow"><i></i><span>아기 스노클링 바다 여행</span></div><h1 id="sH1">어느 바다로 갈까요?</h1><button type="button" class="smore" id="sMore" aria-expanded="false" aria-controls="sList"></button></div>
     <div class="skind" id="sKind" role="group" aria-label="바다 또는 하늘 고르기"></div>
     <div class="sregs" id="sRegs" role="group" aria-label="지역 고르기"></div>
     <div class="slist" id="sList" role="group" aria-label="바다 목록"></div>
     <div class="ssel" id="sSel"><div class="sst"><b id="sName">판포포구</b><span class="addr" id="sAddr"></span></div><p class="lead" id="sLead"></p><div class="facts" id="sFacts"></div></div>
     <div class="nkrow"><label for="sNick">내 별명</label><input id="sNick" type="text" maxlength="12" autocomplete="off" enterkeyhint="done" placeholder="예: 꼬마 해녀" aria-describedby="sNickMsg"><button type="button" class="btn ghost dice" id="sDice" aria-label="별명 아무거나 고르기">🎲</button></div>
     <p class="nkmsg" id="sNickMsg">친구들 머리 위 이름표와 순위표에 보여요 · 8자까지</p>
-    <div class="cta"><button class="btn primary" id="sGo">바다로 들어가기</button><button class="btn ghost" id="sGear">장비 먼저 꾸미기</button></div>
+    <div class="cta"><button class="btn primary" id="sGo">바다로 들어가기</button><button class="btn ghost" id="sGear"><span class="gl">장비 먼저 꾸미기</span><span class="gs">장비</span></button></div>
     <div class="next" id="sNext"></div>
   </div>
   <div id="sLook">
@@ -2780,7 +2803,7 @@ function renderPick(focusFirst){
     const i = el('i'); i.style.background = d.surf ? '#ff8a2a' : d.water.shallow; const w = el('span', 'w'); w.append(el('b', '', d.short), el('small', '', `${d.addr.split(' · ')[0]} · ${d.type}`));
     const tg = el('span', 'tg'); const on = liveN(d.id, here); if (d.surf) tg.appendChild(el('span', 'sf', '서핑')); if (on !== null) tg.appendChild(el('span', on ? 'pp' : '', liveTxt(on))); tg.appendChild(el('span', fd ? '' : 'nw', `도감 ${fd}/${dex.length}`));
     b.append(i, w, tg); b.onclick = () => { if (!here) switchSpot(d.id); }; list.appendChild(b); }
-  const sel = list.querySelector('[aria-pressed="true"]'); if (sel) sel.scrollIntoView({ block: 'nearest' });
+  const sel = list.querySelector('[aria-pressed="true"]'); if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
   if (focusFirst) (sel || list.querySelector('button'))?.focus({ preventScroll: true });
 }
 let pickKind = 'sea';
@@ -5250,6 +5273,20 @@ function startWithNick(gear){ const inp = $('#sNick'), msg = $('#sNickMsg'), c =
   if (!c.ok){ msg.textContent = c.why; msg.classList.add('bad'); inp.focus(); inp.select(); return; }
   inp.value = NICK; startGame(gear); if (NICK) setTimeout(() => toast(`${NICK} 님, 바다에 온 걸 환영해요!`), 1500); }
 $('#sGo').onclick = () => startWithNick(false); $('#sGear').onclick = () => startWithNick(true);
+/* 폰: 바다 고르기 창 작게 ↔ 크게. 버튼을 누르거나 제목 줄을 위로 밀면 크게, 아래로 밀면 작게. 고른 상태는 기억 */
+(function pickSheetInit(){
+  const sc = $('#start .sc'), mb = $('#sMore'), mq = matchMedia('(max-width:600px)'), hd = sc.querySelector('.shead');
+  const UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>', DN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  const set = (mini, save) => { sc.classList.toggle('mini', mini && mq.matches); mb.setAttribute('aria-expanded', String(!mini)); mb.innerHTML = mini ? `목록 크게 ${UP}` : `작게 ${DN}`; mb.setAttribute('aria-label', mini ? '바다 목록 크게 보기' : '바다 목록 작게 보기(배경 넓게)');
+    if (save) saveLS('pp_pickmini', mini ? 1 : 0); requestAnimationFrame(() => $('#sList [aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' })); };
+  set(loadLS('pp_pickmini', 1) !== 0, false);
+  mb.onclick = () => set(!sc.classList.contains('mini'), true);
+  let y0 = null;
+  hd.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; y0 = e.clientY; });
+  hd.addEventListener('pointerup', e => { if (y0 === null) return; const dy = e.clientY - y0; y0 = null; if (dy < -24) set(false, true); else if (dy > 24) set(true, true); });
+  hd.addEventListener('pointercancel', () => { y0 = null; });
+  mq.addEventListener?.('change', () => set(loadLS('pp_pickmini', 1) !== 0, false));
+})();
 /* 시작 화면 둘러보기: 배경 바다를 누르고 끌기(PC) · 밀기(모바일) · 양옆 버튼(짧게 누르면 30도, 꾹 누르면 계속) · 키보드 ←/→ · 가운데 '정면으로' */
 (function sLookInit(){
   const st = $('#start'), L = $('#sLookL'), Rb = $('#sLookR'), H = $('#sLookH'), K = 30 * Math.PI / 180;
