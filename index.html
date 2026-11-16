@@ -1649,11 +1649,13 @@ const SPOTS = [
   facts: ['계단·사다리 입수', '모래·자갈 바닥', '평상·텐트 대여'],
   tips: ['만조 때는 어른 키도 발이 닿지 않을 수 있어요. 물때를 확인하고 가요.', '모래사장이 없어서 부두 계단과 사다리로 물에 들어가요.', '포구 입구에서 스노클 장비·구명조끼·튜브와 평상·텐트를 빌릴 수 있어요.', '낚시하는 분들도 있으니 낚싯줄을 조심해요.'],
   edgeMsg: '주황 부표 바깥은 배가 드나드는 길이에요',
-  area: { x0: -33, x1: 33, z0: -29.5, z1: 41 }, bounds: { minX: -45.5, maxX: 43.5, minZ: -41.5, maxZ: 41.5 }, start: { x: -5, z: -34, yaw: 0 }, cine: { c: [-2, 8, -40], r: [20, 4], look: [2, -0.8, 6] },
-  map: { rects: [[-46, -34, -42, 36], [34, 44, -42, 18], [-34, 34, -42, -30]], circles: [[-40, 36, 6], [39, 18, 5]], buoys: [[-34, 34, 42.5]] },
+  area: { x0: -33, x1: 33, z0: -29.5, z1: 41 }, bounds: { minX: -43.5, maxX: 45.5, minZ: -41.5, maxZ: 41.5 }, start: { x: 5, z: -34, yaw: 0 }, cine: { c: [2, 8, -40], r: [20, 4], look: [-2, -0.8, 6] },
+  map: { rects: [[34, 46, -42, 36], [-44, -34, -42, 18], [-34, 34, -42, -30]], circles: [[40, 36, 6], [-39, 18, 5]], buoys: [[-34, 34, 42.5]] },
   colors: Object.assign({}, C_JEJU, { sand: '#d9d4c8', wet: '#c2bcae', grav: '#a39b88', grav2: '#857e6e' }),
   water: { shallow: '#4fe6cf', deep: '#0e83ab', sandT: '#e9f8e6', under: '#25a0ad', underTop: '#c4f6f0', underDeep: '#167a90', fogUnder: 0.055 }, seaName: '에메랄드빛',
   terrain(x, z, T){
+    /* 위성사진: 긴 방파제가 서쪽(바다를 볼 때 왼쪽 = +x), 짧은 방파제가 동쪽. 지형은 x를 뒤집은 설계 좌표로 계산 */
+    x = -x;
     let h = z < -14 ? lerp(-0.9, -1.6, sstep(-30, -14, z)) : z < 12 ? lerp(-1.6, -2.6, (z + 14) / 26) : z < 40 ? lerp(-2.6, -3.6, (z - 12) / 28) : lerp(-3.6, -6.5, sstep(40, 58, z));
     h += Math.sin(x * 0.9 + z * 0.35 + Math.sin(z * 0.2) * 2) * 0.03;
     const sc = sstep(4, 9, x) * sstep(28, 23, x) * sstep(-17, -21, z); h = lerp(h, lerp(-0.3, -1.05, clamp((z + 30) / 11, 0, 1)), sc);
@@ -1667,31 +1669,33 @@ const SPOTS = [
   },
   build(){
     const top = 1.4;
-    slab(-46, -34, -42, 36, top); roundHead(-40, 36, 6, top); lighthouse(-40, 37.5, top, '#ffffff');
-    slab(34, 44, -42, 18, top); roundHead(39, 18, 5, top); lighthouse(39, 19.5, top, '#e2382f');
+    /* 서쪽 긴 방파제 끝은 빨간 등대(항구로 들어올 때 오른쪽), 동쪽 짧은 방파제 끝은 흰 등대 */
+    slab(34, 46, -42, 36, top); roundHead(40, 36, 6, top); lighthouse(40, 37.5, top, '#e2382f');
+    slab(-44, -34, -42, 18, top); roundHead(-39, 18, 5, top); lighthouse(-39, 19.5, top, '#ffffff');
     slab(-34, 34, -42, -30, top);
-    mesh(new THREE.BoxGeometry(0.5, 0.9, 78), concreteD, null, -45.75, top + 0.45, -3);
-    tetrapods(-50.5, -47, -40, 34, 30);
-    stairs({ x0: -8, x1: -2, z0: -30, z1: -24.5, axis: 'z', top, bottom: -1.1 });
-    COL.ramps.push({ x0: 12, x1: 20, z0: -30, z1: -20, axis: 'z', h0: top, h1: -0.8 });
-    { const m = mesh(new THREE.BoxGeometry(8, 0.4, Math.hypot(10, 2.2)), concreteD, null, 16, (top - 0.8) / 2 - 0.2, -25); m.rotation.x = Math.atan2(2.2, 10); }
-    ladder(-34, 6, 'x', 1, top); ladder(-34, 22, 'x', 1, top); ladder(34, -6, 'x', -1, top); ladder(26, -30, 'z', 1, top);
-    for (let x = -30; x <= 30; x += 8){ if (x > -10 && x < 22) continue; mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.5, 10), dark, null, x, top + 0.25, -30.7); }
-    canopy(-26, -36.5, '#2f7fd0', '장비 대여', { poi: 'rental', label: '장비 대여소에서 꾸미기' });
-    hut(-1, -38.6, '#f6d9a6', '#ff8a2a', '물멍 매점', { poi: 'kiosk', label: '물멍 매점 메뉴 보기', cups: ['#ff9a2e', '#ffb627', '#ff5a6e', '#9bd34a'] });
-    pyeong(-17, -33.6, '#ff8a2a'); pyeong(-11, -33.6, '#2fd3b5'); pyeong(25, -33.6, '#ff4f8b'); pyeong(30.5, -33.6, '#ffd23a');
-    edgeSeat(3, -30.25, top); edgeSeat(6, -30.25, top); edgeSeat(9, -30.25, top);
-    campTent(-30.5, -39.8, '#ff7a59'); campTent(8, -39.6, '#3aa0ff');
-    tubeSeat(-12, -14, '#ff6fa8'); tubeSeat(-4, -18, '#3aa0ff');
-    fishingBoat(30, 2, Math.PI, '#2f6fb5'); fishingBoat(30, 11, Math.PI, '#2a9d8f');
-    signBoard(-12, -30.8, top, Math.PI, '판포포구', 'PANPO PORT · 제주');
+    mesh(new THREE.BoxGeometry(0.5, 0.9, 78), concreteD, null, 45.75, top + 0.45, -3);
+    tetrapods(47, 50.5, -40, 34, 30);
+    stairs({ x0: 2, x1: 8, z0: -30, z1: -24.5, axis: 'z', top, bottom: -1.1 });
+    COL.ramps.push({ x0: -20, x1: -12, z0: -30, z1: -20, axis: 'z', h0: top, h1: -0.8 });
+    { const m = mesh(new THREE.BoxGeometry(8, 0.4, Math.hypot(10, 2.2)), concreteD, null, -16, (top - 0.8) / 2 - 0.2, -25); m.rotation.x = Math.atan2(2.2, 10); }
+    ladder(34, 6, 'x', -1, top); ladder(34, 22, 'x', -1, top); ladder(-34, -6, 'x', 1, top); ladder(-26, -30, 'z', 1, top);
+    for (const x of [30, 22, 14, -26]) mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.5, 10), dark, null, x, top + 0.25, -30.7);
+    canopy(26, -36.5, '#2f7fd0', '장비 대여', { poi: 'rental', label: '장비 대여소에서 꾸미기' });
+    hut(1, -38.6, '#f6d9a6', '#ff8a2a', '물멍 매점', { poi: 'kiosk', label: '물멍 매점 메뉴 보기', cups: ['#ff9a2e', '#ffb627', '#ff5a6e', '#9bd34a'] });
+    pyeong(17, -33.6, '#ff8a2a'); pyeong(11, -33.6, '#2fd3b5'); pyeong(-25, -33.6, '#ff4f8b'); pyeong(-30.5, -33.6, '#ffd23a');
+    edgeSeat(-3, -30.25, top); edgeSeat(-6, -30.25, top); edgeSeat(-9, -30.25, top);
+    campTent(30.5, -39.8, '#ff7a59'); campTent(-8, -39.6, '#3aa0ff');
+    tubeSeat(12, -14, '#ff6fa8'); tubeSeat(4, -18, '#3aa0ff');
+    fishingBoat(-30, 2, Math.PI, '#2f6fb5'); fishingBoat(-30, 11, Math.PI, '#2a9d8f');
+    signBoard(12, -30.8, top, Math.PI, '판포포구', 'PANPO PORT · 제주');
     buoyLine(-34, 34, 42.5);
     /* 부두 뒤: 해안도로(가운데 노란 선) · 제주 돌담 · 파란·주황 지붕 마을 — 위성 사진에서 포구 바로 뒤에 길과 마을이 붙어 있다 */
     for (let x = -46; x < 46; x += 8){ const y = terrainH(x + 4, -46.2) + 0.04; mesh(new THREE.BoxGeometry(8.05, 0.12, 5), L('#55595e'), null, x + 4, y, -46.2); mesh(new THREE.BoxGeometry(5, 0.13, 0.18), L('#f2c230'), null, x + 4, y + 0.01, -46.2); }
     for (let x = -44; x < 44; x += 2.2){ const y = terrainH(x, -49.4), h = 0.75 + Math.sin(x * 3.1) * 0.12, st = mesh(new THREE.BoxGeometry(2.25, h, 0.6), L(Math.sin(x * 7.7) > 0 ? '#3e3d40' : '#4b4a4e'), null, x, y + h / 2, -49.4); st.rotation.y = Math.sin(x * 2.3) * 0.04; }
     houses([[-38, -54, '#3b6fb6'], [-29, -56, '#e07a3a'], [-20, -53.5, '#3b6fb6'], [-11, -56.5, '#2f9e8f'], [-2, -54, '#3b6fb6'], [7, -56, '#c94a3a'], [16, -53.5, '#3b6fb6'], [25, -56.5, '#e07a3a'], [34, -54, '#3b6fb6']]);
-    ROCKSPOTS = PANPO_ROCKS.map(r => ({ x: r.x, z: r.z, r: r.r + 1 })).concat([[-31.5, -20], [-31.5, -4], [-31.5, 12], [-31.5, 28], [31.5, -20], [31.5, 4], [31.5, 14]].map(([x, z]) => ({ x, z, r: 2 })));
-    farHalla(-120, -760); farTurbines([[250, 170], [205, 205], [160, 238], [112, 262], [300, 140]]); farRidge(-700, -200, -320, 18, 6, 3); farRidge(200, 700, -280, 16, 6, 4);
+    ROCKSPOTS = PANPO_ROCKS.map(r => ({ x: -r.x, z: r.z, r: r.r + 1 })).concat([[31.5, -20], [31.5, -4], [31.5, 12], [31.5, 28], [-31.5, -20], [-31.5, 4], [-31.5, 14]].map(([x, z]) => ({ x, z, r: 2 })));
+    /* 한라산은 판포에서 거의 정동쪽(오른쪽), 탐라 해상풍력은 서쪽 두모·금등 앞바다(왼쪽) */
+    farHalla(-700, -260); farTurbines([[250, 170], [205, 205], [160, 238], [112, 262], [300, 140]]); farRidge(-700, -200, -320, 18, 6, 3); farRidge(200, 700, -280, 16, 6, 4);
   },
   decor(){
     weeds(160, (x, z, h, r) => h < -1.0 && (r > 0.25 || rnd() < 0.03), 'jeju');
@@ -1710,34 +1714,46 @@ const SPOTS = [
   facts: ['흰 모래 · 얕은 바다', '비양도 뷰', '썰물 때 드러나는 모래톱', '양쪽 끝 현무암'],
   tips: ['물이 빠지는 간조 때 넓은 모래사장과 얕은 천연 풀장이 드러나요.', '해변 입구 모래에 조개껍질 조각이 섞여 있어서 물놀이 신발을 신는 게 좋아요.', '바로 옆 협재해수욕장과 이어져 있어요.'],
   edgeMsg: '노란 부표 바깥은 수영 금지 구역이에요',
-  area: { x0: -30, x1: 30, z0: -22, z1: 46 }, bounds: { minX: -40, maxX: 40, minZ: -44, maxZ: 46.2 }, start: { x: -1, z: -31, yaw: 0 }, cine: { c: [0, 7, -36], r: [18, 6], look: [-4, -0.5, 10] },
+  area: { x0: -30, x1: 30, z0: -22, z1: 46 }, bounds: { minX: -40, maxX: 40, minZ: -44, maxZ: 46.2 }, start: { x: 1, z: -31, yaw: 0 }, cine: { c: [0, 7, -36], r: [18, 6], look: [4, -0.5, 10] },
   map: { buoys: [[-26, 26, 46.5]] },
   colors: Object.assign({}, C_JEJU, { sand: '#f6efdc', wet: '#e2d6b8', sea: '#f6eed6', seaD: '#d9cfb0', grass: '#7fae55', grass2: '#5f9446' }),
   water: { shallow: '#86f2cf', deep: '#1aa5a8', sandT: '#f4fff4', under: '#3dbfae', underTop: '#e2fff2', underDeep: '#178f92', fogUnder: 0.045 }, seaName: '옥빛 연두',
   terrain(x, z, T){
-    let h = z < -40 ? 1.5 : z < -30 ? lerp(1.5, 0.55, (z + 40) / 10) : z < -22 ? lerp(0.55, -0.12, smooth((z + 30) / 8)) : z < 12 ? lerp(-0.12, -0.75, (z + 22) / 34) : lerp(-0.75, -2.7, sstep(12, 48, z));
+    /* 정면이 바다(+z)일 때 +x가 왼쪽. 위성사진: 왼쪽(서쪽)은 원담이 있는 넓은 현무암 너럭바위와 금능포구, 오른쪽(협재 쪽)은 모래가 바다 쪽으로 휘어 나간다.
+       지형은 '설계 좌표'(x를 뒤집은 값)로 계산한다 */
+    x = -x; const zz = z - 8 * sstep(10, 44, x);
+    let h = zz < -40 ? 1.5 : zz < -30 ? lerp(1.5, 0.55, (zz + 40) / 10) : zz < -22 ? lerp(0.55, -0.12, smooth((zz + 30) / 8)) : zz < 12 ? lerp(-0.12, -0.75, (zz + 22) / 34) : lerp(-0.75, -2.7, sstep(12, 48, zz));
     if (h < -0.15) h += Math.sin(x * 0.7 + z * 0.45 + Math.sin(x * 0.1) * 3) * 0.04;
     for (const [bx, bz, rx, rz] of [[-8, -9, 9, 3], [12, 1, 7, 2.4]]){ const k = Math.exp(-(((x - bx) / rx) ** 2 + ((z - bz) / rz) ** 2)); h = Math.max(h, lerp(h, 0.06, k)); }
-    const e = Math.max(sstep(-26, -36, x + (vnoise(z * 0.09, 1) - 0.5) * 8), sstep(26, 36, x + (vnoise(z * 0.09, 5) - 0.5) * 8));
+    const e = Math.max(sstep(-26, -36, x + (vnoise(z * 0.09, 1) - 0.5) * 8), sstep(26, 36, x + (vnoise(z * 0.09, 5) - 0.5) * 8) * sstep(-6, 6, zz) * 0.8);
     if (e > 0){ h = lerp(h, lerp(1.3, -1.6, sstep(-10, 40, z)) + fbm(x * 0.2, z * 0.2) * 1.4, e); h += e * (fbm(x * 0.6, z * 0.6) - 0.5) * 0.5; T.rock = e; }
     const B = bumps(x, z, GN_ROCKS); if (B.b > 0){ h += Math.min(B.b, Math.max(0, -0.8 - h)); T.rock = Math.max(T.rock, B.rk); }
-    if (z < -41) T.grass = sstep(-41, -43, z);
+    if (zz < -41) T.grass = sstep(-41, -43, zz);
     T.h = h;
   },
   build(){
-    lifeguard(2, -27.6);
-    hut(16, -36.5, '#bfe9e1', '#2fd3b5', '튜브·스노클 대여', { poi: 'rental', label: '대여소에서 빌리기', goods: ['#2fd3b5', '#ff4f8b', '#ffd23a', '#3aa0ff', '#ff8a1f'] });
-    hut(26, -37, '#f6d9a6', '#ff8a2a', '매점', { poi: 'kiosk', label: '매점 메뉴 보기', cups: ['#ff9a2e', '#ffb627', '#ff5a6e', '#9bd34a'] });
-    hut(-16, -37, '#e9eef2', '#3aa0ff', '샤워장');
-    matSeat(-10, -28.6, '#ff8a2a'); matSeat(-4, -28.8, '#2fd3b5'); matSeat(8, -28.8, '#ff4f8b');
-    waterChair(-16, -15, '#ffd23a'); waterChair(-12, -15.2, '#ff8a2a'); waterChair(14, -14, '#2fd3b5');
-    tubeSeat(18, -4, '#ff6fa8'); tubeSeat(24, -10, '#3aa0ff');
-    for (const [x, z] of [[-26, -34], [-20, -35], [-6, -35.5], [6, -35], [20, -33.5], [32, -34]]) palm(x, z);
-    for (let k = 0; k < 9; k++) pine(-30 + k * 7 + R(-1, 1), -44 + R(-1.5, 1.5), 1.1);
+    const sh = x => 8 * sstep(10, 44, -x);   /* 오른쪽(-x)으로 갈수록 해안선이 바다 쪽으로 나간 만큼 */
+    lifeguard(-2, -27.6);
+    hut(-16, -36.5, '#bfe9e1', '#2fd3b5', '튜브·스노클 대여', { poi: 'rental', label: '대여소에서 빌리기', goods: ['#2fd3b5', '#ff4f8b', '#ffd23a', '#3aa0ff', '#ff8a1f'] });
+    hut(-26, -37, '#f6d9a6', '#ff8a2a', '매점', { poi: 'kiosk', label: '매점 메뉴 보기', cups: ['#ff9a2e', '#ffb627', '#ff5a6e', '#9bd34a'] });
+    hut(16, -37, '#e9eef2', '#3aa0ff', '샤워장');
+    matSeat(10, -28.6, '#ff8a2a'); matSeat(4, -28.8, '#2fd3b5'); matSeat(-8, -28.8, '#ff4f8b');
+    waterChair(16, -15, '#ffd23a'); waterChair(12, -15.2, '#ff8a2a'); waterChair(-14, -14, '#2fd3b5');
+    tubeSeat(-18, -4, '#ff6fa8'); tubeSeat(-24, -10, '#3aa0ff');
+    for (const [x, z] of [[26, -34], [20, -35], [6, -35.5], [-6, -35]]) palm(x, z);
+    /* 해변 바로 뒤 해안도로 · 왼쪽 뒤 알록달록 지붕 금능 마을 · 오른쪽 뒤 소나무 야영장 숲 */
+    for (let x = -50; x < 46; x += 8){ const zr = -44.2 + sh(x + 4), y = terrainH(x + 4, zr) + 0.04; mesh(new THREE.BoxGeometry(8.05, 0.12, 4.6), L('#55595e'), null, x + 4, y, zr); mesh(new THREE.BoxGeometry(5, 0.13, 0.16), L('#f2c230'), null, x + 4, y + 0.01, zr); }
+    houses([[38, -51, '#3b6fb6'], [30, -53.5, '#c94a3a'], [22, -50.5, '#3b6fb6'], [14, -53, '#e07a3a'], [34, -60, '#2f9e8f'], [24, -61, '#3b6fb6'], [6, -51.5, '#3b6fb6']]);
+    for (let k = 0; k < 34; k++){ const x = -R(10, 46), z = R(-56, -47.5) + sh(x); pine(x, z, R(1.0, 1.35)); }
+    for (const x of [-32, -36.5, -41, -45]) pine(x + R(-0.6, 0.6), -36.4 + sh(x) + R(-0.8, 0.8), 1.05);
+    { const sz = -33.2 + sh(-38); signBoard(-38, sz, terrainH(-38, sz), Math.PI, '금능 야영장', '소나무 숲 야영장', '#2f6b3a', '#ffffff', 2.6); }
+    /* 왼쪽 멀리 금능포구 방파제와 등대 */
+    { const t = 0.9; mesh(new THREE.BoxGeometry(22, t + 7, 3.2), concrete, null, 58, (t - 7) / 2, 24); mesh(new THREE.BoxGeometry(3.2, t + 7, 12), concrete, null, 48.6, (t - 7) / 2, 19); lighthouse(68, 24, t, '#ffffff'); }
     buoyLine(-26, 26, 46.5, '#ffd21f', '#ff7a1a');
-    signBoard(-2, -33.2, terrainH(-2, -33.2), Math.PI, '금능해수욕장', 'GEUMNEUNG BEACH · 제주', '#1d7f8c');
-    ROCKSPOTS = GN_ROCKS.map(r => ({ x: r.x, z: r.z, r: r.r + 1 })).concat([[-27, -14], [-28, 2], [-27, 22], [27, -12], [28, 4], [27, 24]].map(([x, z]) => ({ x, z, r: 3 })));
-    farHill(30, 520, 150, 8, 0.45); farHill(-10, 520, 55, 48, 0.9); { const lh = farLighthouse(-16, 516, 9); lh.position.y = 42; }
+    signBoard(2, -33.2, terrainH(2, -33.2), Math.PI, '금능해수욕장', 'GEUMNEUNG BEACH · 제주', '#1d7f8c');
+    ROCKSPOTS = GN_ROCKS.map(r => ({ x: -r.x, z: r.z, r: r.r + 1 })).concat([[27, -14], [28, 2], [27, 22], [-29, 12], [-28, 24], [-30, 34]].map(([x, z]) => ({ x, z, r: 3 })));
+    /* 비양도: 위성사진상 해변 정면에서 오른쪽으로 30도쯤, 바다 건너 2km. 봉우리 위 흰 등대 */
+    farHill(-250, 500, 120, 8, 0.45); farHill(-268, 500, 55, 48, 0.9); { const lh = farLighthouse(-262, 496, 9); lh.position.y = 42; }
     farHalla(-80, -780); farRidge(260, 700, -60, 10, 5, 7);
   },
   decor(){
@@ -1757,11 +1773,13 @@ const SPOTS = [
   facts: ['보트에서 입수', '연산호 군락', '깊고 푸른 물', '바다거북'],
   tips: ['문섬 새끼섬은 연산호가 많아 다이버들이 손꼽는 포인트예요.', '보트 투어와 가이드와 함께 들어가요. 섬과 섬 사이는 물살이 셀 수 있어요.', '연산호는 아주 약해요. 손이나 오리발로 건드리지 않아요.'],
   edgeMsg: '보트와 섬에서 너무 멀어지면 위험해요',
-  area: { x0: -36, x1: 28, z0: -34, z1: 36 }, bounds: { minX: -38, maxX: 30, minZ: -36, maxZ: 38 }, start: { x: -11.8, z: -8.4, yaw: Math.PI / 2 }, cine: { c: [-26, 9, -16], r: [14, 10], look: [6, 1, 4] },
-  map: { rects: [[-13.6, -10.4, -10.9, -1.5, '#ffffff']] },
+  area: { x0: -28, x1: 36, z0: -34, z1: 36 }, bounds: { minX: -30, maxX: 38, minZ: -36, maxZ: 38 }, start: { x: 11.8, z: -8.4, yaw: -Math.PI / 2 }, cine: { c: [26, 9, -16], r: [14, 10], look: [-6, 1, 4] },
+  map: { rects: [[10.4, 13.6, -10.9, -1.5, '#ffffff']] },
   colors: { sand: '#8a857a', wet: '#6f6a60', sea: '#9c968a', seaD: '#7a756b', rock: '#5a564f', rock2: '#77726a', alg: '#5d6a48', grass: '#5f8a45', grass2: '#4c7a3a' },
   water: { shallow: '#2fa6cf', deep: '#073b7a', sandT: '#c6dfe8', under: '#145f96', underTop: '#9ed5ef', underDeep: '#0a396a', fogUnder: 0.05 }, seaName: '짙은 쪽빛',
   terrain(x, z, T){
+    /* 위성사진: 새끼섬은 문섬 북동쪽 끝에 붙어 있다(북쪽 = -z, 동쪽 = +x). 문섬 본섬은 새끼섬의 서남쪽(-x). 설계 좌표는 x를 뒤집어 계산 */
+    x = -x;
     let h = -9 + fbm(x * 0.05, z * 0.05) * 1.5;
     const d1 = Math.hypot(x - 4, (z - 6) * 1.15) + (vnoise(x * 0.15, z * 0.15) - 0.5) * 3;
     const s1 = sstep(13, 8, d1); h = lerp(h, -2.2 + fbm(x * 0.3, z * 0.3) * 1.3, s1);
@@ -1774,7 +1792,7 @@ const SPOTS = [
     T.h = h;
   },
   build(){
-    const bx = -12, bz = -6, deck = 1.0, b = new THREE.Group(); b.position.set(bx, 0, bz); BUILD.parent.add(b);
+    const bx = 12, bz = -6, deck = 1.0, b = new THREE.Group(); b.position.set(bx, 0, bz); BUILD.parent.add(b);
     const hull = new THREE.BoxGeometry(3.4, 1.6, 10, 1, 1, 6), hp = hull.attributes.position; for (let i = 0; i < hp.count; i++){ const zz = hp.getZ(i); if (zz > 2.5) hp.setX(i, hp.getX(i) * (1 - (zz - 2.5) / 3.2)); if (hp.getY(i) < 0) hp.setX(i, hp.getX(i) * 0.8); } hull.computeVertexNormals();
     mesh(hull, white, b, 0, 0.2, 0); mesh(new THREE.BoxGeometry(3.42, 0.25, 9.6), L('#1f6fb5'), b, 0, 0.75, -0.2);
     mesh(new THREE.BoxGeometry(3.2, 0.06, 8.6), wood, b, 0, deck, -0.6);
@@ -1785,9 +1803,12 @@ const SPOTS = [
     ANIM.push(() => { b.position.y = Math.sin(time * 0.9) * 0.022; b.rotation.z = Math.sin(time * 0.7) * 0.015; });
     addBlock(bx, bz - 0.6, 3.2, 8.6, deck); addBlock(bx - 0.3, bz + 0.9, 2.3, 2.7, deck + 2);
     ladder(bx + 0.6, bz - 4.9, 'z', -1, deck);
-    benchSeat(bx + 1.15, bz - 2.8, deck, Math.PI / 2, { x: bx + 0.2, z: bz - 2.8 }); benchSeat(bx + 1.15, bz - 1.5, deck, Math.PI / 2, { x: bx + 0.2, z: bz - 1.5 });
+    benchSeat(bx - 1.15, bz - 2.8, deck, -Math.PI / 2, { x: bx - 0.2, z: bz - 2.8 }); benchSeat(bx - 1.15, bz - 1.5, deck, -Math.PI / 2, { x: bx - 0.2, z: bz - 1.5 });
     edgeSeat(bx, bz + 3.3, deck, 0);
-    ROCKSPOTS = MS_ROCKS.map(r => ({ x: r.x, z: r.z, r: r.r + 1 })).concat(Array.from({ length: 8 }, (_, k) => ({ x: 4 + Math.cos(k * 0.785) * 8, z: 6 + Math.sin(k * 0.785) * 7, r: 2 }))).concat([-16, -8, 0, 8, 16].map(z => ({ x: 24, z, r: 2.5 })));
+    ROCKSPOTS = MS_ROCKS.map(r => ({ x: -r.x, z: r.z, r: r.r + 1 })).concat(Array.from({ length: 8 }, (_, k) => ({ x: -4 + Math.cos(k * 0.785) * 8, z: 6 + Math.sin(k * 0.785) * 7, r: 2 }))).concat([-16, -8, 0, 8, 16].map(z => ({ x: -24, z, r: 2.5 })));
+    /* 북쪽으로 서귀포항 방파제와 다이빙 보트들 */
+    { const t = 1.2; mesh(new THREE.BoxGeometry(70, t + 8, 5), concrete, null, 30, (t - 8) / 2, -150); mesh(new THREE.BoxGeometry(5, t + 8, 36), concrete, null, -6, (t - 8) / 2, -132); lighthouse(-6, -113, t, '#e2382f'); }
+    for (const [x, z, c] of [[26, -40, '#2f6fb5'], [-8, -46, '#c94a3a'], [44, -28, '#2a9d8f']]) fishingBoat(x, z, Math.PI * 0.8, c, false);
     farCity(-520, 420, -640, 80, 3); farHalla(0, -980, 1.1); farHill(-560, 140, 90, 42, 0.6); farHill(600, -160, 70, 48, 0.7);
     { const g = new THREE.Group(); g.position.set(-40, 0, -560); BUILD.parent.add(g); mesh(new THREE.BoxGeometry(110, 3, 6), farMat2, g, 0, 10, 0); const py = mesh(new THREE.ConeGeometry(6, 46, 3), farMat2, g, 10, 30, 0); py.scale.set(0.5, 1, 0.3); farAdd(g); }
   },
@@ -1799,7 +1820,7 @@ const SPOTS = [
     placeStatic('sora', 24, (x, z, h, r) => r > 0.4 && h < -1.2 && h > -5);
   },
   fish: [['jari', 5, 24, 'rock'], ['parang', 4, 6, 'rock'], ['beom', 2, 12, 'rock'], ['ssolbae', 3, 1, 'rock'], ['geobuk', 3, 1, 'rock'], ['hok', 2, 1, 'deep'], ['doldom', 2, 5, 'rock'], ['jwichi', 2, 5, 'mid'], ['jeongang', 1, 30, 'open'], ['yongchi', 2, 2, 'rockbottom']],
-  jelly: { n: 6, cx: -10, cz: 14, ax: 22, az: 18 }, octo: 0, turtle: { cx: 6, cz: 8, rx: 15, rz: 10, y0: -3.2, y1: -1.8 }, staticIds: ['yeonsanho', 'seonge', 'sora'],
+  jelly: { n: 6, cx: 10, cz: 14, ax: 22, az: 18 }, octo: 0, turtle: { cx: -6, cz: 8, rx: 15, rz: 10, y0: -3.2, y1: -1.8 }, staticIds: ['yeonsanho', 'seonge', 'sora'],
 },
 {
   id: 'jangho', short: '장호항', label: '삼척 장호항', country: '한국', region: '강원', type: '항구 스노클링', drinks: 'east',
@@ -1863,12 +1884,14 @@ const SPOTS = [
   facts: ['서핑 파도 존', '서핑숍 거리', '죽도정', '바위 쪽 스노클링'],
   tips: ['파도가 센 날은 초보자는 강습과 함께 타요.', '서핑 구역과 수영 구역을 나눠 쓰니 깃발 안내를 따라요.', '죽도정 둘레길 바위 아래쪽이 물고기가 많아요.'],
   edgeMsg: '깃발과 부표 안쪽에서 놀아요',
-  area: { x0: -40, x1: 36, z0: -24, z1: 46 }, bounds: { minX: -42, maxX: 36, minZ: -41, maxZ: 46.2 }, start: { x: -6, z: -30, yaw: 0 }, cine: { c: [-10, 9, -32], r: [18, 6], look: [18, 2, 4] },
-  map: { buoys: [[14, 34, 40]] },
-  surf: { x0: -38, x1: 12, zStart: 46, zEnd: -16, speed: 2.6, n: 4, amp: 1.0 },
+  area: { x0: -36, x1: 40, z0: -24, z1: 46 }, bounds: { minX: -36, maxX: 42, minZ: -41, maxZ: 46.2 }, start: { x: 6, z: -30, yaw: 0 }, cine: { c: [10, 9, -32], r: [18, 6], look: [-18, 2, 4] },
+  map: { buoys: [[-34, -14, 40]] },
+  surf: { x0: -12, x1: 38, zStart: 46, zEnd: -16, speed: 2.6, n: 4, amp: 1.0 },
   colors: { sand: '#ecdcb2', wet: '#cdb88a', sea: '#e6d6ad', seaD: '#c5b893', rock: '#7a766e', rock2: '#948f85', alg: '#5d6b4a', grass: '#4f7d3c', grass2: '#3e6a30' },
   water: { shallow: '#44c9b4', deep: '#0d5a8a', sandT: '#efe5cd', under: '#1f8a9c', underTop: '#b9efe4', underDeep: '#105a7a', fogUnder: 0.05 }, seaName: '파도 청록',
   terrain(x, z, T){
+    /* 위성사진: 죽도(소나무 언덕과 죽도정)는 해변 오른쪽(남쪽) 끝. 설계 좌표는 x를 뒤집어 계산 */
+    x = -x;
     let h = z < -36 ? 1.8 + sstep(-36, -50, z) * 4 : z < -26 ? lerp(1.8, 0.5, (z + 36) / 10) : z < -20 ? lerp(0.5, -0.4, smooth((z + 26) / 6)) : z < -8 ? lerp(-0.4, -1.3, (z + 20) / 12) : lerp(-1.3, -5, sstep(-8, 46, z));
     h += Math.exp(-(((z + 13) / 3) ** 2)) * 0.25; if (h < -0.2) h += Math.sin(x * 0.6 + z * 0.5) * 0.04;
     const d = Math.hypot((x - 46) * 0.85, z + 16) + (vnoise(x * 0.1, z * 0.1) - 0.5) * 5;
@@ -1878,19 +1901,21 @@ const SPOTS = [
     T.h = h;
   },
   build(){
-    ['#ffd23a', '#2fd3b5', '#ff7a59', '#7a5cff'].forEach((c, i) => hut(-30 + i * 12, -38.6, c, '#ffffff', ['서핑숍', '서핑 강습', '서핑숍', '카페'][i], i === 1 ? { poi: 'rental', label: '서핑숍에서 장비 꾸미기', goods: ['#ff8a1f', '#2fd3b5', '#ff4f8b', '#3aa0ff', '#ffd23a'] } : i === 3 ? { poi: 'kiosk', label: '카페 메뉴 보기', cups: ['#ffe066', '#ff5a6e', '#ffb07a', '#e8d2a6'] } : {}));
-    surfRack(-12, -31); lifeguard(-24, -28.2);
-    matSeat(0, -29.2, '#ff8a2a'); matSeat(6, -29.2, '#2fd3b5'); matSeat(16, -29.6, '#ff4f8b');
-    { const cx = 46, cz = -16, gy = terrainH(cx, cz), g = new THREE.Group(); g.position.set(cx, gy, cz); BUILD.parent.add(g);
+    ['#ffd23a', '#2fd3b5', '#ff7a59', '#7a5cff'].forEach((c, i) => hut(30 - i * 12, -38.6, c, '#ffffff', ['서핑숍', '서핑 강습', '서핑숍', '카페'][i], i === 1 ? { poi: 'rental', label: '서핑숍에서 장비 꾸미기', goods: ['#ff8a1f', '#2fd3b5', '#ff4f8b', '#3aa0ff', '#ffd23a'] } : i === 3 ? { poi: 'kiosk', label: '카페 메뉴 보기', cups: ['#ffe066', '#ff5a6e', '#ffb07a', '#e8d2a6'] } : {}));
+    surfRack(12, -31); lifeguard(24, -28.2);
+    matSeat(0, -29.2, '#ff8a2a'); matSeat(-6, -29.2, '#2fd3b5'); matSeat(-16, -29.6, '#ff4f8b');
+    { const cx = -46, cz = -16, gy = terrainH(cx, cz), g = new THREE.Group(); g.position.set(cx, gy, cz); BUILD.parent.add(g);
       mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.5, 8), L('#a8a49a'), g, 0, 0.25, 0);
       for (let k = 0; k < 8; k++){ const a = k / 8 * Math.PI * 2; mesh(new THREE.CylinderGeometry(0.16, 0.18, 2.4, 8), L('#a8322a'), g, Math.cos(a) * 2.4, 1.7, Math.sin(a) * 2.4); }
       const r1 = mesh(new THREE.ConeGeometry(4.2, 1.6, 8), L('#4b4f55'), g, 0, 3.6, 0); r1.scale.set(1, 1, 1); const r2 = mesh(new THREE.ConeGeometry(2.2, 1.4, 8), L('#3e4247'), g, 0, 4.7, 0);
       mesh(new THREE.CylinderGeometry(3.0, 3.0, 0.3, 8), L('#2f8a6a'), g, 0, 2.95, 0); }
-    for (let k = 0; k < 26; k++){ const a = k * 2.39996, r = 5 + (k % 7) * 1.6, x = 46 + Math.cos(a) * r, z = -16 + Math.sin(a) * r; if (terrainH(x, z) > 3) pine(x, z, 1.0 + (k % 3) * 0.15); }
-    { const fr = mesh(new THREE.DodecahedronGeometry(2.2, 0), L('#7a766e'), null, 30, 1.2, -25); fr.scale.set(1.4, 1.1, 0.5); fr.rotation.set(0.2, 0.6, 0.1); }
-    signBoard(-2, -33.8, terrainH(-2, -33.8), Math.PI, '죽도해변', 'JUKDO BEACH · 양양', '#0e5f96');
-    buoyLine(14, 34, 40, '#ffd21f', '#ff7a1a');
-    ROCKSPOTS = JD_ROCKS.map(r => ({ x: r.x, z: r.z, r: r.r + 1 })).concat([[26, -18], [24, -10], [32, -12]].map(([x, z]) => ({ x, z, r: 2.5 })));
+    for (let k = 0; k < 26; k++){ const a = k * 2.39996, r = 5 + (k % 7) * 1.6, x = -46 + Math.cos(a) * r, z = -16 + Math.sin(a) * r; if (terrainH(x, z) > 3) pine(x, z, 1.0 + (k % 3) * 0.15); }
+    { const fr = mesh(new THREE.DodecahedronGeometry(2.2, 0), L('#7a766e'), null, -30, 1.2, -25); fr.scale.set(1.4, 1.1, 0.5); fr.rotation.set(0.2, 0.6, 0.1); }
+    signBoard(2, -33.8, terrainH(2, -33.8), Math.PI, '죽도해변', 'JUKDO BEACH · 양양', '#0e5f96');
+    buoyLine(-34, -14, 40, '#ffd21f', '#ff7a1a');
+    /* 해변 뒤 서핑숍·카페가 빽빽한 마을 */
+    houses([[24, -48, '#3b6fb6'], [14, -50, '#2f9e8f'], [4, -47.5, '#e07a3a'], [-6, -50, '#3b6fb6'], [-16, -48, '#c94a3a'], [20, -57, '#2f9e8f'], [8, -58, '#3b6fb6'], [-4, -57, '#e07a3a']]);
+    ROCKSPOTS = JD_ROCKS.map(r => ({ x: -r.x, z: r.z, r: r.r + 1 })).concat([[-26, -18], [-24, -10], [-32, -12]].map(([x, z]) => ({ x, z, r: 2.5 })));
     farRidge(-900, 200, -620, 80, 10, 31); farRidge(300, 900, -320, 30, 5, 32);
   },
   decor(){
@@ -1898,7 +1923,7 @@ const SPOTS = [
     pebbles(90, (x, z, h, r) => r > 0.25 && h < -0.3, '#6f6b64');
     placeStatic('haesam', 24, (x, z, h, r) => r > 0.2 && h < -0.8);
     placeStatic('seonge', 30, (x, z, h, r) => r > 0.35 && h < -0.8);
-    placeStatic('star', 20, (x, z, h, r) => h < -0.8 && x > 10);
+    placeStatic('star', 20, (x, z, h, r) => h < -0.8 && x < -10);
   },
   fish: [['bollak', 2, 8, 'weed'], ['mangsang', 2, 10, 'rock'], ['noraemi', 3, 1, 'rockbottom'], ['hwangnol', 2, 3, 'rock'], ['hakgong', 2, 8, 'surface'], ['jeongang', 1, 24, 'open']],
   jelly: null, octo: 0, turtle: null, staticIds: ['haesam', 'seonge', 'star'],
@@ -1931,6 +1956,9 @@ const SPOTS = [
     for (const [x, z] of [[-26, -29], [-20, -30], [22, -30], [28, -29.5]]) palm(x, z);
     for (let k = 0; k < 40; k++){ const x = -38 + (k % 10) * 8 + R(-2, 2), z = -32 - Math.floor(k / 10) * 3.5 + R(-1, 1); if (Math.abs(x - 1) < 12 && z > -36) continue; bush(x, z, k % 3 ? '#4f8a3e' : '#5f9a48'); }
     signBoard(20, -29.6, terrainH(20, -29.6), Math.PI, '요시노 해안', '吉野海岸 · 미야코지마', '#0a5cb4');
+    /* 위성사진: 왼쪽 언덕 위 주차장에서 해변까지 가파른 콘크리트 내리막길(실제로 셔틀이 오르내린다) */
+    for (let i = 0; i <= 18; i++){ const t = i / 18, x = lerp(16, 30, t), z = lerp(-31.5, -47, t), y = terrainH(x, z); const m = mesh(new THREE.BoxGeometry(3.4, 0.18, 1.2), L('#c9c4ba'), null, x, y + 0.08, z); m.rotation.y = Math.atan2(14, -15.5); }
+    { const y = terrainH(31, -49.5); mesh(new THREE.BoxGeometry(12, 0.15, 7), L('#8e8a84'), null, 33, y + 0.06, -50.5); signBoard(26, -44, terrainH(26, -44), Math.PI, '주차장', '가파른 길 · 천천히', '#5a6470', '#ffffff', 2.2); }
     { const foam = mesh(new THREE.PlaneGeometry(90, 1.6, 60, 1), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.6, depthWrite: false }), null, 0, 0.06, 35.6); foam.rotation.x = -Math.PI / 2; ANIM.push(() => { foam.material.opacity = 0.45 + Math.sin(time * 1.3) * 0.2; }); }
     CORALSPOTS = YS_CORAL.map(c => ({ x: c.x, z: c.z, r: c.r })); ANEMS = YS_CORAL.slice(0, 8).map(c => ({ x: c.x + c.r * 0.7, z: c.z + 0.4, r: 0.45 }));
     ROCKSPOTS = CORALSPOTS.slice();
@@ -2053,7 +2081,7 @@ const BEACH_SEATS = (list, cols) => list.forEach(([x, z], i) => matSeat(x, z, co
 const IHO_ROCKS = scatterRocks(11, 7, -40, -26, -20, 30, 1.8, 3.0, 0.8, 1.4);
 const JM_ROCKS = scatterRocks(12, 9, 24, 40, -16, 30, 1.8, 3.2, 1.0, 2.0).concat(scatterRocks(13, 8, -40, -26, -16, 30, 1.8, 3.0, 1.0, 2.0));
 const BS_ROCKS = scatterRocks(14, 26, -40, 34, -16, 38, 1.6, 3.4, 1.0, 2.6, 4.5);
-const CJ_ROCKS = [{ x: -34, z: -10, r: 3, h: 1.6 }, { x: -30, z: 4, r: 2.6, h: 1.4 }, { x: 32, z: -6, r: 2.8, h: 1.5 }, { x: 30, z: 10, r: 2.4, h: 1.2 }];
+const CJ_ROCKS = [{ x: 32, z: -6, r: 2.8, h: 1.5 }, { x: 30, z: 10, r: 2.4, h: 1.2 }, { x: 24, z: 18, r: 2.2, h: 1.0 }, { x: -12, z: 30, r: 3.4, h: 1.4 }, { x: -20, z: 34, r: 3, h: 1.2 }, { x: -4, z: 36, r: 2.6, h: 1.0 }];
 const SC_ROCKS = [{ x: 30, z: 12, r: 2.4, h: 1.0 }, { x: -30, z: 18, r: 2.2, h: 0.9 }, { x: 4, z: 30, r: 2.6, h: 0.9 }];
 const HJ_ROCKS = [{ x: -10, z: -6, r: 2.2, h: 2.6 }, { x: -6, z: 4, r: 2.6, h: 3.2 }, { x: -14, z: 10, r: 3.0, h: 4.0 }, { x: -2, z: 14, r: 2.0, h: 2.0 }, { x: -12, z: 24, r: 3.4, h: 6.5 }, { x: -22, z: 30, r: 2.6, h: 5.0 }, { x: -18, z: 18, r: 2.2, h: 2.2 }, { x: 2, z: 26, r: 2.0, h: 1.6 }];
 const GN2_ROCKS = [{ x: -14, z: -14, r: 1.6, h: 5.5 }, { x: -18, z: -8, r: 1.4, h: 6.5 }, { x: -22, z: -16, r: 1.8, h: 4.5 }, { x: -24, z: -4, r: 1.3, h: 7.2 }, { x: -28, z: 2, r: 1.6, h: 5.2 }, { x: -20, z: 6, r: 1.2, h: 4.2 }, { x: -32, z: 10, r: 1.8, h: 6.0 }, { x: -14, z: 0, r: 1.2, h: 3.2 }, { x: -8, z: 10, r: 1.6, h: 2.0 }, { x: 4, z: 18, r: 2.0, h: 1.6 }, { x: -10, z: 22, r: 1.8, h: 2.6 }, { x: 14, z: 6, r: 1.6, h: 1.4 }];
@@ -2077,7 +2105,7 @@ SPOTS.push(
   area: { x0: -36, x1: 30, z0: -22, z1: 44 }, bounds: { minX: -40, maxX: 34, minZ: -42, maxZ: 45 }, start: { x: -4, z: -31, yaw: 0 }, cine: { c: [-6, 8, -34], r: [18, 5], look: [12, 1, 14] },
   surf: { x0: -32, x1: 14, zStart: 46, zEnd: -14, speed: 2.4, n: 4, amp: 0.85 },
   map: { rects: [[26, 32, -42, 18], [38, 44, -42, 30]], circles: [[29, 18, 3.2], [41, 30, 3.2]] },
-  colors: Object.assign({}, C_JEJU, { sand: '#e6dfcf', wet: '#c9bfab', sea: '#e0d8c4', seaD: '#bab2a0' }),
+  colors: Object.assign({}, C_JEJU, { sand: '#cfc6b4', wet: '#aaa192', sea: '#c4bba9', seaD: '#9f978a' }),   /* 위성사진: 현무암이 섞인 회갈색 모래 */
   water: { shallow: '#55dcd6', deep: '#0f7fae', sandT: '#eaf7ee', under: '#23a3b4', underTop: '#c8f6f2', underDeep: '#157a92', fogUnder: 0.05 }, seaName: '맑은 청록',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 5], [-38, 1.6], [-30, 0.8], [-22, -0.25], [-10, -1.0], [4, -1.7], [46, -4.6]]), x, z);
@@ -2096,6 +2124,16 @@ SPOTS.push(
     BEACH_SEATS([[4, -29], [10, -29.2], [16, -29.4]], ['#ff8a2a', '#2fd3b5', '#ff4f8b']); tubeSeat(20, -8, '#ff6fa8'); tubeSeat(22, 2, '#3aa0ff');
     rentHut(-2, -38.4, 0, '서핑·튜브 대여'); kioskHut(8, -38.6, 0, '매점', CUPS.jeju);
     for (let k = 0; k < 16; k++) pine(-36 + k * 4.4 + R(-1, 1), -45 + R(-2, 2), 1.15); campTent(-26, -42, '#ff7a59'); campTent(18, -43, '#3aa0ff');
+    /* 위성사진: 해변 뒤 오른쪽은 빽빽한 소나무 숲, 왼쪽 뒤(포구 쪽)는 이호 마을. 오른쪽 끝은 매립지 호안(곧은 방파제) */
+    for (let k = 0; k < 40; k++) pine(R(-44, 4), R(-62, -48), R(1.0, 1.4));
+    houses([[16, -52, '#3b6fb6'], [25, -54.5, '#c94a3a'], [34, -51.5, '#3b6fb6'], [20, -61, '#e07a3a'], [30, -62, '#2f9e8f'], [40, -58, '#3b6fb6']]);
+    slab(-50, -42, -46, 34, 1.9, concreteD); roundHead(-46, 34, 4, 1.9, concreteD); tetrapods(-41.5, -38.6, 6, 32, 14);
+    mesh(new THREE.BoxGeometry(0.3, 0.9, 80), L('#e9eef2'), null, -42.2, 2.35, -6);
+    /* 테우: 통나무를 엮어 만든 제주 전통 뗏목(해변 이름이 여기서 왔다) */
+    { const g = new THREE.Group(), gy = terrainH(-17, -33.5); g.position.set(-17, gy + 0.18, -33.5); g.rotation.y = 0.35; BUILD.parent.add(g); const lg = L('#8a6a48'), lg2 = L('#6f5338');
+      for (let i = 0; i < 7; i++){ const m = mesh(new THREE.CylinderGeometry(0.17, 0.2, 5.2, 8), i % 2 ? lg : lg2, g, -0.6 + i * 0.2, 0, 0); m.rotation.x = Math.PI / 2; }
+      for (const zz of [-1.8, 0, 1.8]) mesh(new THREE.BoxGeometry(1.7, 0.1, 0.16), lg2, g, 0, 0.2, zz); mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.2, 6), lg2, g, 0, 1.2, 0.8); addBlock(-17, -33.5, 2.4, 4.6, gy + 0.4); }
+    signBoard(-21, -36.6, terrainH(-21, -36.6), Math.PI, '테우', '제주 전통 통나무 뗏목', '#7a5a3a', '#ffffff', 2.2);
     signBoard(-8, -34.6, terrainH(-8, -34.6), Math.PI, '이호테우해변', 'IHO TEWOO BEACH · 제주', '#1d7f8c');
     ROCKSPOTS = toSpots(IHO_ROCKS).concat([[24, -10], [24, 6], [36, -4], [36, 14]].map(([x, z]) => ({ x, z, r: 2.4 })));
     airplane(-260, 120); farCity(-760, -120, -420, 70, 8); farHalla(-160, -900, 1.1); farRidge(200, 800, -340, 14, 5, 41);
@@ -2131,7 +2169,13 @@ SPOTS.push(
     BEACH_SEATS([[2, -29], [8, -29.2], [-26, -27]], ['#ff8a2a', '#2fd3b5', '#ffd23a']);
     rockSeat(26, -20, -0.6);
     for (const [x, z] of [[-24, -36], [-16, -37], [-4, -38], [26, -36], [30, -38]]) palm(x, z);
-    bigBlocks([[-46, -60, 18, 10, 14, '#f4efe6'], [-20, -66, 22, 10, 18, '#efe7dc'], [12, -64, 16, 9, 12, '#f6f1e9'], [40, -58, 18, 10, 15, '#efe9df']]);
+    /* 위성사진: 해변 뒤는 숲이 덮인 언덕, 언덕 위에 주황·붉은 기와지붕의 큰 리조트 호텔들. 가운데쯤 나무 데크 계단으로 내려온다 */
+    const HT = [[-46, -60, 18, 10, 14, '#f4efe6'], [-20, -66, 22, 10, 18, '#efe7dc'], [12, -64, 16, 9, 12, '#f6f1e9'], [40, -58, 18, 10, 15, '#efe9df']]; bigBlocks(HT);
+    for (const [x, z, w, d, h] of HT){ const gy = terrainH(x, z), r = mesh(new THREE.ConeGeometry(Math.hypot(w, d) / 2 + 0.6, 4.2, 4), L(x < 0 ? '#c8553d' : '#b9472f'), null, x, gy + h + 2.1, z); r.rotation.y = Math.PI / 4; r.scale.set(w / Math.hypot(w, d) * 1.42, 1, d / Math.hypot(w, d) * 1.42); }
+    for (let k = 0; k < 70; k++){ const x = R(-46, 46), z = R(-54, -41) - 0.009 * x * x * 0; if (Math.abs(x + 12) < 2.6) continue; if (rnd() < 0.55) bush(x, z, rnd() < 0.5 ? '#3f7a3a' : '#4f8a3e'); else pine(x, z, R(0.9, 1.3)); }
+    { const dk = L('#a8774a'), dk2 = L('#8b5f3a'); for (let z = -37; z > -53; z -= 0.9){ const y = terrainH(-12, z); mesh(new THREE.BoxGeometry(2.2, 0.16, 0.95), dk, null, -12, y + 0.12, z); }
+      for (const sx of [-1.15, 1.15]) for (let z = -37; z > -53; z -= 2.6){ const y = terrainH(-12, z); mesh(new THREE.BoxGeometry(0.1, 1.0, 0.1), dk2, null, -12 + sx, y + 0.6, z); }
+      signBoard(-8.6, -37.6, terrainH(-8.6, -37.6), Math.PI, '해변 계단', '언덕 위 호텔·주차장 가는 길', '#6b4a2e', '#ffffff', 2.2); }
     signBoard(-4, -34.4, terrainH(-4, -34.4), Math.PI, '중문색달해변', 'JUNGMUN SAEKDAL · 서귀포', '#0e5f96');
     ROCKSPOTS = toSpots(JM_ROCKS).concat([[28, -8], [-28, -8], [30, 20], [-30, 20]].map(([x, z]) => ({ x, z, r: 3 })));
     farHalla(200, -1100, 1.2); farHill(420, 700, 70, 40, 0.7); farHill(-900, -260, 120, 140, 0.75);
@@ -2148,11 +2192,13 @@ SPOTS.push(
   facts: ['바다 위 산책 데크', '하얀 바위섬', '맑은 동해', '바위·해초 바닥'],
   tips: ['데크는 계절에 따라 아침 7~8시부터 저녁 5~6시까지 열려요.', '바위가 많아서 아쿠아슈즈를 신어요.', '물이 금방 깊어지니 구명조끼를 입어요.'],
   edgeMsg: '데크와 바위섬에서 너무 멀리 가지 않아요',
-  area: { x0: -36, x1: 32, z0: -16, z1: 40 }, bounds: { minX: -40, maxX: 34, minZ: -40, maxZ: 42 }, start: { x: 8, z: -26, yaw: 0 }, cine: { c: [16, 10, -28], r: [14, 4], look: [-4, 1, 12] },
-  map: { rects: [[4.7, 7.3, -24, 4], [-3.3, 7.3, 2.7, 5.3], [-3.3, -0.7, 4, 12], [-6, 3, 10, 15, '#b98a5a'], [28, 34, -40, 22]] },
+  area: { x0: -32, x1: 36, z0: -16, z1: 40 }, bounds: { minX: -34, maxX: 40, minZ: -40, maxZ: 42 }, start: { x: -8, z: -26, yaw: 0 }, cine: { c: [-16, 10, -28], r: [14, 4], look: [4, 1, 12] },
+  map: { rects: [[-7.3, -4.7, -24, 4], [-7.3, 3.3, 2.7, 5.3], [0.7, 3.3, 4, 12], [-3, 6, 10, 15, '#b98a5a'], [-34, -28, -40, 22]] },
   colors: Object.assign({}, C_EAST, { rock: '#8f8a82', rock2: '#b4afa6', sand: '#d9d0bd', wet: '#b8af9c', sea: '#cfc7b6', seaD: '#a9a291' }),
   water: { shallow: '#2b97c9', deep: '#06347c', sandT: '#dfe5e4', under: '#155f9e', underTop: '#a6dcf4', underDeep: '#0a3a74', fogUnder: 0.042 }, seaName: '동해 코발트',
   terrain(x, z, T){
+    /* 위성사진: 해안도로에서 데크가 바다로 나가 왼쪽 앞(북쪽)의 백섬에 닿는다. 거진항은 오른쪽(남쪽). 설계 좌표는 x를 뒤집어 계산 */
+    x = -x;
     let h = prof(z, [[-50, 7], [-32, 3.4], [-22, 2.0], [-17, -0.6], [-8, -3.2], [10, -5.2], [44, -9.5]]);
     T.rock = clamp(sstep(-12, -18, z) * sstep(-28, -22, z) + 0.3 * sstep(0.5, 0.75, fbm(x * 0.15, z * 0.15)), 0, 1); if (z < -26) T.grass = sstep(-26, -30, z) * 0.8;
     h += (fbm(x * 0.4, z * 0.4) - 0.5) * 0.6 * sstep(-26, -14, z);
@@ -2161,16 +2207,20 @@ SPOTS.push(
     T.h = h;
   },
   build(){
-    const top = 2.6; seaDeck([[6, -24], [6, 4], [-2, 4], [-2, 12]], top); mesh(new THREE.BoxGeometry(9, 0.2, 5), L('#b98a5a'), null, -1.5, top - 0.1, 12.5); addBlock(-1.5, 12.5, 9, 5, top);
-    benchSeat(-4.5, 13.6, top - 0.35, Math.PI, { x: -4.5, z: 11.6 }); benchSeat(1.5, 13.6, top - 0.35, Math.PI, { x: 1.5, z: 11.6 }); ladder(2.9, 11, 'x', 1, top);
-    slab(28, 34, -40, 22, 2.4); roundHead(31, 22, 3.4, 2.4); lighthouse(31, 23.5, 2.4, '#ffffff'); tetrapods(25, 27.6, -14, 20, 14);
-    fishingBoat(24, -2, Math.PI, '#3b6fb6'); rockSeat(-14, -18.5, 0); rockSeat(-26, -18, 0.2);
-    rentHut(-12, -32.4, 0, '스노클 대여'); kioskHut(-2, -33, 0, '매점', CUPS.east);
-    houses([[-30, -40, '#3b6fb6'], [-20, -42, '#e07a3a'], [14, -40, '#c94a3a'], [22, -42, '#2f9e8f'], [-36, -48, '#c94a3a'], [8, -49, '#3b6fb6']]);
-    for (const [x, z] of [[-34, -32], [-28, -34], [18, -34], [26, -33]]) pine(x, z, 1.1);
-    signBoard(12, -28.6, terrainH(12, -28.6), Math.PI, '백섬해상전망대', 'BAEKSEOM · 고성 거진', '#1d6f9a');
-    seagulls(-6, 19, 7, 5, 11);
-    ROCKSPOTS = toSpots(BS_ROCKS).concat(Array.from({ length: 8 }, (_, k) => ({ x: -6 + Math.cos(k * 0.785) * 8, z: 19 + Math.sin(k * 0.785) * 7, r: 2 })));
+    const top = 2.6; seaDeck([[-6, -24], [-6, 4], [2, 4], [2, 12]], top); mesh(new THREE.BoxGeometry(9, 0.2, 5), L('#b98a5a'), null, 1.5, top - 0.1, 12.5); addBlock(1.5, 12.5, 9, 5, top);
+    benchSeat(4.5, 13.6, top - 0.35, Math.PI, { x: 4.5, z: 11.6 }); benchSeat(-1.5, 13.6, top - 0.35, Math.PI, { x: -1.5, z: 11.6 }); ladder(-2.9, 11, 'x', -1, top);
+    /* 오른쪽(남쪽)으로 거진항 방파제 */
+    slab(-34, -28, -40, 22, 2.4); roundHead(-31, 22, 3.4, 2.4); lighthouse(-31, 23.5, 2.4, '#ffffff'); tetrapods(-27.6, -25, -14, 20, 14);
+    fishingBoat(-24, -2, Math.PI, '#3b6fb6'); rockSeat(14, -18.5, 0); rockSeat(26, -18, 0.2);
+    rentHut(12, -32.4, 0, '스노클 대여'); kioskHut(2, -33, 0, '매점', CUPS.east);
+    /* 위성사진: 바다 바로 뒤로 해안도로, 그 뒤는 소나무 언덕. 거진 마을(알록달록 지붕)은 오른쪽 뒤 */
+    for (let x = -46; x < 46; x += 8){ const y = terrainH(x + 4, -37.2) + 0.04; mesh(new THREE.BoxGeometry(8.05, 0.12, 4.4), L('#55595e'), null, x + 4, y, -37.2); mesh(new THREE.BoxGeometry(5, 0.13, 0.16), L('#f2c230'), null, x + 4, y + 0.01, -37.2); }
+    houses([[-30, -44, '#3b6fb6'], [-20, -46, '#e07a3a'], [-12, -50, '#2f9e8f'], [-36, -52, '#c94a3a'], [-26, -55, '#3b6fb6'], [-8, -58, '#e07a3a']]);
+    for (let k = 0; k < 30; k++) pine(R(-2, 44), R(-56, -42), R(1.0, 1.35));
+    for (const [x, z] of [[34, -32], [28, -34], [-18, -34], [-26, -33]]) pine(x, z, 1.1);
+    signBoard(-12, -28.6, terrainH(-12, -28.6), Math.PI, '백섬해상전망대', 'BAEKSEOM · 고성 거진', '#1d6f9a');
+    seagulls(6, 19, 7, 5, 11);
+    ROCKSPOTS = BS_ROCKS.map(r => ({ x: -r.x, z: r.z, r: r.r + 1 })).concat(Array.from({ length: 8 }, (_, k) => ({ x: 6 + Math.cos(k * 0.785) * 8, z: 19 + Math.sin(k * 0.785) * 7, r: 2 })));
     farRidge(-800, 500, -560, 90, 12, 51); farRidge(-200, 900, -380, 40, 7, 52);
   },
   decor: EAST_DECOR(240),
@@ -2189,7 +2239,8 @@ SPOTS.push(
   colors: Object.assign({}, C_EAST, { sand: '#efe2bf', wet: '#d4bf92' }), water: { shallow: '#36abd0', deep: '#0a438a', sandT: '#ece4cf', under: '#1a74a8', underTop: '#b6e6f4', underDeep: '#0c4a80', fogUnder: 0.046 }, seaName: '맑은 동해',
   terrain(x, z, T){
     let h = ripple(prof(z, [[-50, 5], [-38, 1.8], [-30, 0.6], [-22, -0.25], [-6, -0.9], [12, -1.6], [44, -4.2]]), x, z);
-    const c = Math.max(cape(x, z, 32, 40, 9), cape(x, z, -32, -40, 8)); if (c > 0){ h = lerp(h, 1.6 + fbm(x * 0.2, z * 0.2) * 1.5 - sstep(0, 40, z) * 3, c); T.rock = c; }
+    /* 위성사진: 왼쪽(북쪽) 끝만 바위곶과 짧은 방파제, 오른쪽(남쪽)은 모래사장이 길게 이어진다. 앞바다에는 검은 암초 띠 */
+    const c = cape(x, z, 30, 38, 9); if (c > 0){ h = lerp(h, 1.6 + fbm(x * 0.2, z * 0.2) * 1.5 - sstep(0, 40, z) * 3, c); T.rock = c; }
     const B = bumps(x, z, CJ_ROCKS); if (B.b > 0){ h += Math.min(B.b, Math.max(0, -0.7 - h)); T.rock = Math.max(T.rock, B.rk); }
     if (z < -40) T.grass = sstep(-40, -43, z);
     T.h = h;
@@ -2199,9 +2250,14 @@ SPOTS.push(
     for (const [x, z, c] of [[10, -31.5, '#ff8a2a'], [14, -32, '#2fd3b5'], [19, -31.5, '#ffd23a']]) beanbagSeat(x, z, c);
     BEACH_SEATS([[-2, -29], [4, -29.2]], ['#ff4f8b', '#3aa0ff']); tubeSeat(20, -10, '#ff6fa8');
     buoyLine(14, 32, 38, '#ffd21f', '#ff7a1a');
-    for (let k = 0; k < 12; k++) pine(-34 + k * 6 + R(-1, 1), -44 + R(-1.5, 1.5), 1.1);
+    /* 왼쪽 바위곶에서 남쪽으로 뻗은 짧은 방파제 */
+    slab(18, 32, 9, 12, 1.5); roundHead(18, 10.5, 2.2, 1.5); tetrapods(18, 31, 12.6, 15, 10);
+    /* 해변 바로 뒤 길과 빽빽한 천진리 마을(알록달록 지붕) */
+    for (let x = -46; x < 46; x += 8){ const y = terrainH(x + 4, -41.4) + 0.04; mesh(new THREE.BoxGeometry(8.05, 0.12, 4.2), L('#55595e'), null, x + 4, y, -41.4); }
+    houses([[-30, -48, '#3b6fb6'], [-21, -50, '#2f9e8f'], [-12, -47.5, '#c94a3a'], [-3, -50.5, '#3b6fb6'], [6, -48, '#2f9e8f'], [15, -50, '#e07a3a'], [-26, -57, '#2f9e8f'], [-16, -58.5, '#3b6fb6'], [-6, -57, '#c94a3a'], [4, -58, '#3b6fb6'], [14, -57.5, '#2f9e8f']]);
+    for (let k = 0; k < 6; k++) pine(-36 + k * 3 + R(-1, 1), -44 + R(-1, 1), 1.1);
     signBoard(-4, -34.4, terrainH(-4, -34.4), Math.PI, '천진해변', 'CHEONJIN BEACH · 고성', '#0e5f96');
-    ROCKSPOTS = toSpots(CJ_ROCKS).concat([[-34, -16], [34, -16]].map(([x, z]) => ({ x, z, r: 3 })));
+    ROCKSPOTS = toSpots(CJ_ROCKS).concat([[34, -16], [26, 13]].map(([x, z]) => ({ x, z, r: 3 })));
     farRidge(-900, 300, -620, 95, 11, 61); farHill(-260, -520, 70, 60, 0.9); farRidge(100, 900, -360, 30, 6, 62);
   },
   decor: EAST_DECOR(90),
@@ -2234,6 +2290,12 @@ SPOTS.push(
     rentHut(-24, -39, 0, '서핑숍'); kioskHut(-14, -39.2, 0, '매점', CUPS.east);
     for (let k = 0; k < 18; k++){ const px = -38 + k * 4.2 + R(-1, 1), pz = -46 + R(-2, 2); if (px > 14 && px < 40) continue; pine(px, pz, 1.2); } /* 대관람차 자리는 비운다 */
     signBoard(-6, -36.4, terrainH(-6, -36.4), Math.PI, '속초해수욕장', 'SOKCHO BEACH · 속초', '#1d6f9a');
+    /* 위성사진: 오른쪽(남쪽) 해변 뒤는 빽빽한 해송 숲, 왼쪽(북쪽) 뒤는 대관람차와 고층 아파트·호텔. 왼쪽 끝 바다에는 아치 다리로 이어진 T자 해상 방파제 */
+    for (let k = 0; k < 36; k++) pine(R(-46, -2), R(-62, -49), R(1.1, 1.45));
+    bigBlocks([[8, -74, 12, 10, 38, '#eef0f2'], [24, -82, 12, 10, 46, '#f2f2ee'], [42, -72, 12, 10, 34, '#e9edf1'], [-6, -86, 12, 10, 30, '#eef0f2'], [58, -88, 14, 10, 42, '#f0eee9']]);
+    { const t = 1.2; slab(48, 54, 8, 40, t, concreteD); slab(40, 62, 40, 46, t, concreteD); mesh(new THREE.BoxGeometry(22, 1.0, 6.2), L('#e9eef2'), null, 51, t + 0.5, 43); tetrapods(55, 58, 8, 38, 12);
+      const arch = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new V3(38, 1.6, -22), new V3(44, 5.2, -8), new V3(51, 1.6, 6)]), 24, 0.28, 8); mesh(arch, white, null, 0, 0, 0);
+      for (let i = 0; i <= 10; i++){ const u = i / 10, x = lerp(38, 51, u), z = lerp(-22, 6, u), y = 1.4 + Math.sin(u * Math.PI) * 1.2; mesh(new THREE.BoxGeometry(3, 0.25, 3.4), L('#d8dde2'), null, x, y, z); } }
     ROCKSPOTS = toSpots(SC_ROCKS);
     farCity(-500, 400, -380, 90, 71); farRidge(-900, 500, -700, 120, 12, 72); farHill(300, 320, 26, 10, 0.5); { const lh = farLighthouse(296, 318, 9); lh.position.y = 8; }
   },
@@ -2267,6 +2329,7 @@ SPOTS.push(
     rentHut(-14, -39, 0, '서프 스쿨'); rentHut(-24, -39.4, 0, '보드 대여'); surfRack(-6, -37.5); lifeguard(-20, -29.6);
     buoyLine(22, 36, 36, '#ffd21f', '#ff7a1a');
     for (let k = 0; k < 18; k++) pine(-40 + k * 4.6 + R(-1, 1), -46 + R(-2, 2), 1.15);
+    for (let x = -46; x < 46; x += 8){ const y = terrainH(x + 4, -50.5) + 0.04; mesh(new THREE.BoxGeometry(8.05, 0.12, 4.4), L('#55595e'), null, x + 4, y, -50.5); mesh(new THREE.BoxGeometry(5, 0.13, 0.16), L('#f2c230'), null, x + 4, y + 0.01, -50.5); }   /* 위성사진: 해송 한 줄 뒤로 곧은 해안도로 */
     { const gy = terrainH(-52, -6); lighthouse(-52, -6, gy, '#ffffff'); } for (const [x, z] of [[-48, -16], [-54, -18], [-46, -24]]) pine(x, z, 1.3);
     signBoard(-2, -36.2, terrainH(-2, -36.2), Math.PI, '서핑 전용 해변', 'SURF ONLY BEACH · 양양', '#ff7a1a');
     ROCKSPOTS = [[-40, -8], [-40, 6], [-38, 18]].map(([x, z]) => ({ x, z, r: 3 }));
@@ -2301,6 +2364,7 @@ SPOTS.push(
     benchSeat(-5, 5.4, top - 0.35, 0, { x: -5, z: 3 }); benchSeat(1, 5.4, top - 0.35, 0, { x: 1, z: 3 }); ladder(-6, 2.8, 'x', -1, top);
     { const gy = terrainH(-24, 6); lighthouse(-24, 6, gy, '#ffffff'); } { const gy = terrainH(-30, -8); pavilion(-30, -8, gy, { s: 0.75 }); }
     for (const [x, z, s] of [[-20, -6, 1.3], [-26, -16, 1.4], [-34, 0, 1.2], [-16, -18, 1.1], [-36, -14, 1.3]]) pine(x, z, s);
+    for (let k = 0; k < 26; k++){ const x = R(-44, -12), z = R(-40, 4); if (terrainH(x, z) > 5 && Math.hypot(x + 24, z - 6) > 3 && Math.hypot(x + 30, z + 8) > 4) pine(x, z, R(1.0, 1.4)); }   /* 위성사진: 하조대 곶은 소나무가 빽빽하다 */
     BEACH_SEATS([[10, -28.6], [18, -28.8], [26, -29]], ['#ff8a2a', '#2fd3b5', '#ff4f8b']); rockSeat(-12, -15, 0.4);
     rentHut(20, -38.6, 0, '튜브·스노클 대여'); kioskHut(29, -38.8, 0, '매점', CUPS.east); lifeguard(16, -27.8);
     for (let k = 0; k < 9; k++) pine(4 + k * 4 + R(-1, 1), -45 + R(-1.5, 1.5), 1.1);
@@ -2336,7 +2400,9 @@ SPOTS.push(
     slab(26, 32, -40, 10, 2.0); roundHead(29, 10, 3, 2.0); lighthouse(29, 11.5, 2.0, '#e2382f'); fishingBoat(22, -6, Math.PI, '#c94a3a'); fishingBoat(22, 4, Math.PI, '#3b6fb6'); edgeSeat(26.2, -14, 2.0, -Math.PI / 2);
     pyeong(-2, -29.2, '#ff8a2a'); pyeong(14, -29.4, '#2fd3b5'); rockSeat(-14, -14, -0.4); rockSeat(-20, -18, 0.2); tubeSeat(6, -8, '#ff6fa8');
     rentHut(-6, -36.4, 0, '체험마을 대여소'); kioskHut(4, -36.8, 0, '매점', CUPS.east);
-    houses([[-26, -42, '#3b6fb6'], [-16, -44, '#e07a3a'], [-6, -45, '#c94a3a'], [12, -44, '#2f9e8f'], [20, -43, '#3b6fb6'], [-20, -51, '#c94a3a'], [0, -52, '#3b6fb6'], [16, -51, '#e07a3a']]);
+    /* 위성사진: 갈남 마을은 왼쪽 뒤(포구 쪽)에 모여 있고, 오른쪽 뒤는 소나무 언덕 */
+    houses([[-6, -45, '#c94a3a'], [12, -44, '#2f9e8f'], [20, -43, '#3b6fb6'], [4, -52, '#3b6fb6'], [16, -51, '#e07a3a'], [26, -50, '#c94a3a'], [10, -59, '#2f9e8f'], [22, -58, '#3b6fb6']]);
+    for (let k = 0; k < 16; k++) pine(R(-40, -14), R(-56, -40), R(1.0, 1.3));
     for (const [x, z, s] of [[-31, 22, 1.0], [-28, 26, 1.1], [-32, 27, 0.9], [-27, 21, 0.9]]) pine(x, z, s); seagulls(-30, 24, 6, 6, 12);
     signBoard(8, -33.6, terrainH(8, -33.6), Math.PI, '갈남항', 'GALNAM PORT · 삼척', '#1d6f9a');
     ROCKSPOTS = toSpots(GN2_ROCKS, 1.6).concat(Array.from({ length: 6 }, (_, k) => ({ x: -30 + Math.cos(k * 1.05) * 9, z: 24 + Math.sin(k * 1.05) * 9, r: 2.2 })));
@@ -2359,7 +2425,7 @@ SPOTS.push(
   colors: C_OKI, water: { shallow: '#4fe4f6', deep: '#0466d8', sandT: '#f7fffb', under: '#1ea6e8', underTop: '#d6fdff', underDeep: '#0a66bd', fogUnder: 0.03 }, seaName: '미야코 블루',
   terrain(x, z, T){
     let h = prof(z, [[-48, 9], [-34, 1.8], [-28, 0.6], [-22, -0.3], [-14, -0.6], [20, -1.1], [34, -1.4], [37.5, -0.3], [46, -11]]) + (fbm(x * 0.08, z * 0.08) - 0.5) * 0.3 * sstep(-20, -10, z);
-    const e = Math.max(cape(x, z, -36, -46, 2), cape(x, z, 36, 46, 9)); if (e > 0){ h = lerp(h, 2 + fbm(x * 0.2, z * 0.2) * 3, e); T.rock = e; }
+    const e = cape(x, z, -36, -46, 2); if (e > 0){ h = lerp(h, 2 + fbm(x * 0.2, z * 0.2) * 3, e); T.rock = e; }   /* 위성사진: 왼쪽(북쪽)은 모래사장이 계속 이어지고 오른쪽(남쪽) 끝만 바위곶 */
     h = coralTerrain(h, x, z, AR_CORAL, -0.72, T);
     if (z < -32) T.grass = sstep(-32, -35, z) * (1 - e * 0.5);
     T.h = h;
@@ -2458,7 +2524,8 @@ SPOTS.push(
     signBoard(-2, -33.6, terrainH(-2, -33.6), Math.PI, '마에하마 비치', '与那覇前浜 · 미야코지마', '#0a5cb4');
     ROCKSPOTS = [[-30, 10], [30, 14], [0, 30]].map(([x, z]) => ({ x, z, r: 4 }));
     bigBlocks([[-30, -60, 30, 10, 12, '#f6f1e8'], [16, -62, 26, 10, 10, '#efe7dc']]);
-    farHill(-80, 700, 360, 22, 0.22); farBridge(300, 120, 120, 640, 4, 6);
+    /* 위성사진: 바다를 보고 왼쪽(남동쪽) 끝에서 구리마대교가 왼쪽 앞으로 뻗어 평평한 구리마섬에 닿는다 */
+    farHill(760, 360, 260, 22, 0.45); farBridge(80, 20, 640, 300, 4, 8);
   },
   decor(){ weeds(140, (x, z, h, r) => h < -0.8, 'grass'); placeStatic('blackcuc', 24, (x, z, h, r) => h < -0.6); placeStatic('bluestar', 10, (x, z, h, r) => h < -0.8); pebbles(40, (x, z, h, r) => h < -0.5, '#e6dccb', 0.4, 1.0); },
   fish: [['mangduk', 3, 2, 'sand'], ['picasso', 3, 1, 'sand'], ['hakgong', 2, 8, 'surface'], ['parang', 1, 5, 'rock'], ['greenchromis', 1, 10, 'rock']],
@@ -7130,7 +7197,7 @@ async function photoShare(item){ try { const f = photoFile(item); if (navigator.
    실제 그 바다의 명소를 찾아가면(오르거나, 걷거나, 타거나, 헤엄쳐 가면) 수첩에 도장이 찍히고 인증 사진을 찍어 준다.
    자리로 찾는 명소에는 빨간 도장함을 세워 둔다(실제 관광지 스탬프 투어처럼) */
 const MARKS = {
-  panpo: { name: '판포포구 빨간 등대', how: '방파제를 따라 끝의 빨간 등대까지 걸어가요', x: 36.2, z: 16.4, r: 3.4, land: true },
+  panpo: { name: '판포포구 빨간 등대', how: '왼쪽 긴 방파제를 따라 끝의 빨간 등대까지 걸어가요', x: 39.4, z: 32.6, r: 3.4, land: true },
   geumneung: { name: '금능 원담', how: '현무암으로 쌓은 옛 돌그물 원담 위를 걸어 바다 쪽 끝까지 가요', land: true },
   munseom: { name: '문섬 연산호 군락', how: '4m 넘게 잠수해서 알록달록 연산호를 봐요', test: () => P.mode === 'swim' && P.body < -4 },
   jangho: { name: '장호항 투명카누', how: '바닥이 훤히 보이는 투명카누에 타 봐요', ev: true },
@@ -7138,7 +7205,7 @@ const MARKS = {
   yoshino: { name: '요시노 산호초 흰동가리', how: '물가 바로 앞 산호초에서 흰동가리를 만나요', ev: true },
   iho: { name: '이호테우 빨간 말 등대', how: '방파제를 따라 빨간 말 모양 등대까지 가요', x: 28.4, z: 15.6, r: 3.4, land: true },
   jungmun: { name: '중문 해식동굴', how: '현무암 절벽의 해식동굴 안까지 헤엄쳐 가요', x: -33.2, z: 10, r: 3.6 },
-  baekseom: { name: '백섬 해상전망대', how: '바다 위 산책 데크를 따라 끝까지 걸어가요', x: -2, z: 11.4, r: 2.4, land: true },
+  baekseom: { name: '백섬 해상전망대', how: '바다 위 산책 데크를 따라 끝까지 걸어가요', x: 2, z: 11.4, r: 2.4, land: true },
   cheonjin: { name: '청간정', how: '천진해변 북쪽 절벽 위 정자(관동팔경)에 올라요', land: true },
   sokcho: { name: '속초 바다 대관람차', how: '매표소에서 표 사고 대관람차를 한 바퀴 타요', ev: true },
   surfyy: { name: '서피비치 해먹', how: '해먹에 누워 바다를 보며 쉬어요', ev: true },
@@ -7168,7 +7235,7 @@ function cheongganjeong(x0, x1, z0, z1, h){ const rock = L('#8a8378'), rock2 = L
   signBoard(x0 - 5.2, (z0 + z1) / 2 + 2.6, groundH(x0 - 5.2, (z0 + z1) / 2 + 2.6), -Math.PI / 2, '청간정', '관동팔경 · 절벽 위 정자', '#7a3b2a', '#ffffff', 2.6);
   Object.assign(MARKS.cheonjin, { x: px - 1.6, z: pz, r: 2.8, box: [x0 + 0.7, (z0 + z1) / 2 + 2.2] }); }
 function markBuild(){ const m = MARKS[SPOT?.id]; if (!m) return;
-  if (SPOT.id === 'geumneung') wondam(-25, -19, 7.2);
+  if (SPOT.id === 'geumneung') wondam(25, -19, 7.2);   /* 위성사진: 원담은 해변 왼쪽(서쪽) 너럭바위 앞 */
   if (SPOT.id === 'cheonjin') cheongganjeong(27, 35, -35, -25, 4.2);
   if (m.x !== undefined && m.land){ const [bx, bz] = m.box || [m.x + 1.2, m.z - 0.6]; stampBox(bx, bz, groundH(bx, bz)); }
   MARKS.cur = { id: SPOT.id, in: false }; }
