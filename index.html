@@ -353,6 +353,15 @@ body.zen #mung,body.zen #topbar,body.zen #spotcard,body.zen #friend{opacity:0;po
 .next{font-size:12px;color:#cfe9ec;line-height:1.6;border-top:1px dashed rgba(255,255,255,.3);padding-top:8px}
 @media (max-width:560px){#start{padding:0;align-items:flex-end;background:linear-gradient(180deg,rgba(7,48,66,0) 8%,rgba(7,48,66,.55) 100%)}.sc{width:100%;max-height:90%;border-radius:22px 22px 0 0;padding:14px 14px calc(12px + env(safe-area-inset-bottom));gap:9px}#start h1{font-size:25px}.next{display:none}.sregs button{padding:7px 11px}.sregs button small{display:none}.sregs .mapbtn{padding:7px 10px}.ssel .lead{font-size:13.5px}.srow{padding:8px 11px}.srow b{font-size:17px}}
 @media (max-height:820px) and (min-width:561px){.next{display:none}}
+/* 시작 화면 둘러보기: 뒤 배경 바다를 누르고 끌거나(PC) 밀어서(모바일) 좌우로 본다 */
+#start{touch-action:pan-y;cursor:grab}#start.grabbing{cursor:grabbing}#start .sc{cursor:auto}
+#sLook .slk{position:fixed;z-index:11;width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.75);background:rgba(7,48,66,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.22);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;transition:background .15s,transform .1s;padding:0}
+#sLook .slk:hover{background:rgba(7,48,66,.78)}#sLook .slk:active,#sLook .slk.on{transform:scale(.92);background:rgba(255,138,31,.85)}
+#sLook .slk:focus-visible{outline:3px solid #ffd23a;outline-offset:2px}
+#sLook .slkh{position:fixed;z-index:11;transform:translateX(-50%);padding:7px 14px;border-radius:999px;border:1.5px solid rgba(255,255,255,.55);background:rgba(7,48,66,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;font:inherit;font-size:14px;white-space:nowrap;pointer-events:none;transition:opacity .4s}
+#sLook .slkh.reset{pointer-events:auto;cursor:pointer;background:rgba(255,138,31,.85);border-color:#fff}
+#sLook .hide{display:none}
+@media (max-width:560px){#sLook .slk{width:46px;height:46px}#sLook .slkh{font-size:13px;padding:6px 12px}}
 .next b{font-family:var(--display);font-weight:400;color:#fff}
 /* 같이 수영하기: 이름표 · 말풍선 · 친구 목록 · 말하기 */
 #tags{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
@@ -728,6 +737,11 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
     <div class="cta"><button class="btn primary" id="sGo">바다로 들어가기</button><button class="btn ghost" id="sGear">장비 먼저 꾸미기</button></div>
     <div class="next" id="sNext"></div>
   </div>
+  <div id="sLook">
+    <button type="button" class="slk" id="sLookL" aria-label="왼쪽 둘러보기"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button type="button" class="slk" id="sLookR" aria-label="오른쪽 둘러보기"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button type="button" class="slkh" id="sLookH" tabindex="-1"></button>
+  </div>
 </div>
 <div id="fatal" class="hidden"></div>
 <div id="veil" class="hidden"><div><b id="vName"></b><small id="vSub"></small></div></div>
@@ -757,6 +771,8 @@ function shade(hex, l){ const c = new THREE.Color(hex); c.offsetHSL(0, 0, l); re
 function loadLS(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
 function saveLS(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 const TOUCH = matchMedia('(pointer: coarse)').matches;
+/* 시작 화면 둘러보기 상태: orbit = 자동으로 천천히 도는 각, yaw = 내가 돌린 고개 각(+ = 왼쪽) */
+const SLOOK = { orbit: 0, yaw: 0, cur: 0, btn: 0, drag: null, last: -1e9, used: false };
 /* 서버 시계: 파도 · 큰 파도 · 고래 · 야비지 배처럼 모두가 같이 보는 장면은 이 시계로 움직인다.
    이 페이지를 준 서버(Vercel)의 Date와 내 기기 시계를 한 번 비교해서, 1.5초 넘게 어긋난 기기만 바로잡는다 */
 const SRV = { off: 0, ok: false };
@@ -2648,7 +2664,7 @@ function disposeGroup(g){ g.traverse(o => { if (o.geometry && !o.geometry.userDa
 function spotDex(def){ const ids = def.fish.map(f => f[0]); if (def.jelly) ids.push('moon'); if (def.octo) ids.push('octo'); if (def.turtle) ids.push('turtle'); return [...new Set(ids.concat(def.staticIds, (def.crit || []).map(c => c[0])))]; }
 function hashStr(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function buildSpot(id){
-  const def = spotById(id) || SPOTS[0];
+  const def = spotById(id) || SPOTS[0]; SLOOK.yaw = SLOOK.cur = 0; SLOOK.orbit = 0;
   if (SG) disposeGroup(SG);
   SG = new THREE.Group(); scene.add(SG); BUILD.parent = SG;
   SPOT = def; SURF = def.surf || null; def.dex = spotDex(def);
@@ -3706,7 +3722,9 @@ function gearFreeRect(){
   return { x0: 8, x1: Math.max(100, g.left - 12), y0: Math.min(top, H * 0.3), y1: H - 10 };
 }
 function updateCamera(dt){
-  if (!started){ const C = SPOT.cine, a = time * 0.045; camera.position.set(C.c[0] + Math.sin(a) * C.r[0], C.c[1] + Math.sin(a * 0.7) * 1.2, C.c[2] + Math.cos(a) * C.r[1]); camera.position.y = Math.max(camera.position.y, groundH(camera.position.x, camera.position.z) + 2.5); camera.lookAt(C.look[0], C.look[1], C.look[2]); return; }
+  if (!started){ const C = SPOT.cine, busy = SLOOK.drag || SLOOK.btn || performance.now() - SLOOK.last < 5000; if (!busy) SLOOK.orbit += dt * 0.045; const a = SLOOK.orbit;
+    if (SLOOK.btn) SLOOK.yaw += SLOOK.btn * dt * 1.2; SLOOK.cur = lerpAngle(SLOOK.cur, SLOOK.yaw, 1 - Math.exp(-dt * 9)); camera.position.set(C.c[0] + Math.sin(a) * C.r[0], C.c[1] + Math.sin(a * 0.7) * 1.2, C.c[2] + Math.cos(a) * C.r[1]); camera.position.y = Math.max(camera.position.y, groundH(camera.position.x, camera.position.z) + 2.5);
+    { const cp = camera.position, dx = C.look[0] - cp.x, dz = C.look[2] - cp.z, cs = Math.cos(SLOOK.cur), sn = Math.sin(SLOOK.cur); camera.lookAt(cp.x + dx * cs + dz * sn, C.look[1], cp.z - dx * sn + dz * cs); } return; }
   camT.set(charRoot.position.x, charRoot.position.y + 0.3, charRoot.position.z);
   if (gearOpen){
     /* 장비 창이 가리지 않는 빈 공간을 찾아 아이를 그 가운데에, 몸 전체가 들어오게 비춘다 */
@@ -5231,6 +5249,43 @@ function startWithNick(gear){ const inp = $('#sNick'), msg = $('#sNickMsg'), c =
   if (!c.ok){ msg.textContent = c.why; msg.classList.add('bad'); inp.focus(); inp.select(); return; }
   inp.value = NICK; startGame(gear); if (NICK) setTimeout(() => toast(`${NICK} 님, 바다에 온 걸 환영해요!`), 1500); }
 $('#sGo').onclick = () => startWithNick(false); $('#sGear').onclick = () => startWithNick(true);
+/* 시작 화면 둘러보기: 배경 바다를 누르고 끌기(PC) · 밀기(모바일) · 양옆 버튼(짧게 누르면 30도, 꾹 누르면 계속) · 키보드 ←/→ · 가운데 '정면으로' */
+(function sLookInit(){
+  const st = $('#start'), L = $('#sLookL'), Rb = $('#sLookR'), H = $('#sLookH'), K = 30 * Math.PI / 180;
+  const hintTxt = TOUCH ? '바다를 밀어서 좌우로 둘러봐요' : '바다를 누르고 끌어서 좌우로 둘러봐요';
+  const used = () => { SLOOK.last = performance.now(); SLOOK.used = true; };
+  const turned = () => Math.abs(Math.atan2(Math.sin(SLOOK.yaw), Math.cos(SLOOK.yaw))) > 0.25;
+  function place(){
+    if (st.classList.contains('hidden')) return;
+    const off = WORLD === 'sky' && SKYW?.active, sc = st.querySelector('.sc').getBoundingClientRect(), W = innerWidth, Hh = innerHeight, mob = sc.width > W * 0.7;
+    const x0 = mob ? 0 : sc.right, x1 = W, y0 = mob ? 0 : 0, y1 = mob ? sc.top : Hh, ok = !off && x1 - x0 > 170 && y1 - y0 > 120;
+    for (const b of [L, Rb, H]) b.classList.toggle('hide', !ok); if (!ok) return;
+    const bw = L.offsetWidth || 52, cy = mob ? Math.max(y0 + 64, (y0 + y1) / 2 - bw / 2) : (y0 + y1) / 2 - bw / 2;
+    L.style.left = (x0 + 14) + 'px'; Rb.style.left = (x1 - 14 - bw) + 'px'; L.style.top = Rb.style.top = cy + 'px';
+    H.style.left = ((x0 + x1) / 2) + 'px'; H.style.top = (mob ? Math.min(y1 - 46, cy + bw + 14) : y1 - 64) + 'px';
+    const rs = turned(); H.classList.toggle('reset', rs); H.tabIndex = rs ? 0 : -1; H.textContent = rs ? '정면으로 보기' : hintTxt; H.style.opacity = rs || !SLOOK.used ? 1 : 0;
+  }
+  addEventListener('resize', place); setInterval(place, 400); requestAnimationFrame(place);
+  /* 배경 끌기 · 밀기 */
+  st.addEventListener('pointerdown', e => { if (e.target !== st || e.button > 0) return; SLOOK.drag = { id: e.pointerId, x: e.clientX, yaw: SLOOK.yaw }; try { st.setPointerCapture(e.pointerId); } catch(_){} st.classList.add('grabbing'); used(); });
+  st.addEventListener('pointermove', e => { const d = SLOOK.drag; if (!d || d.id !== e.pointerId) return; SLOOK.yaw = d.yaw + (e.clientX - d.x) / Math.max(360, innerWidth) * Math.PI * 1.3; used(); });
+  const end = e => { if (SLOOK.drag && SLOOK.drag.id === e.pointerId){ SLOOK.drag = null; st.classList.remove('grabbing'); used(); place(); } };
+  st.addEventListener('pointerup', end); st.addEventListener('pointercancel', end); st.addEventListener('lostpointercapture', end);
+  /* 양옆 버튼: 짧게 누르면 30도씩, 꾹 누르면 계속 돈다 */
+  for (const [b, dir] of [[L, 1], [Rb, -1]]){
+    let t0 = 0, timer = 0;
+    b.addEventListener('pointerdown', e => { e.preventDefault(); t0 = performance.now(); b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch(_){} clearTimeout(timer); timer = setTimeout(() => { SLOOK.btn = dir; }, 230); used(); });
+    const up = () => { if (!t0) return; clearTimeout(timer); if (!SLOOK.btn) SLOOK.yaw += dir * K; SLOOK.btn = 0; t0 = 0; b.classList.remove('on'); used(); place(); };
+    b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
+    b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); SLOOK.yaw += dir * K; used(); place(); } });
+    b.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  H.addEventListener('click', () => { if (!turned()) return; SLOOK.yaw = Math.round(SLOOK.yaw / (Math.PI * 2)) * Math.PI * 2; used(); place(); });
+  /* 키보드 ←/→ (별명 입력 중에는 글자 이동에 양보) */
+  addEventListener('keydown', e => { if (started || st.classList.contains('hidden') || /INPUT|TEXTAREA/.test(e.target?.tagName || '') || (WORLD === 'sky' && SKYW?.active)) return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ e.preventDefault(); if (!e.repeat) SLOOK.yaw += (e.key === 'ArrowLeft' ? 1 : -1) * K * 0.5; SLOOK.btn = e.key === 'ArrowLeft' ? 1 : -1; used(); } });
+  addEventListener('keyup', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ SLOOK.btn = 0; used(); place(); } });
+})();
 { const inp = $('#sNick'), msg = $('#sNickMsg'); inp.value = NICK;
   const hint = () => { const c = nickCheck(inp.value); msg.classList.toggle('bad', !c.ok); msg.textContent = !c.ok ? c.why : c.long ? `${NICK_MAX}자까지만 쓸 수 있어요 · '${c.v}'(으)로 정해져요` : '친구들 머리 위 이름표와 순위표에 보여요 · 8자까지'; };
   inp.addEventListener('input', hint); inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); inp.blur(); } });
@@ -8072,7 +8127,7 @@ function boot(data){
 try { window.claude?.hot?.snapshot?.(snapshot); } catch (e){}
 const hot = window.claude?.hot;
 if (hot?.ready) hot.ready(boot); else boot(hot?.data ?? {});
-window.__pp = { get sea(){ return SEATEST; }, get renderer(){ return renderer; }, get SKYW(){ return SKYW; }, get WORLD(){ return WORLD; }, SKYREC, get SKYRANK(){ return SKYRANK; }, get PEARL(){ return PEARL; }, OWNED, openStore, get storeOpen(){ return storeOpen; }, openRank, get rankKind(){ return rankKind; }, set rankKind(v){ rankKind = v; }, renderRank, get LOBBY(){ return LOBBY; }, P, CAM, BABY_STYLES, get G(){ return G; }, get NICK(){ return NICK; }, setNick, nickCheck, nameOf, rankName, TR, TITEMS, get BAG(){ return BAG; }, set BAG(v){ BAG = v; saveBag(); }, openBag, tradeItem, tradeAll, treasureInteract, interact, nearestInteract, get bagOpen(){ return bagOpen; }, get storeTab(){ return storeTab; }, renderDex, get dexMode(){ return dexMode; }, set dexMode(v){ dexMode = v; }, get FOUND(){ return FOUND; }, get SPOT(){ return SPOT; }, SPOTS, switchSpot, openSpots, renderSpots, spotMap, get FISH(){ return FISH; }, get turtle(){ return turtle; }, STATICS: () => STATICS, get CRITS(){ return CRITS; }, get REC(){ return REC; }, get SREC(){ return SREC; }, ME, openStore, buyFood, bite, FOODS, RENTALS, applyGear, SEATS: () => SEATS, POIS: () => POIS, FUN, fart, trip, DROPS, BTN, NET, get time(){ return time; }, DBG, recordSurf, SFX, get rankKind(){ return rankKind; }, get PEARL(){ return PEARL; }, addPearl, RANK, DIVE, recordDive, openRank, renderRank, SHOP, OWNED, buyItem, SPEC, SPECIES, foundAll, startGame, setFP, setTOD, openGear, openDex, sitDown, SEATS, groundH, keys, BTN, NET, onPeersChange, WAVES, catchable, startSurf, setGear, say, emote, openFriends };
+window.__pp = { get sea(){ return SEATEST; }, SLOOK, get camDir(){ const v = new V3(); camera.getWorldDirection(v); return [+v.x.toFixed(3), +v.z.toFixed(3)]; }, get renderer(){ return renderer; }, get SKYW(){ return SKYW; }, get WORLD(){ return WORLD; }, SKYREC, get SKYRANK(){ return SKYRANK; }, get PEARL(){ return PEARL; }, OWNED, openStore, get storeOpen(){ return storeOpen; }, openRank, get rankKind(){ return rankKind; }, set rankKind(v){ rankKind = v; }, renderRank, get LOBBY(){ return LOBBY; }, P, CAM, BABY_STYLES, get G(){ return G; }, get NICK(){ return NICK; }, setNick, nickCheck, nameOf, rankName, TR, TITEMS, get BAG(){ return BAG; }, set BAG(v){ BAG = v; saveBag(); }, openBag, tradeItem, tradeAll, treasureInteract, interact, nearestInteract, get bagOpen(){ return bagOpen; }, get storeTab(){ return storeTab; }, renderDex, get dexMode(){ return dexMode; }, set dexMode(v){ dexMode = v; }, get FOUND(){ return FOUND; }, get SPOT(){ return SPOT; }, SPOTS, switchSpot, openSpots, renderSpots, spotMap, get FISH(){ return FISH; }, get turtle(){ return turtle; }, STATICS: () => STATICS, get CRITS(){ return CRITS; }, get REC(){ return REC; }, get SREC(){ return SREC; }, ME, openStore, buyFood, bite, FOODS, RENTALS, applyGear, SEATS: () => SEATS, POIS: () => POIS, FUN, fart, trip, DROPS, BTN, NET, get time(){ return time; }, DBG, recordSurf, SFX, get rankKind(){ return rankKind; }, get PEARL(){ return PEARL; }, addPearl, RANK, DIVE, recordDive, openRank, renderRank, SHOP, OWNED, buyItem, SPEC, SPECIES, foundAll, startGame, setFP, setTOD, openGear, openDex, sitDown, SEATS, groundH, keys, BTN, NET, onPeersChange, WAVES, catchable, startSurf, setGear, say, emote, openFriends };
 </script>
 </body>
 </html>
