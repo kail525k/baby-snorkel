@@ -7407,7 +7407,7 @@ function renderNote(){ jnEnsure(); const B = $('#ntBody'); B.innerHTML = ''; for
 
 /* ---------- 기능별 사용 집계(익명): 어떤 놀이를 많이 하는지만 센다. 이름·기기 정보 없이 세션마다 새 번호 ---------- */
 const TRACK = { sid: rndHex(6), buf: [], n: 0, off: false };
-function track(ev, v){ if (TRACK.off || TRACK.n >= 300 || !/^https?:$/.test(location.protocol) || /claude|localhost|127\.0\.0\.1/.test(location.hostname)) return; TRACK.n++; TRACK.buf.push({ sid: TRACK.sid, ev: String(ev).slice(0, 24), spot: String(SPOT?.id || '').slice(0, 16), v: Number.isFinite(v) ? v : null }); }
+function track(ev, v){ if (TRACK.off || TRACK.n >= 300 || !/^https?:$/.test(location.protocol) || /claude|localhost|127\.0\.0\.1|-welev\.vercel\.app/.test(location.hostname)) return; TRACK.n++; TRACK.buf.push({ sid: TRACK.sid, ev: String(ev).slice(0, 24), spot: String(SPOT?.id || '').slice(0, 16), v: Number.isFinite(v) ? v : null }); }
 async function trackFlush(){ if (TRACK.off || !TRACK.buf.length) return; const sb = await sbClient(); if (!sb){ TRACK.buf.length = 0; return; } const rows = TRACK.buf.splice(0, 60);
   try { const { error } = await sb.from('snorkel_events').insert(rows); if (error) TRACK.off = true; } catch (e){ TRACK.off = true; } }
 setInterval(trackFlush, 25000); addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') trackFlush(); });
