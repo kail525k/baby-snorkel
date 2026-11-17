@@ -356,7 +356,7 @@ body.zen #mung,body.zen #topbar,body.zen #spotcard,body.zen #friend{opacity:0;po
 /* 폰: 바다 고르기 창 '작게'(기본: 바다 카드를 옆으로 넘김, 배경이 넓게 보임) ↔ '크게'(전체 목록) */
 .sgrip,.smore,#sGear .gs{display:none}
 @media (max-width:600px){
-  .sgrip{display:block;width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.5);margin:-5px auto 0;flex:0 0 auto}
+  .sgrip{display:block;position:relative;width:132px;height:24px;margin:-14px auto -10px;padding:0;border:0;border-radius:12px;background:none;flex:0 0 auto;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}.sgrip::before{content:'';position:absolute;left:44px;right:44px;top:9px;height:5px;border-radius:3px;background:rgba(255,255,255,.5);transition:background .15s,transform .15s}.sgrip:hover::before,.sgrip:active::before{background:rgba(255,255,255,.88)}.sgrip:active::before{transform:scaleX(1.15)}.sgrip:focus-visible{outline:2px solid #fff;outline-offset:-2px}
   .shead{display:flex;align-items:center;justify-content:space-between;gap:8px;touch-action:none}
   .smore{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;border:0;border-radius:999px;padding:6px 12px 6px 13px;background:rgba(255,255,255,.16);color:#fff;font:inherit;font-size:13.5px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4);cursor:pointer;white-space:nowrap;text-shadow:none}
   .smore svg{width:14px;height:14px}
@@ -750,7 +750,7 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
 
 <div id="start">
   <div class="sc" aria-label="바다 고르기">
-    <i class="sgrip" aria-hidden="true"></i>
+    <button type="button" class="sgrip" id="sGrip" aria-controls="sList" aria-label="바다 목록 크게 보기"></button>
     <div class="shead"><div class="eyebrow"><i></i><span>아기 스노클링 바다 여행</span></div><h1 id="sH1">어느 바다로 갈까요?</h1><button type="button" class="smore" id="sMore" aria-expanded="false" aria-controls="sList"></button></div>
     <div class="skind" id="sKind" role="group" aria-label="바다 또는 하늘 고르기"></div>
     <div class="sregs" id="sRegs" role="group" aria-label="지역 고르기"></div>
@@ -5297,10 +5297,20 @@ $('#sGo').onclick = () => startWithNick(false); $('#sGear').onclick = () => star
 (function pickSheetInit(){
   const sc = $('#start .sc'), mb = $('#sMore'), mq = matchMedia('(max-width:600px)'), hd = sc.querySelector('.shead');
   const UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>', DN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
-  const set = (mini, save) => { sc.classList.toggle('mini', mini && mq.matches); mb.setAttribute('aria-expanded', String(!mini)); mb.innerHTML = mini ? `목록 크게 ${UP}` : `작게 ${DN}`; mb.setAttribute('aria-label', mini ? '바다 목록 크게 보기' : '바다 목록 작게 보기(배경 넓게)');
+  const gp = $('#sGrip'), calm = matchMedia('(prefers-reduced-motion: reduce)');
+  const set = (mini, save) => { const h0 = save && mq.matches ? sc.offsetHeight : 0; sc.classList.toggle('mini', mini && mq.matches); mb.setAttribute('aria-expanded', String(!mini)); mb.innerHTML = mini ? `목록 크게 ${UP}` : `작게 ${DN}`; mb.setAttribute('aria-label', mini ? '바다 목록 크게 보기' : '바다 목록 작게 보기(배경 넓게)');
+    gp.setAttribute('aria-expanded', String(!mini)); gp.setAttribute('aria-label', mini ? '바다 목록 크게 보기' : '바다 목록 작게 보기(배경 넓게)');
+    /* 손잡이·버튼으로 바꿀 때 창이 아래에서 스르륵 올라오고 내려가게 */
+    if (h0 && !calm.matches && sc.animate){ const d = h0 - sc.offsetHeight; sc.animate(d < 0 ? [{ transform: `translateY(${-d}px)` }, { transform: 'none' }] : [{ transform: 'translateY(14px)', opacity: .85 }, { transform: 'none', opacity: 1 }], { duration: d < 0 ? 260 : 170, easing: 'cubic-bezier(.2,.8,.2,1)' }); }
     if (save) saveLS('pp_pickmini', mini ? 1 : 0); requestAnimationFrame(() => $('#sList [aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' })); };
   set(loadLS('pp_pickmini', 1) !== 0, false);
   mb.onclick = () => set(!sc.classList.contains('mini'), true);
+  /* 위쪽 손잡이: 누르면 크게 ↔ 작게, 위로 밀면 크게, 아래로 밀면 작게 */
+  let g0 = null, gMoved = false;
+  gp.addEventListener('pointerdown', e => { g0 = e.clientY; gMoved = false; try { gp.setPointerCapture(e.pointerId); } catch(_){} });
+  gp.addEventListener('pointerup', e => { if (g0 === null) return; const dy = e.clientY - g0; g0 = null; if (Math.abs(dy) > 24){ gMoved = true; set(dy > 0, true); } });
+  gp.addEventListener('pointercancel', () => { g0 = null; });
+  gp.onclick = () => { if (gMoved){ gMoved = false; return; } set(!sc.classList.contains('mini'), true); };
   let y0 = null;
   hd.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; y0 = e.clientY; });
   hd.addEventListener('pointerup', e => { if (y0 === null) return; const dy = e.clientY - y0; y0 = null; if (dy < -24) set(false, true); else if (dy > 24) set(true, true); });
