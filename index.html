@@ -717,7 +717,7 @@ body.touch #bDown .ic svg{width:23px;height:23px}body.touch #bDown .ic span{font
         <li>진주는 새 친구 발견, 잠수, 서핑, 물멍으로 모여요. 장비의 "진주 상점"에서 래시가드 무늬와 새 장비를 살 수 있고, 기록과 순위가 오르면 더 멋진 장비가 열려요.</li>
       </ul>
       <p class="safe">이건 게임 속 규칙이에요. 실제 바다에서는 숨 참기 시합이나 연습을 하지 않아요. 숨을 몰아쉬거나 오래 참으면 물속에서 갑자기 정신을 잃을 수 있어요. 스노클링은 물 위에서 스노클로 숨 쉬며, 꼭 어른·안전요원과 함께 해요.</p></div>
-    <div id="hSurf"><h3>서핑</h3><p>장비에서 서핑보드를 고르거나, 모래사장의 서핑보드 거치대로 가 보세요. 노란 깃발 사이가 서핑 존이에요. 보드에 엎드려 패들하다가 파도가 바로 뒤로 오면 <kbd>Space</kbd>(휴대폰은 화면 가운데 버튼)로 일어서요. 타는 동안에는 좌우로 방향을 바꾸고, 깃발 밖으로 나가면 떨어져요. 롱보드는 파도 잡기가 쉽고, 숏보드는 방향 전환이 빨라요.</p><p>파도 위에 뜬 별(10점)과 황금 조개(30점)를 모으고, 좌우로 크게 꺾으면 턴 점수를 받아요. 파도가 끝날 때까지 타면 완주 보너스! 한 번에 60점을 넘기면 서핑 지역·전체 순위가 열려요.</p></div>
+    <div id="hSurf"><h3>서핑</h3><p>장비에서 서핑보드를 고르거나, 모래사장의 서핑보드 거치대로 가 보세요. 노란 깃발 사이가 서핑 존이에요. 보드에 엎드려 패들하다가 파도가 바로 뒤로 오면 <kbd>Space</kbd>(휴대폰은 화면 가운데 버튼)로 일어서요. 타는 동안에는 좌우로 방향을 바꾸고, 깃발 밖으로 나가면 떨어져요. 롱보드는 파도 잡기가 쉽고, 숏보드는 방향 전환이 빨라요.</p><p>파도 위에 뜬 별(10점)과 황금 조개(30점)를 모으고, 좌우로 크게 꺾으면 턴 점수를 받아요. 파도가 끝날 때까지 타면 완주 보너스! 한 번에 60점을 넘기면 서핑 지역·전체 순위에도 올라가요. 순위는 기록이 없어도 누구나 볼 수 있어요.</p></div>
     <div id="hNoSurf" class="hidden"><h3>서핑</h3><p>이 바다에는 서핑 파도가 없어요. 서핑은 <b>양양 죽도해변</b>에서 할 수 있어요. 위쪽 "바다 옮기기"를 눌러 보세요.</p></div>
     <div><h3>같이 수영하기</h3><p id="hNet">로그인 없이, 같은 시간에 같은 바다를 고르면 그 바다에서 만나요. 파도는 모두에게 똑같이 보이고, 물고기 무리도 거의 같은 자리에 있어요. 위쪽 친구 버튼(사람 모양)을 누르면 지금 이 바다에 누가 있는지와 다른 바다에서 노는 친구 수가 보이고, "가기"로 그 바다로 옮겨요. 친구 목록의 "옆으로 가기"로 친구 옆으로 바로 가고, <kbd>T</kbd>나 말하기 버튼으로 말풍선을 띄울 수 있어요. 인터넷이 끊기면 혼자 놀기로 바뀌었다가, 다시 연결되면 친구들이 보여요.</p></div>
     <div><h3 id="hSeatT">물멍자리</h3><p id="hSeats"></p></div>
@@ -3589,7 +3589,7 @@ function recordSurf(s, score, lead){
   const nt = tierOf(SREC.best, STIERS);
   if (nt > prevTier){ const b = STIERS[nt].bonus; addPearl(b);
     setTimeout(() => { toast(`서핑 ${STIERS[nt].name} 등급이 됐어요! 진주 +${b}`, 'found'); AudioSys.chime();
-      if (prevBest < SF_MIN && SREC.best >= SF_MIN) setTimeout(() => toast('서핑 지역 순위와 전체 순위가 열렸어요! "순위"에서 서핑을 눌러 보세요', 'found'), 2600); }, 1300); }
+      if (prevBest < SF_MIN && SREC.best >= SF_MIN) setTimeout(() => toast('서핑 지역 · 전체 순위에 내 기록이 올라갔어요! "순위"에서 서핑을 눌러 보세요', 'found'), 2600); }, 1300); }
   NET.rid++; NET.rd = score;
   if (spotPB || regPB || allPB) queueRankWrite();
   if (rankOpen) renderRank();
@@ -4419,7 +4419,7 @@ function recordDive(sec){
   const nt = tierOf(REC.best);
   if (nt > prevTier){ const b = TIERS[nt].bonus; addPearl(b);
     setTimeout(() => { toast(`잠수 ${TIERS[nt].name} 등급이 됐어요! 진주 +${b}`, 'found'); AudioSys.chime();
-      if (prevBest < RANK_MIN && REC.best >= RANK_MIN) setTimeout(() => toast('지역 순위와 전체 순위가 열렸어요! 위쪽 "순위"를 눌러 보세요', 'found'), 2600); }, 1300); }
+      if (prevBest < RANK_MIN && REC.best >= RANK_MIN) setTimeout(() => toast('지역 · 전체 순위에 내 기록이 올라갔어요! 위쪽 "순위"를 눌러 보세요', 'found'), 2600); }, 1300); }
   if (REC.n === 1) setTimeout(() => hintOnce('calm', '물 위에서 가만히 떠 있으면 숨을 고를 수 있어요. 숨을 고르고 잠수하면 더 오래 버텨요'), 3200);
   if (sec >= 5){ NET.rc = (NET.rc || 0) + 1; NET.rs = sec; }
   if (spotPB || regPB || allPB) queueRankWrite();
@@ -4552,22 +4552,15 @@ function renderRank(){
   const K = RK[rankKind], R0 = K.rec(), surf = rankKind === 'surf', tabs = $('#rkTabs'); tabs.innerHTML = '';
   const seg = el('div', 'seg kind'); for (const [k, l] of RANK_KINDS){ const b = el('button'); b.type = 'button'; b.id = 'rkk-' + k; b.textContent = l; b.setAttribute('aria-pressed', rankKind === k); b.onclick = () => { rankKind = k; renderRank(); }; seg.appendChild(b); }
   tabs.appendChild(seg);
-  const unlocked = R0.best >= K.unlock;
+  /* 순위는 기록과 상관없이 누구나 이 바다 · 지역 · 전체를 다 볼 수 있다(잠금 없음) */
   for (const [id, label] of [['spot', '이 바다'], ['reg', '지역'], ['all', '전체'], ['me', '내 기록']]){
     const b = el('button', 'tab'); b.type = 'button'; b.role = 'tab'; b.id = 'rk-' + id; b.setAttribute('aria-selected', rankTab === id); b.textContent = id === 'spot' && surf ? '해변별' : label;
-    if ((id === 'reg' || id === 'all') && !unlocked){ b.classList.add('locked'); b.prepend(lockSvg()); }
     b.onclick = () => { rankTab = id; renderRank(); }; tabs.appendChild(b); }
   $('#rkT').textContent = surf ? '서핑 순위' : '잠수 순위'; $('#rank').setAttribute('aria-label', surf ? '서핑 순위' : '잠수 순위');
   const T = K.T[tierOf(R0.best, K.T)];
   $('#rkSub').textContent = R0.best ? `내 최고 ${K.fmt(R0.best)} · ${T.name}` : surf ? '아직 서핑 기록이 없어요' : '아직 기록이 없어요';
   const body = $('#rkBody'); body.innerHTML = '';
   if (rankTab === 'me'){ surf ? renderMySurf(body) : renderMyRec(body); rankStatus(body); return; }
-  if ((rankTab === 'reg' || rankTab === 'all') && !unlocked){
-    const c = el('div', 'rlock'); c.appendChild(lockSvg()); c.appendChild(el('b', '', `${rankTab === 'reg' ? '지역' : '전체'} ${K.word} 순위는 아직 잠겨 있어요`));
-    c.appendChild(el('p', '', surf ? `한 번 탈 때 ${SF_MIN}점을 넘기면 열려요. 지금 내 최고 점수는 ${fmtP(SREC.best)}이에요.` : `한 번에 ${RANK_MIN}초 넘게 잠수하면 열려요. 지금 내 최고 기록은 ${fmtS(REC.best)}예요.`));
-    const bar = el('div', 'rbar'); const f = el('i'); f.style.width = clamp(R0.best / K.unlock * 100, 0, 100).toFixed(0) + '%'; bar.appendChild(f); c.appendChild(bar);
-    c.appendChild(el('p', 'tip', surf ? '파도 위에 뜬 별을 모으고, 좌우로 크게 꺾어 턴을 하면 점수가 쑥쑥 올라가요.' : '물 위에서 가만히 떠서 숨을 고른 다음, 잠수해서 가만히 머물면 숨이 천천히 줄어요.'));
-    body.appendChild(c); rankStatus(body); return; }
   let list, title, key, go = null;
   if (rankTab === 'spot'){
     if (surf){ const ss = surfSpots(); if (!rankSurfSpot || !ss.some(d => d.id === rankSurfSpot)) rankSurfSpot = SPOT.surf ? SPOT.id : (ss.find(d => d.mr === SPOT.mr) || ss[0]).id;
