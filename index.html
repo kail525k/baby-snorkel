@@ -3671,10 +3671,11 @@ function snackUpdate(dt){
 }
 
 /* 포즈 애니메이션 */
-const STATES = new Set(['idle', 'walk', 'fall', 'swim', 'tread', 'tube', 'sit', 'paddle', 'surf', 'float', 'dig', 'trip', 'slide', 'tuck', 'star']);
+const STATES = new Set(['idle', 'walk', 'fall', 'swim', 'tread', 'tube', 'sit', 'paddle', 'surf', 'float', 'dig', 'trip', 'slide', 'tuck', 'star', 'dance1', 'dance2', 'dance3', 'danceS1', 'danceS2', 'danceS3']);
 const hasBoard = g => g.board === 'long' || g.board === 'short';
 const FINK = () => (G.fins === 'long' || G.fins === 'mermaid') ? 1.45 : G.fins === 'short' ? 1.25 : 1;
 function localState(){
+  if (DANCE.on && DANCE.st) return DANCE.st;
   { const s = seaState(); if (s) return s; }
   if (P.sit) return P.sit.kind === 'tube' ? 'tube' : P.sit.kind === 'float' ? (G.tube !== 'none' ? 'tube' : 'float') : 'sit';
   if (P.surf) return 'surf';
@@ -3714,6 +3715,7 @@ function animRig(rig, dt, st, o){
   else if (st === 'tuck'){ /* 공중 기술: 무릎을 가슴으로 꼭 끌어안고 동글게 */ T.pitch = 0.2; T.bob = 0.05; T.lLx = T.lRx = -2.1; T.lLz = 0.1; T.lRz = -0.1; T.aLx = T.aRx = -1.15; T.aLz = -0.15; T.aRz = 0.15; }
   else if (st === 'star'){ /* 공중에서 만세: 팔다리 쫙 */ T.pitch = -0.08; T.aLz = 2.35 + Math.sin(t * 12) * 0.12; T.aRz = -(2.35 + Math.sin(t * 12 + 1) * 0.12); T.lLz = 0.5; T.lRz = -0.5; T.lLx = -0.2; T.lRx = 0.1; }
   else if (st === 'sit'){ T.pitch = -0.12; T.lLx = T.lRx = -1.45; T.aLz = 0.25; T.aRz = -0.25; if (cup){ T.aRx = -0.95; T.aRz = 0.15; } }
+  else if (st.startsWith('dance')) danceT(T, st);
   else if (st === 'pose' && o.T) Object.assign(T, o.T); /* 하늘 월드(sky.js)가 자세를 직접 정할 때 */
   if (rig.foodObj && !o.eat && (st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet')){ T.aLx = T.aLx * 0.3 - 0.75; T.aLz = 0.1; }
   if (cup && !o.sip && !o.shoot && (st === 'idle' || st === 'walk' || st === 'run')){ T.aRx = T.aRx * 0.3 - 0.75; T.aRz = -0.1; }
@@ -3726,13 +3728,14 @@ function animRig(rig, dt, st, o){
   const k = 1 - Math.exp(-dt * 10);
   for (const key in T) PS[key] = lerp(PS[key], T[key], key === 'pitch' ? 1 - Math.exp(-dt * 5) : k);
   rig.pose.rotation.set(PS.pitch, PS.yaw, PS.roll); rig.pose.position.y = PS.bob;
+  if (st === 'dance2') rig.pose.rotation.y += (time * 4.4) % (Math.PI * 2); /* 빙글빙글: 박자에 맞춰 계속 돈다 */
   if (o.tk){ rig.pose.rotation.x += o.tk[0]; rig.pose.rotation.y += o.tk[1]; rig.pose.rotation.z += o.tk[2]; }
   if (CH.arms){ const ao = (rig.armOut || 0) * clamp(1 - Math.abs(PS.aLz) * 0.8, 0, 1); CH.arms[0].rotation.set(PS.aLx, 0, PS.aLz + ao); CH.arms[1].rotation.set(PS.aRx, 0, PS.aRz - ao); CH.legs[0].rotation.set(PS.lLx, 0, PS.lLz); CH.legs[1].rotation.set(PS.lRx, 0, PS.lRz); if (rig.gear?.fins === 'mermaid'){ CH.legs[1].rotation.x = CH.legs[0].rotation.x; CH.legs[0].rotation.z = CH.legs[1].rotation.z = 0; } }
   if (rig.board){ const b = rig.board; b.visible = st !== 'sit' && st !== 'tube';
     if (st === 'surf'){ b.position.set(0, -0.47, 0); b.rotation.set(o.slope || 0, 0, (o.lean || 0) * 0.7); }
     else if (st === 'paddle'){ b.position.set(0, -0.17 + PS.bob, 0.12); b.rotation.set(0, 0, 0); }
     else { b.position.set(0.3, -0.06, 0); b.rotation.set(0, 0, Math.PI / 2); } }
-  { const MK = CH.mask; if (MK){ const land = st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet' || st === 'trip' || st === 'float', upT = MK.on && land ? 1 : 0;
+  { const MK = CH.mask; if (MK){ const land = st === 'idle' || st === 'walk' || st === 'run' || st === 'sit' || st === 'wet' || st === 'trip' || st === 'float' || st.startsWith('dance'), upT = MK.on && land ? 1 : 0;
     PS.mUp = lerp(PS.mUp || 0, upT, 1 - Math.exp(-dt * 6)); const u = PS.mUp, isUp = u > 0.5; MK.mp.rotation.x = -0.74 * u; MK.mp.scale.setScalar(1 + MK.upK * u);
     MK.sg.visible = MK.snork && !(MK.on && isUp); MK.su.visible = MK.snork && MK.on && isUp; if (MK.mouth) MK.mouth.visible = !MK.sg.visible; } }
   { const X = rig.X || (rig.X = { t: 2 + Math.random() * 6, kind: '', el: 0, dur: 0 }), mouthFree = !(CH.mask && CH.mask.sg.visible);
@@ -3740,6 +3743,7 @@ function animRig(rig, dt, st, o){
     if (o.sip && cup) want = 0.42;
     else if (o.eat && rig.foodObj) want = 0.2 + Math.abs(Math.sin(t * 9)) * 0.6;
     else if (st === 'wet'){ want = 0.55 + Math.sin(t * 15) * 0.15; ek = 0.3; }
+    else if (st.startsWith('dance')){ want = 0.38 + Math.sin(time * 12.6) * 0.12; ek = 0.45; }
     else if (X.kind){ X.el += dt; const a = Math.sin(clamp(X.el / X.dur, 0, 1) * Math.PI);
       if (X.kind === 'yawn'){ want = a; ek = 1 - a * 0.85; }
       else if (X.kind === 'laugh'){ want = (0.45 + Math.sin(t * 15) * 0.15) * Math.min(1, a * 3); ek = 1 - Math.min(1, a * 3) * 0.7; }
@@ -4023,7 +4027,7 @@ function refreshHUD(){
   $('#joy').classList.toggle('hidden', !started || !TOUCH || panel || !!P.sit);
   if (P.sit || panel) $('#act').classList.add('hidden');
 }
-const ST_LABEL = { idle: '쉬는 중', walk: '걷는 중', fall: '점프!', swim: '스노클링 중', tread: '둥실둥실', tube: '튜브 타는 중', sit: '물멍 중', paddle: '패들 중', surf: '서핑 중!', run: '달리는 중', seabed: '바다 바닥 탐험 중', seawalk: '바다 바닥 걷는 중', dig: '바닥에서 보물 찾는 중', slide: '워터 슬라이드 슝!', tuck: '공중 기술!', star: '슝~ 날아가는 중' };
+const ST_LABEL = { dance1: '춤추는 중 💃', dance2: '춤추는 중 🕺', dance3: '춤추는 중 🌊', danceS1: '보트에서 춤추는 중', danceS2: '보트에서 춤추는 중', danceS3: '보트에서 춤추는 중', idle: '쉬는 중', walk: '걷는 중', fall: '점프!', swim: '스노클링 중', tread: '둥실둥실', tube: '튜브 타는 중', sit: '물멍 중', paddle: '패들 중', surf: '서핑 중!', run: '달리는 중', seabed: '바다 바닥 탐험 중', seawalk: '바다 바닥 걷는 중', dig: '바닥에서 보물 찾는 중', slide: '워터 슬라이드 슝!', tuck: '공중 기술!', star: '슝~ 날아가는 중' };
 let hudT = 0, curInteract = null;
 let zenT = 0;
 document.addEventListener('pointerdown', () => { zenT = 0; document.body.classList.remove('zen'); }, true);
@@ -8275,7 +8279,7 @@ function ybRide(dt){
     if (bo) for (const s of [-1, 1]){ const r = ybLocal(s * 2.4, 4.4 + Math.random()); splashAt(r.x, r.z, 0.9); } }
   if (YB.stage === 'cruise' && YB.t > 6){ YB.waveT = (YB.waveT ?? 4) - dt; if (YB.waveT <= 0) ybWaveHit(); }
   B.bump = Math.max(0, (B.bump || 0) - dt * 1.4);
-  const G0 = ybGuide(), q = ybLocal(0, -3.3); G0.x = q.x; G0.z = q.z; G0.y = YB_DECK + 0.4; G0.st = 'idle'; G0.mv = false; G0.yaw = lerpAngle(G0.yaw, Math.atan2(P.x - q.x, P.z - q.z), 1 - Math.exp(-dt * 4));
+  const G0 = ybGuide(), q = ybLocal(0, -3.3); G0.x = q.x; G0.z = q.z; G0.y = YB_DECK + 0.4; G0.st = DANCE.on && DANCE.where === 'yacht' ? 'dance' + (DANCE.k + 1) : 'idle'; G0.mv = false; G0.yaw = lerpAngle(G0.yaw, Math.atan2(P.x - q.x, P.z - q.z), 1 - Math.exp(-dt * 4));
   if (YC.helm) YC.helm.label = YB.boostT > 0 ? '전속력으로 달리는 중!' : '키 잡고 전속력!';
   if (YC.wheel) YC.wheel.rotation.z += dt * (YB.boostT > 0 ? 6 : 0.4) * Math.sin(time * 0.7);
 }
@@ -8736,6 +8740,88 @@ function q3Tick(dt){
 /* 시작 화면 '지금 이벤트' 바로가기: 시작하자마자 준비물 챙겨서 야비지 요트로. 투어가 끝나면 미야코 해변(요시노)으로 돌아온다 */
 function sEvtGo(){ if (WORLD !== 'sea' || switching || started) return; EVT_GO = true; track('event_btn'); startWithNick(false); if (!started){ EVT_GO = false; return; }
   setTimeout(() => { if (SPOT?.tour) return; ybPack(); ybDepart(true); YB.origin = 'yoshino'; }, 350); }
+
+/* ============================== 배 위 댄스 ==============================
+   야비지 블루호(요트) 갑판 · 작은 보트 위에서만 춤춰요. 버튼을 또 누르면 다른 춤, 움직이면 멈춰요.
+   춤 상태(dance1~3, 보트는 앉아서 danceS1~3)는 presence로 같이 노는 친구 화면에도 보여요. */
+const DANCES = [{ n: '신나게 들썩', e: '💃' }, { n: '빙글빙글', e: '🕺' }, { n: '파도 웨이브', e: '🌊' }];
+const DANCE = { on: false, k: 0, st: '', where: '', t: 0, noteT: 0, sayT: 0, beat: 0, step: 0, used: false, told: false };
+const DANCE_SAY = ['와! 요트 댄스 파티~\n저도 같이 출게요!', '선장님 춤 최고예요!\n음악 크게 틀어요~', '다 같이 들썩들썩!\n바다도 춤춰요~'];
+(function(){ const st = document.createElement('style'); st.textContent = `
+#danceBox{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 132px);display:flex;gap:8px;align-items:center}
+#danceBox.hidden{display:none}
+#danceBtn{border:0;border-radius:999px;background:linear-gradient(135deg,#ff5fa8,#ff8a2a);color:#fff;font-family:var(--display);font-size:17px;padding:11px 20px;box-shadow:0 4px 0 #c43f73;cursor:pointer;white-space:nowrap}
+#danceBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #c43f73}
+#danceBtn.on{animation:dncPulse .5s ease-in-out infinite alternate}
+@keyframes dncPulse{from{filter:brightness(1)}to{filter:brightness(1.18)}}
+#danceStop{border:0;border-radius:999px;background:rgba(20,30,48,.72);color:#fff;font-family:var(--display);font-size:14px;padding:10px 14px;cursor:pointer}
+#danceStop.hidden{display:none}
+body.touch #danceBox{left:12px;transform:none;gap:6px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 273px)}
+body.touch #danceStop{width:38px;height:38px;padding:0;font-size:0}
+body.touch #danceStop::after{content:'✕';font-size:15px}
+body.clean #danceBox{visibility:hidden}`; document.head.appendChild(st); })();
+function danceUI(){ if (DANCE.box) return;
+  const box = document.createElement('div'); box.id = 'danceBox'; box.className = 'hidden';
+  const b = document.createElement('button'); b.id = 'danceBtn'; b.type = 'button'; b.textContent = '💃 춤추기'; b.onclick = () => danceGo();
+  const x = document.createElement('button'); x.id = 'danceStop'; x.type = 'button'; x.className = 'hidden'; x.textContent = '그만'; x.onclick = () => danceStop();
+  box.append(b, x); document.body.appendChild(box); DANCE.box = box; DANCE.btn = b; DANCE.stop = x; }
+function danceWhere(){
+  if (!started || switching) return '';
+  if (SEA.boat?.on) return 'boat';
+  if (SPOT?.tour && YB.boat && YB.stage && YB.stage !== 'result' && YB.stage !== 'depart' && ybOnBoat() && P.mode === 'land') return 'yacht';
+  return ''; }
+/* 춤 자세: 박자는 모두 같은 시계(time)를 써서, 친구 · 가이드와 박자가 맞는다 */
+function danceT(T, st){ const sit = st.startsWith('danceS'), k = +st.slice(-1) || 1, ph = time * Math.PI, b2 = Math.sin(ph * 2);
+  if (sit){ T.pitch = -0.12; T.lLx = T.lRx = -1.45; T.bob = Math.abs(b2) * 0.03; }
+  else { T.bob = Math.abs(b2) * 0.09; T.lLx = Math.max(0, Math.sin(ph)) * 0.55; T.lRx = Math.max(0, -Math.sin(ph)) * 0.55; }
+  if (k === 1){ T.roll = Math.sin(ph) * 0.13; T.yaw = Math.sin(ph) * 0.22; T.aLz = 2.35 + b2 * 0.4; T.aRz = -(2.35 - b2 * 0.4); T.aLx = T.aRx = -0.25; }
+  else if (k === 2){ T.aLz = 1.45 + Math.sin(ph * 4) * 0.18; T.aRz = -1.45 + Math.sin(ph * 4 + 1) * 0.18; T.roll = Math.sin(ph * 2) * 0.08; if (sit) T.yaw = Math.sin(ph) * 0.6; else { T.lLz = 0.12; T.lRz = -0.12; } }
+  else { T.aLz = 1.55 + b2 * 0.95; T.aRz = -1.55 + Math.sin(ph * 2 + 1.3) * 0.95; T.roll = Math.sin(ph * 2 + 0.65) * 0.18; T.pitch += Math.sin(ph * 2) * 0.06;
+    if (!sit){ T.lLx = T.lRx = 0; T.lLz = 0.12 + Math.max(0, Math.sin(ph)) * 0.25; T.lRz = -(0.12 + Math.max(0, -Math.sin(ph)) * 0.25); } } }
+function danceGo(){ const w = danceWhere(); if (!w) return;
+  if (P.sit && w === 'yacht') standUp();
+  AudioSys.init();
+  if (!DANCE.on){ DANCE.on = true; DANCE.k = 0; DANCE.t = 0; DANCE.noteT = 0; DANCE.beat = 0; DANCE.step = 0; if (!DANCE.used){ DANCE.used = true; track('dance'); } }
+  else DANCE.k = (DANCE.k + 1) % DANCES.length;
+  DANCE.where = w; DANCE.st = (w === 'boat' ? 'danceS' : 'dance') + (DANCE.k + 1); P.moving = false;
+  const d = DANCES[DANCE.k]; surfPop(`${d.e} ${d.n} 춤!`, true);
+  if (!DANCE.told){ DANCE.told = true; toast('신나는 음악이 나와요! 버튼을 또 누르면 다른 춤, 움직이면 멈춰요', 'found'); }
+  if (w === 'yacht' && YB.guide?.on && (YB.stage === 'cruise' || YB.stage === 'back') && time > DANCE.sayT){ DANCE.sayT = time + 25; ybSay(pickOne(DANCE_SAY), 'dance', 5); } }
+function danceStop(){ if (!DANCE.on) return; DANCE.on = false; DANCE.st = ''; DANCE.beat = 0; }
+function danceTick(dt){ danceUI();
+  const w = danceWhere();
+  if (DANCE.on){
+    if (!w || w !== DANCE.where || P.moving || gearOpen || (w === 'yacht' && P.sit)) danceStop();
+    else { DANCE.t += dt; DANCE.noteT -= dt; if (DANCE.noteT <= 0){ DANCE.noteT = 2.6; showEmote(myTag, pickOne(['🎵', '🎶', '✨'])); } danceMusic(); } }
+  const box = DANCE.box, show = !!w && !seaPanel() && !gearOpen && !storeOpen; box.classList.toggle('hidden', !show);
+  if (show){ const b = DANCE.btn, t = DANCE.on ? `${DANCES[(DANCE.k + 1) % DANCES.length].e} 다른 춤` : '💃 춤추기'; if (b.textContent !== t) b.textContent = t; b.classList.toggle('on', DANCE.on); DANCE.stop.classList.toggle('hidden', !DANCE.on); }
+  danceParty(dt, DANCE.on && DANCE.where === 'yacht'); }
+/* 신나는 음악: 쿵 · 칙 비트 + 베이스 + 멜로디 (8분음표 0.25초, 120bpm) */
+const DMEL = [72, 0, 76, 79, 81, 79, 76, 0, 74, 0, 76, 74, 72, 0, 67, 0], DBAS = [48, 48, 53, 53, 55, 55, 48, 43];
+let DNOISE = null;
+function danceMusic(){ const A = AudioSys, c = A.ctx; if (!c || A.muted || !A.master) return;
+  if (!DANCE.beat || DANCE.beat < c.currentTime - 0.1) DANCE.beat = c.currentTime + 0.03;
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12), out = A.master;
+  if (!DNOISE){ const len = Math.floor(c.sampleRate * 0.1), b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; DNOISE = b; }
+  while (DANCE.beat < c.currentTime + 0.25){ const t = DANCE.beat, s = DANCE.step % 16;
+    if (s % 2 === 0){ const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.12); g.gain.setValueAtTime(0.26, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18); o.connect(g).connect(out); o.start(t); o.stop(t + 0.2);
+      const bo = c.createOscillator(), bg = c.createGain(); bo.type = 'triangle'; bo.frequency.value = hz(DBAS[(s >> 1) % 8]); bg.gain.setValueAtTime(0.08, t); bg.gain.exponentialRampToValueAtTime(0.001, t + 0.42); bo.connect(bg).connect(out); bo.start(t); bo.stop(t + 0.45); }
+    else { const n = c.createBufferSource(); n.buffer = DNOISE; const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 6500; const g = c.createGain(); g.gain.setValueAtTime(0.045, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06); n.connect(hp).connect(g).connect(out); n.start(t); n.stop(t + 0.07); }
+    const m = DMEL[s]; if (m){ const o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = hz(m); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.03, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0008, t + 0.22); o.connect(g).connect(out); o.start(t); o.stop(t + 0.24); }
+    DANCE.step++; DANCE.beat += 0.25; } }
+/* 요트 파티 조명: 갑판 · 위층 난간을 따라 반짝이는 전구 (내가 요트에서 춤출 때만 켜짐, 한 번에 그리는 InstancedMesh) */
+function danceParty(dt, on){ const B = YB.boat; if (!B || (!on && !B.party)) return;
+  if (!B.party){ const cols = ['#ff4fa3', '#ffd23a', '#3ad6ff', '#7cff6b', '#b98cff'].map(c => new THREE.Color(c)), pts = [];
+    for (const s of [-1, 1]){
+      for (let z = YC_STERN + 0.35; z < YC_SUP[0] - 0.3; z += 0.62) pts.push([s * (YC_HW - 0.06), YB_DECK + 1.0, z]);
+      for (let x = YC_HW - 0.55; x > 0.6; x -= 0.6) pts.push([s * x, YB_DECK + 1.0, YC_STERN + 0.05]);
+      for (let z = YC_SUP[0] + 0.3; z < YC_FLY - 0.1; z += 0.62) pts.push([s * 1.6, YC_TOP + 0.95, z]); }
+    const im = new THREE.InstancedMesh(new THREE.SphereGeometry(0.055, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffffff' }), pts.length), m4 = new THREE.Matrix4();
+    pts.forEach((q, i) => { m4.makeTranslation(q[0], q[1], q[2]); im.setMatrixAt(i, m4); im.setColorAt(i, cols[i % 5]); });
+    im.frustumCulled = false; B.g.add(im); B.party = { im, cols, n: pts.length, sh: -1 }; }
+  const Pt = B.party; Pt.im.visible = on; if (!on) return;
+  const sh = Math.floor(time * 4); if (sh !== Pt.sh){ Pt.sh = sh; for (let i = 0; i < Pt.n; i++) Pt.im.setColorAt(i, Pt.cols[(i + sh) % 5]); Pt.im.instanceColor.needsUpdate = true; } }
+
 function seaFunBuild(){
   SEA.root = new THREE.Group(); (BUILD.parent || scene).add(SEA.root);
   SEA.kb.x = SEA.kb.z = 0; SEA.leap = null; SEA.build = null; SEA.castles = []; SEA.bath = null; SEA.goto = null; SEA.rv.clear(); SEA.sharkSeen = false; SEA.tumbleT = 0; closeSeaCard(); openSandMenu(false);
@@ -8760,7 +8846,7 @@ function seaFun(dt){
   if (!started){ seaBoatIdle(dt); seaSharks(dt); seaWhales(dt); showUpdate(dt); farUpdate(); return; }
   if (TOUCH){ if (P.mode === 'swim' && !SEA.hUD){ SEA.hUD = true; hintOnce('updown', '물에서는 ▼잠수 버튼으로 내려가고, ▲위로 버튼으로 올라와요'); }
     SEA.playT = (SEA.playT || 0) + dt; if (SEA.playT > 30 && !SEA.hFP){ SEA.hFP = true; hintOnce('fpbtn', '오른쪽 위 1인칭 버튼을 누르면 아기 눈으로 볼 수 있어요'); } }
-  seaBumps(dt); seaSolid(); seaWalls(dt); bigWaveEffects(dt); seaSlide(dt); ybUpdate(dt); seaCliffs(dt); seaErode(dt); seaCastles(dt); smashUpdate(dt); seaBath(dt); seaSharks(dt); seaWhales(dt); showUpdate(dt); inviteTick(dt); aloneTick(dt); q3Tick(dt); seaBoatIdle(dt); seaRemotes(dt); placeSeaCard(); farUpdate();
+  seaBumps(dt); seaSolid(); seaWalls(dt); bigWaveEffects(dt); seaSlide(dt); ybUpdate(dt); seaCliffs(dt); seaErode(dt); seaCastles(dt); smashUpdate(dt); seaBath(dt); seaSharks(dt); seaWhales(dt); showUpdate(dt); inviteTick(dt); aloneTick(dt); q3Tick(dt); danceTick(dt); seaBoatIdle(dt); seaRemotes(dt); placeSeaCard(); farUpdate();
   { const tb = $('#tourBtn'), on = !!SEA.boat?.on && SEA.whales.length > 0 && !seaPanel(); tb.classList.toggle('hidden', !on); if (on){ const t = SEA.tour ? '투어 멈추기' : '고래 보러 가기'; if (tb.textContent !== t) tb.textContent = t; } }
   if (SEA.menu && (seaPanel() || !onSand() || P.sit || P.moving)) openSandMenu(false);
 }
